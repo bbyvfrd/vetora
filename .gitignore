@@ -20,3 +20,6 @@ out/
 .kamal/secrets.*
 !.kamal/secrets-common
 infra/.state/
+
+# per developer git hook overrides
+lefthook-local.yml

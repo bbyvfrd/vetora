@@ -1,0 +1,8 @@
+# Git hooks (scope feature 2). pnpm install sets them up through lefthook's install script
+# (allowed in pnpm-workspace.yaml); if they are missing, run: pnpm exec lefthook install
+pre-commit:
+  jobs:
+    - name: biome
+      # Format, lint, sort imports, and apply the safe fixes to the staged files, then stage those fixes.
+      run: pnpm exec biome check --write --no-errors-on-unmatched --files-ignore-unknown=true {staged_files}
+      stage_fixed: true

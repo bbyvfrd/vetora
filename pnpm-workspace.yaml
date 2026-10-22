@@ -13,3 +13,5 @@ catalog:
 # tsx depends on esbuild, whose install script only checks its binary.
 onlyBuiltDependencies:
   - esbuild
+  # lefthook: its install script wires the git hooks on pnpm install (skipped when CI is set).
+  - lefthook
