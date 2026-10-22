@@ -5,7 +5,8 @@ export const healthRoute = createRoute({
   method: 'get',
   path: '/api/health',
   summary: 'Service health',
-  description: 'Reports the API version and whether the database answers. Used by the web app shell and by uptime checks.',
+  description:
+    'Reports the API version and whether the database answers. Used by the web app shell and by uptime checks.',
   responses: {
     200: {
       description: 'The API and its database are up',

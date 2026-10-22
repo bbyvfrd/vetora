@@ -1,5 +1,5 @@
-import { languageNames, languages, type Language } from '@vetora/i18n'
-import { Outlet, createRootRoute } from '@tanstack/react-router'
+import { createRootRoute, Outlet } from '@tanstack/react-router'
+import { type Language, languageNames, languages } from '@vetora/i18n'
 import { useTranslation } from 'react-i18next'
 import { setLanguage } from '../i18n'
 

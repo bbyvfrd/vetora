@@ -1,0 +1,71 @@
+{
+  // Lint and format for the whole monorepo (scope feature 2): one config at the root, and Biome follows .gitignore.
+  "$schema": "https://biomejs.dev/schemas/2.6.2/schema.json",
+  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+  "files": {
+    "includes": [
+      "**",
+      // Prose stays as written: Biome 2.6 would reflow every Markdown file.
+      "!**/*.md",
+      // Generated files are rewritten by their generators, never formatted or linted here.
+      "!**/routeTree.gen.ts",
+      "!packages/contracts/src/generated",
+      "!packages/contracts/openapi.json",
+      "!pnpm-lock.yaml",
+      // Third party skills and the Claude app's own files.
+      "!.agents",
+      "!.claude"
+    ]
+  },
+  // The scaffold's style: two spaces, single quotes, no semicolons, trailing commas, lines up to 120 characters.
+  "formatter": { "enabled": true, "indentStyle": "space", "indentWidth": 2, "lineWidth": 120 },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "jsxQuoteStyle": "double",
+      "semicolons": "asNeeded",
+      "trailingCommas": "all",
+      "arrowParentheses": "always"
+    }
+  },
+  // The tsconfig files carry comments.
+  "json": { "parser": { "allowComments": true } },
+  "assist": { "actions": { "source": { "organizeImports": "on" } } },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "preset": "recommended",
+      "correctness": { "noUnusedImports": "error", "noUnusedVariables": "error" },
+      "style": {
+        // verbatimModuleSyntax is on everywhere, so a type only import is written as one.
+        "useImportType": "error",
+        // Spec 0001, "Repository layout": only src/platform may import a database client (lifted in the override below).
+        "noRestrictedImports": {
+          "level": "error",
+          "options": {
+            "paths": {
+              "pg": "Only apps/api/src/platform creates a database client (spec 0001, Repository layout).",
+              "drizzle-orm/node-postgres": "Only apps/api/src/platform creates a database client (spec 0001, Repository layout)."
+            }
+          }
+        }
+      }
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["apps/api/src/platform/**"],
+      "linter": { "rules": { "style": { "noRestrictedImports": "off" } } }
+    },
+    {
+      // Spec 0001: modules reach each other only through their public interface. A module's index.ts is that
+      // interface; every other export in a module folder is visible only inside that folder and its subfolders.
+      "includes": ["apps/api/src/modules/**"],
+      "linter": {
+        "rules": {
+          "correctness": { "noPrivateImports": { "level": "error", "options": { "defaultVisibility": "package" } } }
+        }
+      }
+    }
+  ]
+}

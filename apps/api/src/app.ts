@@ -1,21 +1,22 @@
 import { OpenAPIHono } from '@hono/zod-openapi'
 import * as Sentry from '@sentry/node'
 import { HTTPException } from 'hono/http-exception'
-import { requestId, type RequestIdVariables } from 'hono/request-id'
+import { type RequestIdVariables, requestId } from 'hono/request-id'
 import { healthRoute } from './http/health.js'
 import { requestLogger } from './http/middleware.js'
 import { checkDatabase } from './platform/db.js'
 import { log, scrubError } from './platform/log.js'
 import { problem } from './platform/problem.js'
 
-export const version = process.env['KAMAL_VERSION'] ?? 'dev'
+export const version = process.env.KAMAL_VERSION ?? 'dev'
 
 export const openApiInfo = {
   openapi: '3.1.0',
   info: {
     title: 'vetora API',
     version,
-    description: 'The API behind the clinic web app and, later, the pet owner app. Routes are declared with zod schemas from packages/contracts.',
+    description:
+      'The API behind the clinic web app and, later, the pet owner app. Routes are declared with zod schemas from packages/contracts.',
   },
 } as const
 

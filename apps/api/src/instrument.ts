@@ -5,13 +5,13 @@ import * as Sentry from '@sentry/node'
  * Sentry v11 replaced `sendDefaultPii` with `dataCollection`; every category is off here.
  * Loaded first by index.ts; does nothing without a DSN (local development).
  */
-const dsn = process.env['SENTRY_DSN_API']
+const dsn = process.env.SENTRY_DSN_API
 
 if (dsn) {
   Sentry.init({
     dsn,
-    environment: process.env['APP_ENV'] ?? 'local',
-    ...(process.env['KAMAL_VERSION'] ? { release: process.env['KAMAL_VERSION'] } : {}),
+    environment: process.env.APP_ENV ?? 'local',
+    ...(process.env.KAMAL_VERSION ? { release: process.env.KAMAL_VERSION } : {}),
     tracesSampleRate: 0,
     dataCollection: {
       userInfo: false,

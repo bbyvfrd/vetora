@@ -1,11 +1,11 @@
 import './instrument.js'
 import { serve } from '@hono/node-server'
 import { app } from './app.js'
-import { ConfigError, loadConfig } from './platform/config.js'
+import { type Config, ConfigError, loadConfig } from './platform/config.js'
 import { closeDatabase } from './platform/db.js'
 import { log } from './platform/log.js'
 
-let config
+let config: Config
 try {
   config = loadConfig()
 } catch (error) {

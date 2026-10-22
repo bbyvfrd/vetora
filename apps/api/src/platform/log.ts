@@ -5,8 +5,8 @@ import { pino } from 'pino'
  * Request bodies are never logged; headers that carry credentials are redacted.
  */
 export const log = pino({
-  level: process.env['LOG_LEVEL'] ?? 'info',
-  base: { service: 'api', env: process.env['APP_ENV'] ?? 'local' },
+  level: process.env.LOG_LEVEL ?? 'info',
+  base: { service: 'api', env: process.env.APP_ENV ?? 'local' },
   redact: {
     paths: ['req.headers.authorization', 'req.headers.cookie', '*.password', '*.token', '*.secret'],
     censor: '[redacted]',

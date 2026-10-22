@@ -11,9 +11,13 @@
     "typecheck": "turbo run typecheck",
     "openapi": "turbo run openapi && pnpm --filter @vetora/contracts generate",
     "local:up": "docker compose up -d --wait",
-    "local:down": "docker compose down"
+    "local:down": "docker compose down",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write ."
   },
   "devDependencies": {
+    "@biomejs/biome": "2.6.2",
     "turbo": "2.11.10",
     "typescript": "catalog:"
   }

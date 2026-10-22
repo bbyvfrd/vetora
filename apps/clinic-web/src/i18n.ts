@@ -1,4 +1,4 @@
-import { defaultLanguage, isLanguage, resources, type Language } from '@vetora/i18n'
+import { defaultLanguage, isLanguage, type Language, resources } from '@vetora/i18n'
 import i18next from 'i18next'
 import { initReactI18next } from 'react-i18next'
 
