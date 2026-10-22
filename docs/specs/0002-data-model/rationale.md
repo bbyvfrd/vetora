@@ -83,7 +83,7 @@ Option 2 would be quicker for the first slice and slower for every slice after i
 
 ### What the doc check established (2026-10-22)
 
-From `docs/.agent-cache/research/scaffold-doc-check.md`: Drizzle 1.0 is at release candidate 5 (npm `latest` is 0.45.4); its migrator runs every pending migration in one transaction, migration SQL follows the connection's `search_path` so one practice folder applies to many schemas, and `migrationsSchema` must be set per target schema or every schema shares one migrations table. These shape the `migrate` command in the build plan. DigitalOcean offers Postgres 18 in `fra1` with `btree_gist`, `pg_trgm`, and `unaccent` available; `doadmin` can create roles (to be smoke tested), which the per practice roles rely on.
+From `docs/research/2026-10-22-scaffold-doc-check.md`: Drizzle 1.0 is at release candidate 5 (npm `latest` is 0.45.4); its migrator runs every pending migration in one transaction, migration SQL follows the connection's `search_path` so one practice folder applies to many schemas, and `migrationsSchema` must be set per target schema or every schema shares one migrations table. These shape the `migrate` command in the build plan. DigitalOcean offers Postgres 18 in `fra1` with `btree_gist`, `pg_trgm`, and `unaccent` available; `doadmin` can create roles (to be smoke tested), which the per practice roles rely on.
 
 ### Cross check (2026-10-22)
 
@@ -91,7 +91,7 @@ An independent read of the first draft on a different model (Claude Opus) found 
 
 ### Grilling (2026-10-22)
 
-A `/grill-with-docs` session on 2026-10-22 read this spec against `docs/domain.md` and the vetora design system glossary and settled nineteen term and boundary conflicts, recorded in domain.md's change log, `docs/adr/0001-administration-belongs-to-dispensing.md`, and `docs/.agent-cache/grilling/2026-10-22-domain-terms.md`. The index was updated in place: the staff role values follow domain.md §3 (manager, assistant, receptionist), the ownership roles lose caretaker, the encounter carries the note's six sections with no `note_format`, the observation kind is `pulse`, `patient_alert` joins slice 1, a lot is a manufacturer series topped up by later deliveries with `stock_transfer` for moves between stock locations, the invoice gains `due_on` and its lines a discount beside the list price, `visit_summary` goes and a receipt document points at its payment, the boarding schedule names the owner's own medication, and a house call is a seeded appointment type. The acceptance criteria are unchanged in substance; AC-10's wording follows the role rename.
+A `/grill-with-docs` session on 2026-10-22 read this spec against `docs/domain.md` and the vetora design system glossary and settled nineteen term and boundary conflicts, recorded in domain.md's change log, `docs/adr/0001-administration-belongs-to-dispensing.md`, and `docs/research/2026-10-22-grilling-domain-terms.md`. The index was updated in place: the staff role values follow domain.md §3 (manager, assistant, receptionist), the ownership roles lose caretaker, the encounter carries the note's six sections with no `note_format`, the observation kind is `pulse`, `patient_alert` joins slice 1, a lot is a manufacturer series topped up by later deliveries with `stock_transfer` for moves between stock locations, the invoice gains `due_on` and its lines a discount beside the list price, `visit_summary` goes and a receipt document points at its payment, the boarding schedule names the owner's own medication, and a house call is a seeded appointment type. The acceptance criteria are unchanged in substance; AC-10's wording follows the role rename.
 
 ### Cross check of the update (2026-10-22)
 
@@ -104,8 +104,8 @@ A second read on another model (Claude Opus) found ten decision gaps and eight s
 - `docs/specs/0001-stack-architecture/index.md` and its rationale: tenancy, roles, migrations, request context, the smaller calls on the driver and the typed client
 - `docs/scope/scope.md`: feature 3 and the slices 1 to 10 whose entities this spec covers
 - The vetora design system (Claude Design System artifact, linked from spec 0001): appointment states, calendar categories, print documents, languages
-- `docs/.agent-cache/research/scaffold-doc-check.md`: Drizzle and DigitalOcean facts above
-- `docs/adr/0001-administration-belongs-to-dispensing.md` and `docs/.agent-cache/grilling/2026-10-22-domain-terms.md`: the 2026-10-22 decisions applied in place
+- `docs/research/2026-10-22-scaffold-doc-check.md`: Drizzle and DigitalOcean facts above
+- `docs/adr/0001-administration-belongs-to-dispensing.md` and `docs/research/2026-10-22-grilling-domain-terms.md`: the 2026-10-22 decisions applied in place
 
 **Practices & standards**:
 - Domain driven design: aggregates, bounded contexts, ubiquitous language (the method behind domain.md)

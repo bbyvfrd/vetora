@@ -31,4 +31,4 @@ pnpm exec vitest run --project @vetora/i18n   # at the root; pnpm test runs ever
 
 - The package exports `dist/`: the web app sees a new key only after this package is rebuilt; `pnpm dev` does not watch it.
 
-_Drafted by /audit from the repo, worth a quick human pass. Edit freely: once a line stops matching this draft, later runs treat it as curated and will flag rather than overwrite it._
+_Drafted from the repo on 2026-10-22, worth a quick human pass; edit freely._

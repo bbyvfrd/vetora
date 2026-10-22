@@ -50,7 +50,7 @@ pnpm --filter @vetora/clinic-web preview    # serves the built dist/
 - `@vetora/contracts` and `@vetora/i18n` resolve from their `dist/`: after editing either, rebuild it (`pnpm --filter @vetora/i18n build`); `pnpm dev` builds them once and does not watch them.
 - Source maps are hidden and must never reach the image or the browser: the Dockerfile deletes `*.map` after the build and nginx answers 404 for them.
 - Client side routing: nginx serves `index.html` for unknown paths; hashed assets are cached for a year, `index.html` and `/config.json` are not.
-- Browsers lack Azerbaijani locale data for dates and numbers; the design system ships its own formatters, and feature 4 decides how this app uses them. `Intl.PluralRules` does know `az` and `ru`, which is what i18next uses for plurals.
+- Browsers lack Azerbaijani locale data for dates and numbers; the design system ships its own formatters, and the design system work decides how this app uses them. `Intl.PluralRules` does know `az` and `ru`, which is what i18next uses for plurals.
 
 ## Agent skills
 
@@ -60,6 +60,6 @@ pnpm --filter @vetora/clinic-web preview    # serves the built dist/
 ## Related specs
 
 - [0001 Stack and architecture](../../docs/specs/0001-stack-architecture/index.md): the clinic web app row, one origin, errors, translations
-- Scope feature 4 (design system & UI foundation) decides how the vetora design system is consumed here
+- The design system work (roadmap feature 4) decides how the vetora design system is consumed here
 
-_Drafted by /audit from the repo, worth a quick human pass. Edit freely: once a line stops matching this draft, later runs treat it as curated and will flag rather than overwrite it._
+_Drafted from the repo on 2026-10-22, worth a quick human pass; edit freely._

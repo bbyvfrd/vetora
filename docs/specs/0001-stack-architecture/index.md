@@ -1,7 +1,7 @@
 # 0001. Stack and architecture for vetora
 
 **Date**: 2026-10-02
-**Status**: In Progress
+**Status**: Design record, frozen on 2026-10-22 (built and amended through GitHub issues from here on)
 
 ## Summary
 
@@ -201,7 +201,7 @@ Clinic data holds personal data of Azerbaijani clients, so Azerbaijan's Law on P
 - [ ] Record for the `## Agent skills` section of `AGENTS.md`: MCP servers DigitalOcean, Sentry, GitHub; declined `better-auth-security-best-practices`, `drizzle` (lobehub), `drizzle-orm-patterns`, `tanstack-router-best-practices`.
 - [ ] Before a second country, revisit one deployment per country.
 - [ ] Design system spec (scope feature 4): turn the vetora design system into the project's `design.md` and decide how the web app consumes it (the published React bundle `window.Vetora`, or its source components vendored into the repo); reconcile its print documents (HTML `PrintSheet` pages for the browser's print dialog) with the React PDF decision above (for example render the same sheet to PDF in the worker, or keep browser print for drafts and stored PDFs for issued documents); decide whether its formatters (`Vetora.formatMoney`, `formatDate`, `formatCount`, `formatPhone`, `compareText`, built for Azerbaijani, Russian, and English because browsers lack Azerbaijani locale data) replace `date-fns` formatting and the i18next plural helpers in the web app. English joins Russian and Azerbaijani as a UI language (settled 2026-10-22; the Translations row now names all three).
-- [ ] Scaffold notes from the 2026-10-22 doc check (`docs/.agent-cache/research/scaffold-doc-check.md`): pin TypeScript 6 (or alias `typescript` to `@typescript/typescript6`) until `openapi-typescript` and `drizzle-kit` support the TypeScript 7 compiler API; Sentry v11 replaced `sendDefaultPii` with `dataCollection`, so set every collection option off; kamal-proxy path routing needs Kamal 2.7 or later with `proxy.run.version: v0.10.2` in both configs (a path routing bypass was fixed in 0.10.1), both services on one host and `ssl` only on the `/` service; MinIO's community edition is archived, so the local S3 server is SeaweedFS; DigitalOcean Standard clusters created after 2026-11-30 get no standby node, so the standby plan needs an Advanced cluster.
+- [ ] Scaffold notes from the 2026-10-22 doc check (`docs/research/2026-10-22-scaffold-doc-check.md`): pin TypeScript 6 (or alias `typescript` to `@typescript/typescript6`) until `openapi-typescript` and `drizzle-kit` support the TypeScript 7 compiler API; Sentry v11 replaced `sendDefaultPii` with `dataCollection`, so set every collection option off; kamal-proxy path routing needs Kamal 2.7 or later with `proxy.run.version: v0.10.2` in both configs (a path routing bypass was fixed in 0.10.1), both services on one host and `ssl` only on the `/` service; MinIO's community edition is archived, so the local S3 server is SeaweedFS; DigitalOcean Standard clusters created after 2026-11-30 get no standby node, so the standby plan needs an Advanced cluster.
 - [ ] Drizzle: move from the 1.0 release candidate to 1.0.0 when it ships, reading the changelog first (the 2026-10-02 landscape check called 1.0 stable; on 2026-10-22 npm `latest` was 0.45.4 and 1.0 stood at release candidate 5).
 
 ## Change log
@@ -210,5 +210,5 @@ Clinic data holds personal data of Azerbaijani clients, so Azerbaijan's Law on P
 |---|---|
 | 2026-10-02 | Written and cross checked. |
 | 2026-10-22 | Updated in place: Drizzle pinned to the 1.0 release candidate; the UI kit row points at the existing vetora design system; two follow ups added (design system reconciliation, Drizzle 1.0.0). |
-| 2026-10-22 | Updated in place from the grilling of the same day (`docs/.agent-cache/grilling/2026-10-22-domain-terms.md`): two factor sign in is for managers and the platform admin, not receptionists; staff role names follow spec 0002 and domain.md §3 (manager, assistant, receptionist); the owner app keeps its name, it is the pet owner's app; OPEN-13 is recorded in domain.md; the repository layout names the three translation languages. |
+| 2026-10-22 | Updated in place from the grilling of the same day (`docs/research/2026-10-22-grilling-domain-terms.md`): two factor sign in is for managers and the platform admin, not receptionists; staff role names follow spec 0002 and domain.md §3 (manager, assistant, receptionist); the owner app keeps its name, it is the pet owner's app; OPEN-13 is recorded in domain.md; the repository layout names the three translation languages. |
 | 2026-10-22 | Cross check of the update: the sign in plugin's creator role maps to manager; two factor is tied to the manager role; a PIN unlock never carries the manager role, so manager only actions need a TOTP session. |

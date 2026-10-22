@@ -6,9 +6,9 @@ How the engineering skills should consume this repo's domain documentation when 
 
 - **`GLOSSARY.md`** at the repo root: a pointer file. The model vocabulary lives in `docs/domain.md` §7 (ubiquitous language: English identifiers, Russian authoritative meaning, with the Azerbaijani and Russian terms) and the numbered invariants in §8 (CR-1, RX-3, BL-6, and so on). Read §7 and §8 before naming anything; §7.4 maps what the screens say (Visit, Batch, Queue) to the model terms (Encounter, Lot, Arrival).
 - The UI vocabulary (every screen, button, message, and document in Azerbaijani, Russian, and English) is the `glossary.md` of the vetora design system, a Claude Design System artifact; its link is in `docs/specs/0001-stack-architecture/rationale.md`. Read it when the output names a screen, a control, or a printed document.
-- **`docs/specs/`**: the decision records, owned by the `/architect` skill. Each `NNNN-<slug>/index.md` is the build spec of one decision and `rationale.md` beside it holds the options and reasoning. Read the specs that touch the area (0001 the stack, 0002 the data model) as you would ADRs.
+- **`docs/specs/`**: two frozen design records (0001 the stack, 0002 the data model): each `index.md` holds the decision and design, `rationale.md` beside it the options and reasoning. Read the one that touches the area as you would an ADR; new specs are `/to-spec` issues on the tracker.
 - **`docs/adr/`**: ADRs written by `/domain-modeling` for decisions too small for a spec. 0001 moves Administration to Prescription & Dispensing.
-- **`docs/scope/scope.md`**: the feature plan and its status (planned, in progress, done), used to place a ticket.
+- **`docs/scope/scope.md`**: the roadmap (each feature, its done when, and its status), used to place a ticket.
 
 If `docs/adr/` or a glossary section is missing, **proceed silently**. Don't flag the absence; `/domain-modeling` (reached via `/grill-with-docs` and `/improve-codebase-architecture`) adds terms and ADRs lazily when they actually get resolved.
 
@@ -20,10 +20,11 @@ Single-context repo:
 /
 ├── GLOSSARY.md            ← pointer to docs/domain.md §7 and the design system glossary
 ├── docs/domain.md         ← the domain model: contexts, glossary, invariants, open questions
-├── docs/specs/            ← decision records written by /architect (NNNN-slug/index.md + rationale.md)
-├── docs/adr/              ← small decisions written by /domain-modeling
-├── docs/scope/scope.md    ← the feature plan
-└── apps/, packages/       ← the code, once the scaffold lands
+├── docs/specs/            ← frozen design records 0001 (stack) and 0002 (data model)
+├── docs/adr/              ← decisions written by /domain-modeling and /grill-with-docs
+├── docs/research/         ← cited research notes (/research)
+├── docs/scope/scope.md    ← the roadmap
+└── apps/, packages/       ← the code (with infra/ and compose.yaml beside them)
 ```
 
 ## Use the glossary's vocabulary
@@ -38,4 +39,4 @@ If your output contradicts a spec or an ADR, surface it explicitly rather than s
 
 > _Contradicts spec 0002 (ledger derived balances), but worth reopening because…_
 
-A decision that changes the stack, a data model, or a security rule goes through `/architect` (a new or superseding spec); a smaller one becomes an ADR in `docs/adr/`.
+A decision that changes the stack, the data model, or a security rule is grilled first (`/grill-with-docs`) and recorded as an ADR in `docs/adr/` that names the spec section it amends; its build spec is a `/to-spec` issue. A smaller one is an ADR too, and a paragraph will do.

@@ -1,6 +1,6 @@
 # Issue tracker: GitHub
 
-Issues (bugs, tickets, wayfinder maps) for this repo live as GitHub issues; feature build specs live in `docs/specs/` under the `/architect` skill, and a `/to-spec` spec for a ticket goes in that issue's body. Use the `gh` CLI for all operations.
+Issues (bugs, tickets, wayfinder maps, and specs from `/to-spec`) for this repo live as GitHub issues; the two frozen design records under `docs/specs/` are read from the repo. Use the `gh` CLI for all operations.
 
 ## Conventions
 

@@ -1,7 +1,7 @@
 # 0002. Data model for vetora
 
 **Date**: 2026-10-22
-**Status**: Proposed
+**Status**: Design record, frozen on 2026-10-22 (ticketed with /to-tickets from this spec; amendments are ADRs)
 
 ## Summary
 
@@ -412,9 +412,9 @@ Per slice table sets, designed here and built by each slice's own feature as its
 - `docs/specs/0001-stack-architecture/index.md`: tenancy and data topology, roles, migrations, request context, API conventions, documents, configuration
 - `docs/scope/scope.md`: feature 3's intent and done when; the entities each slice needs
 - The vetora design system (Claude Design System artifact, linked from spec 0001): the seven appointment states, four calendar categories, the five print documents, three languages
-- `docs/.agent-cache/research/scaffold-doc-check.md`: Drizzle 1.0 release candidate migration behaviour (one transaction, `search_path`, `migrationsSchema` per schema), DigitalOcean role creation
+- `docs/research/2026-10-22-scaffold-doc-check.md`: Drizzle 1.0 release candidate migration behaviour (one transaction, `search_path`, `migrationsSchema` per schema), DigitalOcean role creation
 - The cross check record in `rationale.md`: the sixteen gaps and ten soundness findings this revision closed
-- `docs/adr/0001-administration-belongs-to-dispensing.md` and `docs/.agent-cache/grilling/2026-10-22-domain-terms.md`: the term and boundary decisions of 2026-10-22 applied in place
+- `docs/adr/0001-administration-belongs-to-dispensing.md` and `docs/research/2026-10-22-grilling-domain-terms.md`: the term and boundary decisions of 2026-10-22 applied in place
 
 **Practices & standards**:
 - Append only ledgers for money and legal records; corrections as new entries
@@ -432,5 +432,5 @@ Per slice table sets, designed here and built by each slice's own feature as its
 | Date | Change |
 |---|---|
 | 2026-10-22 | Written and cross checked. |
-| 2026-10-22 | Updated in place from the grilling of the same day (`docs/.agent-cache/grilling/2026-10-22-domain-terms.md`, ADR 0001): staff roles manager, assistant, receptionist; ownership roles without caretaker; the encounter's six note sections and no `note_format`; the observation kind `pulse`; `patient_alert`; lots topped up by later deliveries and `stock_transfer` with a transfer movement kind; `invoice.due_on` with overdue derived; `invoice_line.discount_minor` and `discount_reason`; one `discharge_summary` document kind and `issued_document.payment_id`; the boarding schedule's medication as the owner's own; a house call appointment type. The acceptance criteria are unchanged in substance; AC-10's wording follows the role rename. |
+| 2026-10-22 | Updated in place from the grilling of the same day (`docs/research/2026-10-22-grilling-domain-terms.md`, ADR 0001): staff roles manager, assistant, receptionist; ownership roles without caretaker; the encounter's six note sections and no `note_format`; the observation kind `pulse`; `patient_alert`; lots topped up by later deliveries and `stock_transfer` with a transfer movement kind; `invoice.due_on` with overdue derived; `invoice_line.discount_minor` and `discount_reason`; one `discharge_summary` document kind and `issued_document.payment_id`; the boarding schedule's medication as the owner's own; a house call appointment type. The acceptance criteria are unchanged in substance; AC-10's wording follows the role rename. |
 | 2026-10-22 | Cross checked the update on another model (Claude Opus); eighteen gaps closed: transfer registration and sources, the transfer unique exception, lot freeze and upsert with cost moved to receipt lines, discount rules and the invoice line class, due date sources with overdue after write offs and prepayments, amendment history, document checks, the house call path with `client.address` and a `bag` stock location, alert lifecycle, the first manager's roles, the reporter of the reason, prescription only sales blocked. |

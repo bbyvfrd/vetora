@@ -1,6 +1,6 @@
 # vetora
 
-Practice management software for companion vet clinics, Baku first. The plan lives in `docs/scope/`, the decisions in `docs/specs/`, the domain in `docs/domain.md`, and the agent context in `AGENTS.md`.
+Practice management software for companion vet clinics, Baku first. The roadmap is `docs/scope/scope.md`, the design records `docs/specs/`, the domain `docs/domain.md` with ADRs in `docs/adr/`, research `docs/research/`, work items on GitHub Issues, and the agent context `AGENTS.md` (`docs/RUNBOOK.md` is the day to day flow).
 
 ## Layout
 

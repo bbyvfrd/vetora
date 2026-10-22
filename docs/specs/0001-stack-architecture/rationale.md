@@ -101,7 +101,7 @@ Runner up: Option 3, had the owner app been a simple web portal.
 
 ### Landscape check (2026-10-02)
 
-One capped web check before the stack questions (cache: `docs/.agent-cache/research/stack-architecture.md`):
+One capped web check before the stack questions (cache: `docs/research/2026-10-02-stack-architecture-landscape.md`):
 
 - **Azerbaijan**: systems holding personal data must be registered with the data protection authority (medium confidence); whether storage must stay in the country is unclear (low confidence). Russia and Kazakhstan require in country storage.
 - **Nuxt**: 4.5.1 current (July 2026), Nuxt 3 end of life July 2026, Nuxt 5 planned for late 2026. Next.js was not checked.
@@ -123,7 +123,7 @@ An independent read of the first draft on a different model found 14 decision ga
 - Installed skills: `better-auth-best-practices`, `organization-best-practices`, `turborepo`, `vite`, `tanstack-query-best-practices` (in `.agents/skills/`)
 - The vetora design system, a Claude Design System artifact (added 2026-10-22): https://claude.ai/artifact/1q8EqTdSMXAx7J2nh7yPYS
 - Your other projects' stacks (Vue and Nuxt at work; Next.js, Drizzle, Prisma, Supabase in personal projects)
-- `docs/.agent-cache/research/stack-architecture.md` and `docs/.agent-cache/tool-discovery/stack-architecture.md`
+- `docs/research/2026-10-02-stack-architecture-landscape.md`
 
 **Practices & standards**:
 - Monolith first; a relational database as the default; ORM for CRUD, SQL for complexity

@@ -69,4 +69,4 @@ kamal deploy -c apps/api/config/deploy.yml -d staging   # at the root; a destina
 - [0001 Stack and architecture](../../docs/specs/0001-stack-architecture/index.md): API conventions, tenancy and request context, configuration and secrets, deployment
 - [0002 Data model](../../docs/specs/0002-data-model/index.md): the schemas, roles, migrate and provision commands, and the rules Postgres enforces
 
-_Drafted by /audit from the repo, worth a quick human pass. Edit freely: once a line stops matching this draft, later runs treat it as curated and will flag rather than overwrite it._
+_Drafted from the repo on 2026-10-22, worth a quick human pass; edit freely._

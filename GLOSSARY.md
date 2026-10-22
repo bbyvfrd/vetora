@@ -10,4 +10,4 @@ This file points at the vocabulary; it does not define it.
 
 _Record a new term here (term, meaning, RU, AZ, context), then fold it into `docs/domain.md` §7 deliberately._
 
-Last fold: 2026-10-22, from the `/grill-with-docs` session; see domain.md's change log, `docs/adr/0001-administration-belongs-to-dispensing.md`, and `docs/.agent-cache/grilling/2026-10-22-domain-terms.md` for the spec and scope edits it implies.
+Last fold: 2026-10-22, from the `/grill-with-docs` session; see domain.md's change log, `docs/adr/0001-administration-belongs-to-dispensing.md`, and `docs/research/2026-10-22-grilling-domain-terms.md` for the spec and scope edits it implies.

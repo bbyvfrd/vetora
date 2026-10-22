@@ -33,4 +33,4 @@ pnpm exec vitest run --project @vetora/contracts   # at the root; pnpm test runs
 
 - openapi-typescript 7 declares a `typescript ^5` peer and warns on 6, then generates fine; TypeScript 7 is not supported yet, which is why the pnpm catalog pins 6.
 
-_Drafted by /audit from the repo, worth a quick human pass. Edit freely: once a line stops matching this draft, later runs treat it as curated and will flag rather than overwrite it._
+_Drafted from the repo on 2026-10-22, worth a quick human pass; edit freely._
