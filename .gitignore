@@ -1,0 +1,5 @@
+# personal Claude Code settings (plugin toggles, permissions)
+.claude/settings.local.json
+
+# OS noise
+.DS_Store
