@@ -31,7 +31,7 @@ Roadmap `docs/scope/scope.md` · design records `docs/specs/` (frozen) · ADRs `
 
 ## Gotchas
 
-- Most skills are user invoked and hidden from the agent's own list; they work as `/mattpocock-skills:<name>` even when the agent claims they are missing.
+- Most skills (23 of 38, among them `to-tickets`, `to-spec`, `implement`, `grill-with-docs`, `wayfinder`) carry `disable-model-invocation`: you type them as `/mattpocock-skills:<name>`, and an agent cannot call them for you. A session briefed to "run /to-tickets" does the work by hand instead, so type the skill yourself in the session where you want it to run.
 - `/code-review` collides with a built in command: type `/mattpocock-skills:code-review`.
 - `/implement` commits to the current branch (here `main`), never closes the ticket, and ticks no criteria; the review diffs `<fixed point>...HEAD`, so note `git rev-parse HEAD` before each ticket and put `Closes #N` in the commit.
 - `/to-spec` labels the spec `ready-for-agent`; an unattended agent would try to build all of it, so remove the label after `/to-tickets`.
