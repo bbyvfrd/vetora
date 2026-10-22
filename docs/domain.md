@@ -2,7 +2,7 @@
 tags: [foundational, domain-model, ddd, architecture, azerbaijan, cis, product-strategy]
 sources: [wiki]
 created: 2026-09-10
-updated: 2026-10-02
+updated: 2026-10-22
 ---
 
 # Domain — Veterinary Practice Management
@@ -105,7 +105,8 @@ are two different links and they change independently [sourced: [[Veterinary Med
 **The person in the room is often not the client.** A family member, a driver, a housemate, a
 neighbour, an employee. The question "may this person authorise anaesthesia for this animal" has a
 real legal answer that depends on the ownership relationship *at that moment*
-[sourced: [[Informed Consent (Veterinary)]]].
+[sourced: [[Informed Consent (Veterinary)]]]. The model names such a person an `AuthorisedPerson`
+(§7.3); what they may lawfully consent to is [OPEN-14].
 
 ### The relationship is the object
 
@@ -166,7 +167,7 @@ Five things about this flow drive the model.
 schedule. An appointment is a *prediction*; an arrival is an *event*. They are not the same object
 and the schedule is a poor description of the building's actual state [sourced: [[Patient Flow]]].
 
-**Weighing happens before the consult, by whoever is free.** The weight is captured by a technician
+**Weighing happens before the consult, by whoever is free.** The weight is captured by an assistant
 or receptionist minutes before the vet sees the animal, it goes into the Objective section
 [sourced: [[SOAP Note]]], and **every dose calculated that day depends on it**. It is a measurement
 event with a time and an author, not an attribute of the animal (§8, invariant PT-2).
@@ -272,27 +273,30 @@ resource, which is why neither may own it (§8, invariant RS-1).
 Roles are not a permissions convenience. Who may perform an act is partly law, partly practice
 policy, and the difference between them decides whether a rule is configurable or fixed.
 
-| Role | RU | AZ | Typically may |
-|---|---|---|---|
-| **Veterinarian** | ветеринарный врач | baytar həkimi | Diagnose, prescribe, perform surgery, anaesthetise, euthanise, finalise a clinical record |
-| **Veterinary technician** | ветфельдшер / ассистент | baytar feldşeri | Restrain, sample, weigh, administer under direction, nurse inpatients, record observations |
-| **Receptionist / administrator** | администратор | administrator | Book, register clients and patients, take payment, sell over the counter |
-| **Groomer** | грумер | qulluqçu *(uncertain)* | Perform grooming. No clinical access. |
-| **Practice owner / manager** | руководитель | rəhbər | Configure, price, report, manage staff |
+| Role | Model role | RU | AZ | Typically may |
+|---|---|---|---|---|
+| **Veterinarian** | `veterinarian` | ветеринарный врач | baytar həkim | Diagnose, prescribe, perform surgery, anaesthetise, euthanise, finalise a clinical record |
+| **Assistant** | `assistant` | ассистент | həkim köməkçisi | Restrain, sample, weigh, administer under direction, nurse inpatients, record observations |
+| **Receptionist** | `receptionist` | администратор | administrator | Book, register clients and patients, take payment, sell over the counter. A job, not a level of access |
+| **Groomer** | `groomer` | грумер | qrumer | Perform grooming. No clinical access. |
+| **Manager** | `manager` | руководитель | rəhbər | Configure, price, report, manage staff. The only "owner" in the model is the pet owner |
 
 > All Russian and Azerbaijani terms in this document are **[review needed]** — see the note
 > opening §7.
 
 Three things this table implies for the model:
 
-**Finalising a clinical record is a veterinarian act.** A technician may record observations into a
+**Finalising a clinical record is a veterinarian act.** An assistant may record observations into a
 draft; only the veterinarian's finalisation makes it a legal record with their name and
 accountability attached [sourced: [[VCPR]], [[Veterinary Medical Record]]].
 
-**The feldsher is a real trained role, not an assistant.** In CIS veterinary practice *ветфельдшер*
-is a distinct qualification with genuine clinical scope. A permissions model imported from a US
-product — where "vet tech" maps differently — will misfit. What a feldsher may independently do
-under Azerbaijani law is [OPEN-4].
+**The assistant role is a scope of work; a feldsher diploma is a qualification.** In CIS veterinary
+practice *ветфельдшер* is a distinct qualification with genuine clinical scope, so a permissions
+model imported from a US product — where "vet tech" maps differently — will misfit. The role is
+named `assistant` (ассистент: the design system's word, and the clinic's unless the interviews say
+фельдшер). What a diploma holder may independently do under Azerbaijani law is [OPEN-4]; if the
+answer grants independent acts, the diploma is recorded on the staff member as a qualification,
+not as a second role.
 
 **Role is not the whole answer; the care relationship is.** "May Dr. X prescribe for this animal"
 is not answered by Dr. X's role. Both must hold: the role permits prescribing, *and* a current care
@@ -432,8 +436,8 @@ lawyer — not as requirements.
 
 ### 5.5 Azerbaijan — unanswered
 
-Everything specific to Azerbaijan is unverified and recorded in §12: OPEN-2 through OPEN-8. They
-are not decoration. **OPEN-5 (controlled substances) is the one that must be answered before
+Everything specific to Azerbaijan is unverified and recorded in §12: OPEN-2 through OPEN-8, OPEN-13, and
+OPEN-14. They are not decoration. **OPEN-5 (controlled substances) is the one that must be answered before
 building**, because if a register is required it is an append-only invariant rather than a report,
 and retrofitting that is expensive.
 
@@ -457,20 +461,20 @@ adopted rather than invented.
 | Context | Owns | Why it is core |
 |---|---|---|
 | **Clinical Record** | Encounter, CareRelationship, ProblemList, ClinicalObservation, Diagnosis | The legal record and the reason the product exists |
-| **Hospitalization** | Admission, TreatmentSheet, TreatmentOrder, Administration, Handover | Nobody in this market serves the стационар well [assumed]; it is where charge leakage and handover failure concentrate |
-| **Prescription & Dispensing** | Prescription, DoseCalculation, DispenseEvent | Where clinical decisions become stock movements and legal artifacts simultaneously |
+| **Hospitalization** | Admission, TreatmentSheet, TreatmentOrder, Handover | Nobody in this market serves the стационар well [assumed]; it is where charge leakage and handover failure concentrate |
+| **Prescription & Dispensing** | Prescription, DoseCalculation, DispenseEvent, Administration | Where clinical decisions become stock movements and legal artifacts simultaneously: prescribe, dispense, administer (ADR 0001) |
 
 ### 6.2 Supporting
 
 | Context | Owns | Note |
 |---|---|---|
 | **Client** | Client, ConsentRecord, ClientBalance, ContactPoint | Includes legal entities — shelters, breeders — not only people |
-| **Patient** | Patient, OwnershipRelationship, PatientIdentity, LifeStatus | Ownership is time-boxed here, not a field |
-| **Scheduling & Resources** | Appointment, Resource, ResourceBooking | Owns cages, rooms, tables, provider time. Neutral between clinical and non-clinical claimants |
+| **Patient** | Patient, OwnershipRelationship, PatientIdentity, LifeStatus, Alert | Ownership is time-boxed here, not a field. An Alert is a handling warning, not a problem |
+| **Scheduling & Resources** | Appointment, Arrival, Resource, ResourceBooking | Owns cages, rooms, tables, provider time. Neutral between clinical and non-clinical claimants. An Arrival is the event an Appointment predicts |
 | **Diagnostics** | LabOrder, LabResult, ImagingStudy, ReferenceRange | In-house and send-out differ only in latency and in who fulfils |
-| **Inventory** | StockItem, Lot, StockMovement, StockLocation, PurchaseOrder | Lot-level, because dispensing legally requires lot and expiry |
-| **Billing & Payments** | Estimate, Invoice, LineItem, Payment, FiscalReceipt | Independent of the clinical record by necessity, not by preference |
-| **Non-Clinical Services** | BoardingStay, GroomingService, FeedingSchedule | Boarding and grooming merged: both non-clinical, staff-performed, resource-consuming, no medical record |
+| **Inventory** | Product, Lot, StockMovement, StockLocation, PurchaseOrder | Lot-level, because dispensing legally requires lot and expiry |
+| **Billing & Payments** | Estimate, Invoice, LineItem, Discount, Payment, Receipt, FiscalReceipt | Independent of the clinical record by necessity, not by preference |
+| **Non-Clinical Services** | BoardingStay, BoardingSchedule | Boarding and grooming merged: both non-clinical, staff-performed, resource-consuming, no medical record. Grooming is an Appointment plus Services and a note; the boarding schedule (feeding, the owner's own medication) never becomes an Administration |
 | **Preventive Care** | PreventiveProtocol, DueItem, VaccinationRecord | Separate because it is *time-driven*, not visit-driven |
 | **Client Communication** | Conversation, Message, Reminder, Channel | Downstream aggregator; owns no clinical truth |
 
@@ -502,12 +506,13 @@ Arrows point **downstream** — from the context that constrains to the context 
             ▼            │    │             ▼
   ┌──────────────────┐   │    │   ┌───────────────────┐
   │  PRESCRIPTION &  │   │    │   │  HOSPITALIZATION  │
-  │    DISPENSING    │   │    │   │  TreatmentSheet   │
-  └────────┬─────────┘   │    │   └─────────┬─────────┘
-           │ C-S         │    │             │
-           ▼             │    │             │
-  ┌──────────────────┐   │    │             │
-  │    INVENTORY     │◀──┼────┼─────────────┘  both decrement stock
+  │    DISPENSING    │◀──┼────┼───│  TreatmentSheet   │  C-S: orders are resolved
+  │  Administration  │   │    │   └───────────────────┘  by administrations
+  └────────┬─────────┘   │    │
+           │ C-S         │    │
+           ▼             │    │
+  ┌──────────────────┐   │    │
+  │    INVENTORY     │   │    │   clinical stock moves only through Dispensing
   │  Lot · Movement  │   │    │
   └──────────────────┘   │    ▼
                          │  ┌──────────────┐
@@ -555,6 +560,7 @@ Arrows point **downstream** — from the context that constrains to the context 
 | Clinical Record → Prescription | **Customer-Supplier** | Prescription cannot exist without an encounter under a care relationship |
 | Prescription → Inventory | **Customer-Supplier** | Inventory supplies lot and expiry; dispensing is legally incomplete without them |
 | Hospitalization → Scheduling | **Customer-Supplier** | It books cages; it does not own them |
+| Hospitalization → Prescription & Dispensing | **Customer-Supplier** | A TreatmentOrder's due time is resolved by an Administration; the ward never moves stock itself (ADR 0001) |
 | Non-Clinical → Scheduling | **Customer-Supplier** | Same cages, same booking mechanism, different claimant |
 | Everything → Billing | **Published Language** (domain events) | Billing must not reach into clinical internals. It subscribes to events |
 | Billing → fiscal authority | **Anti-Corruption Layer** | External, legally rigid, and its model must not leak inward |
@@ -574,7 +580,10 @@ needed them apart, merge them.**
 **Boarding and grooming merged into one context.** They share everything that matters: non-clinical,
 staff-performed, resource-consuming, no medical record produced. They differ in duration and in
 which resource they consume. **If a boarding-specific medication schedule turns out to need clinical
-supervision, boarding will need to split out** — that is the signal to watch for.
+supervision, boarding will need to split out** — that is the signal to watch for. Until then a
+boarder's medication is the owner's own, logged by boarding staff and never an `Administration`;
+what the clinic supplies to a boarder is sold over the counter, and only a veterinarian's order
+turns a boarder into an inpatient (ADR 0001).
 
 ---
 
@@ -584,7 +593,9 @@ supervision, boarding will need to split out** — that is the signal to watch f
 > language model with limited Azerbaijani and non-expert Russian veterinary vocabulary. They are a
 > starting point for a conversation with a practising Baku veterinarian, **not a glossary**. Terms
 > that survive that conversation should be marked verified; terms that do not should be replaced
-> with what the vet actually says.
+> with what the vet actually says. Since 2026-10-22 the RU and AZ columns follow the vetora design
+> system's glossary, which owns every word a screen, a message, or a printed document uses in all
+> three languages (§7.4): consistent, not yet verified.
 
 ### 7.1 The naming rule
 
@@ -601,9 +612,14 @@ translation that loses the concept is worse than a foreign-looking identifier.
 The rule matters most in a place that looks trivial. Russian-tradition veterinary documentation
 uses **анамнез / статус презенс / диагноз / назначения** — the same reasoning sequence as
 [[SOAP Note|SOAP]], inherited from a different medical education, not translated from English
-[sourced: [[SOAP Note]], [[Ubiquitous Language]]]. Whether Baku vets document in S/O/A/P or in the
-Russian tradition determines what the note editor should show, and getting it wrong makes the
-product feel foreign in the first five minutes [OPEN-10].
+[sourced: [[SOAP Note]], [[Ubiquitous Language]]]. The note therefore has **six sections, in the
+order the vet works**, and one structure: reason for visit (причина обращения, müraciət səbəbi),
+anamnesis (анамнез, anamnez; shown as History), examination (осмотр, müayinə), diagnosis (диагноз,
+diaqnoz), treatment (лечение, müalicə), recommendations (рекомендации, tövsiyələr). SOAP is a
+labelling of the same six (S: reason and anamnesis; O: examination and the vital signs; A:
+diagnosis; P: treatment and recommendations), so whether Baku vets think in S/O/A/P or in the
+Russian tradition decides the labels the editor shows, not its shape [OPEN-10]. Getting the labels
+wrong still makes the product feel foreign in the first five minutes.
 
 ### 7.2 The same word in four contexts
 
@@ -625,39 +641,98 @@ about or too narrow to be useful.
 
 | Model term | RU | AZ | Precise meaning |
 |---|---|---|---|
-| `Encounter` | приём | qəbul | One clinical interaction between a veterinarian and a patient, with a start and an end. **Not** an appointment. |
+| `Encounter` | приём | qəbul | One clinical interaction between a veterinarian and a patient, with a start and an end. **Not** an appointment. Shown as Visit |
 | `CareRelationship` | — | — | The [[VCPR]]. No established local term found; likely does not exist as a named concept [OPEN-2] |
 | `ProblemList` | список проблем | problem siyahısı | Longitudinal, patient-level, persists across encounters |
-| `ClinicalObservation` | объективное обследование | müayinə | A measured finding with value, unit, time, and measuring party |
+| `ClinicalObservation` | показатель | göstərici | A measured finding with value, unit, time, and measuring party: weight, temperature, pulse, respiratory rate. The vital signs of a visit (жизненные показатели, həyati göstəricilər); the Examination section (осмотр, müayinə) is the narrative, not this |
 | `Anamnesis` | анамнез | anamnez | Client-reported history. Retained untranslated — "history" loses the provenance connotation |
 | `Diagnosis` | диагноз | diaqnoz | Working or definitive; distinct from a differential |
-| `DischargeSummary` | выписка | — | Required record component, not a courtesy |
+| `DischargeSummary` | выписка | çıxarış | The one document the owner takes home after a visit or an inpatient stay: diagnosis, what was done, what to do now. Required record component, not a courtesy; there is no separate visit summary |
 
 **Hospitalization**
 
 | Model term | RU | AZ | Precise meaning |
 |---|---|---|---|
-| `Admission` | госпитализация | stasionara qəbul | Entry into inpatient care; opens the stay |
+| `Admission` | госпитализация | stasionara qəbul | Entry into inpatient care; opens the stay. The context is shown as Inpatient care (стационар, stasionar) |
 | `TreatmentSheet` | лист назначений | — | The central inpatient document: scheduled orders and their administration |
-| `TreatmentOrder` | назначение | təyinat | One scheduled instruction with a due time |
-| `Administration` | введение / выполнение | — | Record that an order was carried out, refused, or missed — by whom, when |
+| `TreatmentOrder` | назначение | təyinat | One scheduled instruction with a due time; resolved by an `Administration` |
 | `Handover` | передача смены | növbə təhvili | Shift change; a first-class event, not a report |
 
-**Client, Patient, Money**
+**Prescription & Dispensing**
 
 | Model term | RU | AZ | Precise meaning |
 |---|---|---|---|
-| `Client` | клиент | müştəri | The responsible, consenting, paying party. May be a legal entity |
-| `Owner` | владелец | sahib | The clinical-conversation term for the same party. Kept distinct: ownership is a *relationship*, client is a *role* |
-| `Patient` | пациент | pasiyent | The animal. See §7.2 |
-| `Prescription` | рецепт | resept | The authorising document |
+| `Prescription` | рецепт | resept | The authorising document. Its lines are also the take-home table printed on the выписка (shown as Treatment plan, план лечения, müalicə planı), never typed by hand |
 | `DispenseEvent` | отпуск препарата | — | The act of handing over, with lot and expiry |
+| `Administration` | введение / выполнение | — | The act of giving a medication, fluid, feeding, or procedure to a patient by a named staff member at a time, with outcome given, refused, or missed. On the ward it resolves a `TreatmentOrder`'s due time; in the consult room it stands alone under the `Encounter`. Owned here, not by Hospitalization (ADR 0001) |
+
+**Client and Patient**
+
+| Model term | RU | AZ | Precise meaning |
+|---|---|---|---|
+| `Client` | клиент | müştəri | Any person or organisation on the clinic's books: may own patients, be billed, or act for another client's patient. The responsible, consenting, paying party for a patient is its current `Owner` |
+| `Owner` | владелец | sahib | The client holding the open ownership of role owner for a patient: responsible, consenting, paying; one per patient at a time (PT-1). The only "owner" in the model; the staff role is `manager` |
+| `AuthorisedPerson` | доверенное лицо | səlahiyyətli şəxs | A client linked to a patient by an ownership of that role: may bring the animal, give its history, and sign consent with that standing. What they may lawfully consent to is [OPEN-14] |
+| `Patient` | пациент | pasiyent | The animal. See §7.2 |
+| `Alert` | особая отметка | xüsusi qeyd | A short handling warning on the patient that anyone touching it must see: an allergy, aggression, a contagious disease. Has a kind; set and cleared by staff. Not a problem: a problem is clinical and resolves in encounters |
+| `Species` | вид | növ | A modelling parameter (PT-3). Never "növ" for a type of anything else |
+| `Breed` | порода | cins | Per species; the clinic adds its own |
+| `VaccinationRecord` | вакцинация | peyvənd | Giving a vaccine and the record of it; the vaccine itself is a `Product` |
+
+**Money**
+
+| Model term | RU | AZ | Precise meaning |
+|---|---|---|---|
 | `Estimate` | смета | — | What the client agreed to before work began |
-| `Invoice` | счёт | hesab | The commercial document |
-| `FiscalReceipt` | чек | — | The legally-registered artifact. **Not** the invoice |
-| `ClientBalance` | долг | borc | Running amount owed across visits |
-| `Lot` | партия | partiya | Stock batch with an expiry. The unit dispensing legally requires |
-| `BoardingStay` | передержка | — | A non-clinical stay |
+| `Invoice` | счёт | hesab-faktura | The commercial document. The bare "hesab" is misread beside "hesabat", a report |
+| `Discount` | скидка | endirim | A named reduction of a line's price against the price list, kept beside the list price with its reason, so both survive. Never an edited unit price or a negative line; an invoice-wide discount is a discount on each line |
+| `Receipt` | чек | qəbz | vetora's own printed proof of a payment, carrying "Не является фискальным чеком" / "Kassa çeki deyil". **Not** the fiscal receipt |
+| `FiscalReceipt` | кассовый чек | kassa çeki | The legally-registered artifact from the cash register, one per payment. **Not** the invoice, not vetora's receipt |
+| `ClientBalance` | баланс клиента | müştəri balansı | The signed sum of a client's ledger: positive is debt (долг, borc; shown as Balance due), negative is a `Prepayment`. The screen never shows "balance" |
+| `Prepayment` | предоплата | avans | Money received from a client that no invoice has yet claimed, including money left before an admission |
+| `Service` | услуга | xidmət | Something the clinic does and charges for |
+| `Product` | товар | məhsul | Something the clinic sells or uses from stock |
+
+**Stock, places, and schedule**
+
+| Model term | RU | AZ | Precise meaning |
+|---|---|---|---|
+| `Lot` | серия | seriya | One manufacturer series of one product at one stock location, with the series' expiry date; the unit dispensing legally requires. A second delivery of the same series tops up the lot. Shown as Batch |
+| `StockLocation` | место хранения | saxlama yeri | A place within a location where stock is kept: a cabinet, a fridge, the counter, the store |
+| `Practice` | клиника | klinika | The tenant: one clinic as a legal and billing unit, with one or more locations. Shown as Clinic |
+| `Location` | филиал | filial | One physical site of a practice, holding its rooms, cages, and stock; every record knows its location (IN-5). Shown as Branch |
+| `StaffMember` | сотрудник | əməkdaş | A named person who works at the practice, with one or more roles (§3) |
+| `Appointment` | запись | randevu | A booked time in the schedule: a prediction, never a visit (SC-1). A house call (вызов на дом, evə çağırış) is an appointment type whose only resource is the vet |
+| `Arrival` | явка | gəliş | A client and patient turning up, at a time, as a booked visit, a walk-in (без записи, randevusuz), or an emergency. The event an appointment predicts; the Queue (очередь, növbə) is today's arrivals not yet seen |
+| `BoardingStay` | передержка | — | A non-clinical stay. Its feeding and medication schedule is logged by boarding staff and is never an `Administration` |
+
+### 7.4 What the screens say
+
+The design system glossary owns every word a screen, a message, or a printed document uses, in
+all three languages; this table maps the ones that differ from the model identifier, so that code
+reads `Encounter` while the vet reads Visit. Anything a screen needs that is not in the design
+system glossary is added there first, in all three languages.
+
+| On screen | RU | AZ | In the model |
+|---|---|---|---|
+| Visit | приём | qəbul | An `Encounter` |
+| Complete visit | завершить приём | qəbulu tamamla | Finalising an `Encounter` (CR-1, CR-2) |
+| Cancel visit | отменить приём | qəbulu ləğv et | Discarding a draft `Encounter` under which nothing was issued |
+| Medical record | медкарта | tibbi kart | The patient's full history: a view over its encounters, problems, observations, and files, not an aggregate. The scope's patient chart |
+| Vital signs | жизненные показатели | həyati göstəricilər | The `ClinicalObservation`s taken at a visit: weight, temperature, pulse (пульс, nəbz), respiratory rate |
+| Treatment plan | план лечения | müalicə planı | The take-home table of the выписка, generated from the issued `Prescription` |
+| Inpatient care | стационар | stasionar | The Hospitalization context |
+| Batch | серия | seriya | A `Lot` |
+| Stock | склад | anbar | The Inventory context and its page |
+| Pharmacy | аптека | aptek | Over-the-counter sales, the counter stream (§2.3) |
+| Till | касса | kassa | Cash handling and the day close |
+| Clinic, Branch | клиника, филиал | klinika, filial | A `Practice`, a `Location` |
+| Queue, Walk-in | очередь, без записи | növbə, randevusuz | Today's `Arrival`s not yet seen; an `Arrival` with no appointment |
+| Balance due, Prepayment | долг, предоплата | borc, avans | A positive, a negative `ClientBalance` |
+| Due date | срок оплаты | son ödəniş tarixi | The day by which an issued `Invoice` is to be paid; optional, set for clients paying by transfer |
+| Overdue | просрочен | vaxtı keçib | An issued `Invoice` with an unpaid remainder past its due date; derived, never stored. No due date, never overdue |
+| Discharge summary | выписка | çıxarış | The `DischargeSummary` |
+| Manager, Assistant, Receptionist | руководитель, ассистент, администратор | rəhbər, həkim köməkçisi, administrator | The staff roles of §3 |
 
 ---
 
@@ -773,8 +848,8 @@ needs something not on it, either the event is missing or the boundary is wrong.
 | `PrescriptionIssued` | Prescription | Billing, Client Communication, Inventory |
 | `MedicationDispensed` | Prescription | Inventory, Billing, Controlled-drug register |
 | `PatientAdmitted` / `PatientDischarged` | Hospitalization | Scheduling, Billing, Client Communication |
-| `TreatmentAdministered` | Hospitalization | Billing, Inventory |
-| `TreatmentMissed` | Hospitalization | Patient Flow views, Handover |
+| `TreatmentAdministered` | Prescription & Dispensing | Billing, Inventory, Hospitalization (the treatment sheet) |
+| `TreatmentMissed` | Prescription & Dispensing | Hospitalization (the ward board, Handover), Patient Flow views |
 | `ShiftHandedOver` | Hospitalization | Patient Flow views |
 | `LabResultReceived` | Diagnostics | Clinical Record, Loose-End tracking, Client Communication |
 | `StockMovementRecorded` | Inventory | Billing, Reporting |
@@ -850,23 +925,26 @@ why it matters, and what is assumed meanwhile.
 | **OPEN-1** | How does a Baku companion clinic actually run its day? | §2 is reconstructed from US and Western European sources. It is the weakest part of this document | The flow in §2. **Highest-value question here.** Resolve by observation, not reading — see [[Workflow Analysis]] |
 | **OPEN-2** | Does AZ law condition prescribing on a prior examination or relationship? | Determines whether CR-4 is a legal invariant or a product choice | Model the relationship regardless |
 | **OPEN-3** | Is prescribing authority attached to the individual vet or the clinic? Can it be established remotely? | Decides locum and colleague workflows, and whether telemedicine is possible at all | Attach to the individual; permit clinic-level delegation as configuration |
-| **OPEN-4** | What may a *ветфельдшер* do independently under AZ law? | The permissions model. A US-derived vet-tech scope will misfit | Administer under direction; record observations; not finalise records |
+| **OPEN-4** | What may a *ветфельдшер* do independently under AZ law? | The permissions model. A US-derived vet-tech scope will misfit | The `assistant` role: administer under direction; record observations; not finalise records. A diploma becomes a qualification on the staff member if the answer grants independent acts |
 | **OPEN-5** | Does AZ require a controlled-substance register in veterinary practice? Per administration or per container? Who signs? Retention? | **Answer before building.** If required it is an append-only invariant (RX-4), not a report. Retrofitting is expensive | Assume required, per administration, single signature, 7 years |
 | **OPEN-6** | Does AZ grant clients a right of access to their animal's record? On what terms? | Decides whether BL-7 is law or policy | Grant access on request; never withhold over debt |
 | **OPEN-7** | Which veterinary transactions require a fiscal receipt in AZ? Through what device or channel? What happens on refund or correction? | Decides whether BL-4 is one integration or several, and how refunds work | Invoice and FiscalReceipt separate; fiscal issuance is an event |
 | **OPEN-8** | What retention period applies to AZ veterinary clinical records? | Purge policy, storage cost, export obligations | 7 years minimum, append-only, never purge deceased patients |
 | **OPEN-9** | Is WhatsApp actually the clinic–client channel in Baku, or is it Telegram, SMS, or a phone call? | Decides the first Client Communication adapter, and whether messaging is core or peripheral | WhatsApp first, channel modelled as a port |
-| **OPEN-10** | Do Baku vets document in SOAP, or in the анамнез / статус / диагноз / назначения tradition? | Decides what the note editor shows. Getting it wrong makes the product feel foreign in five minutes | Offer the Russian-tradition structure by default, SOAP as an option |
+| **OPEN-10** | Do Baku vets document in SOAP, or in the анамнез / статус / диагноз / назначения tradition? | Decides the labels of the note's six sections (§7.1). Getting them wrong makes the product feel foreign in five minutes | Six fixed sections, labelled in the Russian tradition; SOAP is a relabelling of the same six, not a second structure |
 | **OPEN-11** | How routine are exotics — rabbits, birds, reptiles — in Baku companion practice? | Determines how much PT-3 costs. Exotic dosing and reference ranges are a large body of work | Dog and cat first-class; exotics recorded but not clinically supported |
 | **OPEN-12** | Does a specialist referral ecosystem exist in Baku? | Decides whether referral is a real workflow or a v3 fantasy | No referral workflow in v1 |
+| **OPEN-13** | On what terms may Azerbaijani clients' personal data be held abroad (production runs in Frankfurt), and must the system be registered with the data protection authority? | Gates go live (spec 0001). A negative answer moves production to self-run equivalents in country | Production stays in Frankfurt; staging holds made-up data only; ask before real client data exists |
+| **OPEN-14** | What may an `AuthorisedPerson` lawfully consent to on the owner's behalf — surgery, anaesthesia, euthanasia above all? | Decides whether the screen warns or blocks when a non-owner signs (IN-2) | Allow it, record who signed with what standing, warn |
 
 ### How to close these
 
 OPEN-1, -4, -9, -10, -11, -12 close by **talking to two or three practising Baku veterinarians**.
 That is one week of work and it would resolve half this register.
 
-OPEN-2, -3, -5, -6, -7, -8 close with **a local lawyer or accountant** familiar with veterinary
-practice and the fiscal regime. OPEN-5 is the one that gates building.
+OPEN-2, -3, -5, -6, -7, -8, -13, -14 close with **a local lawyer or accountant** familiar with
+veterinary practice and the fiscal regime. OPEN-5 is the one that gates building; OPEN-13 gates
+go live.
 
 ---
 
@@ -876,3 +954,4 @@ practice and the fiscal regime. OPEN-5 is the one that gates building.
 |---|---|
 | 2026-09-10 | Created. Derived from the wiki at 155 pages / 54 of 75 raw sources ingested, following the record-keeping ingest that introduced [[VCPR]], [[Veterinary Medical Record]], [[SOAP Note]], and [[Informed Consent (Veterinary)]] |
 | 2026-10-02 | Moved from the Vet Software vault root into the vetora repo as `docs/domain.md`, so the build workflow can read it. Content unchanged; wikilinks still cite the vault's `wiki/` |
+| 2026-10-22 | Grilled against spec 0002 and the vetora design system (`/grill-with-docs`). Staff roles renamed manager, assistant, receptionist (§3); Administration widened and moved to Prescription & Dispensing (§6, §9, ADR 0001); the note fixed at six sections (§7.1); Client widened, AuthorisedPerson and Alert added, caretaker dropped; Lot is a manufacturer series; one выписка; Prepayment, Receipt, Discount, Arrival, Practice, Location, StockLocation, and the plain rows added to §7.3; §7.4 maps what the screens say; RU and AZ aligned to the design system glossary, which owns UI words; OPEN-13 and OPEN-14 added. Invariants (§8) unchanged. The spec and scope edits this implies are listed in `docs/.agent-cache/grilling/2026-10-22-domain-terms.md` |

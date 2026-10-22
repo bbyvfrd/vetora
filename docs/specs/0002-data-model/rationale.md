@@ -68,7 +68,7 @@ Option 2 would be quicker for the first slice and slower for every slice after i
 - **`date` for calendar facts** (ownership periods, boarding nights, birth dates, due dates, business dates) and `timestamptz` for instants: avoids time zone drift on things that are not instants; runner up timestamps everywhere.
 - **Set once columns as a class** (`valid_to`, `withdrawn_at`, `acknowledged_at`, `removed_at`, `cancelled_at`): one UPDATE from null is allowed and audited, nothing else; runner up a second row per change.
 - **No DELETE grant anywhere**, with the one delete path (an import revert) run by the migrator before go live and audited: IN-6 cannot be broken by a helper; runner up DELETE on draft tables only.
-- **Reference rows seeded by data migrations** (species, default appointment types) and practice specific rows by provisioning (settings, default location, first owner): existing practices receive new reference rows, and each practice may edit its own; runner up shared reference tables in `control`.
+- **Reference rows seeded by data migrations** (species, default appointment types) and practice specific rows by provisioning (settings, default location, first manager): existing practices receive new reference rows, and each practice may edit its own; runner up shared reference tables in `control`.
 - **`occurred_at` beside `created_at`** with a back dating window from settings and a `business_date` for money: honest timestamps for a rushed ward and a day close that cannot be back filled; runner up the clock only.
 - **A receipt per payment** rather than per invoice: the cash register issues a receipt when money is taken, a payment may settle several invoices, and a correction references the old receipt; runner up a receipt column on the invoice (the scope's interim wording).
 - **Stock unit on the product** with every quantity, price, and cost per stock unit: a partial pack is a number, not a guess; runner up quantities in packs.
@@ -76,6 +76,10 @@ Option 2 would be quicker for the first slice and slower for every slice after i
 - **Administrations in slice 2 with an encounter or a due row**: an injection in the consult room charges and moves stock the same way as a ward dose; runner up administrations only on the ward (slice 8), leaving consult room injections with no path.
 - **Duplicate phones warned, not blocked**: families and shelters share numbers; runner up a unique index.
 - **Grooming without a table of its own** beyond an optional note: it is an appointment plus services; runner up a `grooming_service` table mirroring boarding.
+- **A stock transfer as its own row with two movements** (added 2026-10-22): the destination lot is the same series at the other stock location, so the controlled drug balance per location stays honest; runner up an adjustment pair with a reason, which hides the link between the two halves.
+- **A discount as a column beside the price list snapshot** (added 2026-10-22): both prices survive and nobody edits a price or the price list to give one; runner up a negative line, which makes totals and reports count a discount as an item.
+- **Patient alerts as their own table** (added 2026-10-22): a handling warning is not a clinical problem and must not resolve with one; runner up a flag on `patient_problem`.
+- **An optional due date on the invoice** (added 2026-10-22): overdue is derived from it and a cash client never has one; runner up payment terms per client, which no walk in client needs.
 
 ### What the doc check established (2026-10-22)
 
@@ -85,6 +89,14 @@ From `docs/.agent-cache/research/scaffold-doc-check.md`: Drizzle 1.0 is at relea
 
 An independent read of the first draft on a different model (Claude Opus) found sixteen decision gaps and ten soundness findings, verdict "sound with the gaps closed". The engineer chose to apply every recommended fix and the two design changes it proposed (handlers write with deferred checks; a role per practice). The gaps closed: no writer created or lapsed the care relationship; a single staff role kept an owner who is also a vet from finalising; append only rows were being filled in later (reversed into forward references, and the receipt moved onto the payment); the charge on issue, the void reversal, counter sale and count movements had no named writer, and dispensed and retail lines shared a kind; administrations required a ward due row, so consult room injections and vaccines had no stock, charge, or register path; quantities had no unit; a dose cited a weight that could still change and dose per kg had no source; a sale to nobody could not be issued; drafts could not be discarded and imports could not be reverted; dispenses were not checked against the issued prescription, product, expiry, or quantity; due rows and administrations both held the outcome and discharge left orders running; the register lacked kinds, ran its balance across locations, and had no stable order; allocations had no caps, expected cash no source, closed days no lock, invoices no number, and lines one language; estimates stayed editable and consent was never required; admission bookings had no end and cancelled appointments kept theirs; forward columns were missing from the slice lists. The soundness fixes: extensions moved to a shared `ext` schema (the draft would have installed them inside the first practice schema), the audit and register tables made function written, the actor check made robust to an empty setting, child inserts locking their parent, a `valid_to > valid_from` check, provisioning registering first and idempotent per step, audit rows storing new values only with autosave every 30 seconds, and ICU collations on name columns.
 
+### Grilling (2026-10-22)
+
+A `/grill-with-docs` session on 2026-10-22 read this spec against `docs/domain.md` and the vetora design system glossary and settled nineteen term and boundary conflicts, recorded in domain.md's change log, `docs/adr/0001-administration-belongs-to-dispensing.md`, and `docs/.agent-cache/grilling/2026-10-22-domain-terms.md`. The index was updated in place: the staff role values follow domain.md §3 (manager, assistant, receptionist), the ownership roles lose caretaker, the encounter carries the note's six sections with no `note_format`, the observation kind is `pulse`, `patient_alert` joins slice 1, a lot is a manufacturer series topped up by later deliveries with `stock_transfer` for moves between stock locations, the invoice gains `due_on` and its lines a discount beside the list price, `visit_summary` goes and a receipt document points at its payment, the boarding schedule names the owner's own medication, and a house call is a seeded appointment type. The acceptance criteria are unchanged in substance; AC-10's wording follows the role rename.
+
+### Cross check of the update (2026-10-22)
+
+A second read on another model (Claude Opus) found ten decision gaps and eight soundness findings in the in place update, verdict "sound with the gaps closed". The engineer applied every recommended fix, choosing two simpler shapes over the critique's: no loose end list for unissued discharge summaries yet (a slice 6 question), and a PIN unlock that never carries the manager role (spec 0001) instead of a TOTP step up at the first manager only action.
+
 ## References
 
 **Project sources**:
@@ -93,6 +105,7 @@ An independent read of the first draft on a different model (Claude Opus) found 
 - `docs/scope/scope.md`: feature 3 and the slices 1 to 10 whose entities this spec covers
 - The vetora design system (Claude Design System artifact, linked from spec 0001): appointment states, calendar categories, print documents, languages
 - `docs/.agent-cache/research/scaffold-doc-check.md`: Drizzle and DigitalOcean facts above
+- `docs/adr/0001-administration-belongs-to-dispensing.md` and `docs/.agent-cache/grilling/2026-10-22-domain-terms.md`: the 2026-10-22 decisions applied in place
 
 **Practices & standards**:
 - Domain driven design: aggregates, bounded contexts, ubiquitous language (the method behind domain.md)

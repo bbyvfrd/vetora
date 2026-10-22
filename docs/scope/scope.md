@@ -4,7 +4,7 @@ Practice management software for companion vet clinics in Azerbaijan, Baku first
 
 **Build approach:** Tracer Bullet (thin vertical slices, each working end to end through every layer before the next one starts).
 **Workflow:** Beta (after `/develop`: `/check verify`, then `/test`). The project default level of rigor. `/architect` is the recommended first stop for a feature with a real decision, but skippable when you already know the build. Any feature can carry its own tag (e.g. `· GA`) to do more or less; the seven features where a bug becomes a legal or money problem carry `· GA` (basis: the domain.md §8 rules those features enforce).
-**Domain model:** [`docs/domain.md`](../domain.md) is the source of truth for terms, the numbered rules cited below (CR-1, RX-3, BL-6, …), and the open questions (OPEN-n). Interviews with Baku vets close OPEN-1, 4, 9, 10, 11, 12; a local lawyer or accountant closes OPEN-2, 3, 5, 6, 7, 8. Features name the ones they lean on.
+**Domain model:** [`docs/domain.md`](../domain.md) is the source of truth for terms, the numbered rules cited below (CR-1, RX-3, BL-6, …), and the open questions (OPEN-n). Interviews with Baku vets close OPEN-1, 4, 9, 10, 11, 12; a local lawyer or accountant closes OPEN-2, 3, 5, 6, 7, 8, 13, 14. Features name the ones they lean on.
 
 _These are recommendations to keep your build orderly, not requirements. Skip anything that does not fit: if you already know how to build a feature, use `/develop` and skip `/architect`. You decide when a feature is `done`._
 
@@ -73,8 +73,8 @@ Turn domain.md's 13 contexts and 36 rules into the persistence shape: modules in
 [Spec 0002](../specs/0002-data-model/index.md)
 
 ### 4. Design system & UI foundation · needs a decision
-Visual language and base components for reception desktops and ward tablets, translation ready in Russian and Azerbaijani, with print layouts for client documents.
-**Done when:** `design.md` covers type, color, spacing, components, and print; base components work by keyboard and by touch with readable contrast; no screen text lives outside the Russian and Azerbaijani translation files.
+Visual language and base components for reception desktops and ward tablets, translation ready in Azerbaijani, Russian, and English, with print layouts for client documents.
+**Done when:** `design.md` covers type, color, spacing, components, and print; base components work by keyboard and by touch with readable contrast; no screen text lives outside the Azerbaijani, Russian, and English translation files.
 - [ ] Design it (spec): `/architect design system & UI foundation`
 
 ## Slice 1: Core loop
@@ -82,8 +82,8 @@ Visual language and base components for reception desktops and ward tablets, tra
 The thinnest real thread through a clinic day, and the walking skeleton for everything after it (basis: tracer bullet development).
 
 ### 5. First visit from arrival to payment · needs a decision · GA
-A vet signs in, registers a walk in client and pet, records the weight, writes and finalises the visit note, invoices it, and takes a payment. Real sign in and real data; no bookings, stock, or printing yet. The note follows the Russian structure (анамнез, статус, диагноз, назначения) until the interviews settle OPEN-10.
-**Done when:** a vet completes a walk in visit end to end in Russian or Azerbaijani; the finalised note is locked (CR-1) and only a vet can finalise it (CR-2); a note in progress survives a dropped connection; a part payment leaves the rest as client debt (BL-5); every action records who did it (IN-1).
+A vet signs in, registers a walk in client and pet, records the weight, writes and finalises the visit note, invoices it, and takes a payment. Real sign in and real data; no bookings, stock, or printing yet. The note has six sections (reason for visit, history, examination, diagnosis, treatment, recommendations); the interviews settle their labels (OPEN-10).
+**Done when:** a vet completes a walk in visit end to end in Azerbaijani, Russian, or English; the finalised note is locked (CR-1) and only a vet can finalise it (CR-2); a note in progress survives a dropped connection; a part payment leaves the rest as client debt (BL-5); every action records who did it (IN-1).
 - [ ] Design it (spec): `/architect first visit from arrival to payment`
 
 ## Slice 2: Medicines
@@ -106,19 +106,19 @@ Cash, part payments, and running debt are everyday events here, not edge cases (
 
 ### 8. Payments and client debt · needs a decision · GA
 Make front desk money real for a cash market: part payments, running client debt (долг, borc) across visits, paying off old debt, the fiscal receipt number from the clinic's own cash register, and fixing mistakes without deleting anything.
-**Done when:** a client's debt is the sum of an append only ledger (BL-6); one payment can settle several invoices; each invoice can carry the clinic's receipt number while receipts stay a separate record (BL-4, OPEN-7); corrections are new entries, never edits; the day closes with a cash and card summary.
+**Done when:** a client's debt is the sum of an append only ledger (BL-6); one payment can settle several invoices; the clinic's fiscal receipt number is recorded per payment, so one payment that settles several invoices has one receipt and two part payments have two (BL-4, OPEN-7); corrections are new entries, never edits; the day closes with a cash and card summary.
 - [ ] Design it (spec): `/architect payments and client debt`
 
 ## Slice 4: Stock and the counter
 
 ### 9. Stock receiving and counts
-Receive deliveries into lots with cost and expiry, count and adjust stock with a reason, and see what is running low or expiring soon (basis: the data model and dispensing specs already decide lots and movements, so no new decision).
+Receive deliveries into lots with cost and expiry, move stock between stock locations, count and adjust stock with a reason, and see what is running low or expiring soon (basis: the data model and dispensing specs already decide lots and movements, so no new decision).
 **Done when:** received lots are available to dispense and sell; every adjustment is a recorded movement with a reason and an author; lots near expiry and items below their minimum are listed.
 - [ ] Build it: `/develop stock receiving and counts`
 
 ### 10. Counter sales
 Sell food, preventatives, and accessories over the counter to a known client or to nobody at all, from the same lot tracked stock.
-**Done when:** a sale needs no patient or visit (BL-1); it lowers stock by lot; it uses the same payment, debt, and receipt flow as a visit invoice.
+**Done when:** a sale needs no patient or visit (BL-1) and never sells a product that needs a prescription; it lowers stock by lot; it uses the same payment, debt, and receipt flow as a visit invoice.
 - [ ] Build it: `/develop counter sales`
 
 ## Slice 5: Bookings
@@ -131,7 +131,7 @@ Book appointments by type and length for a vet or a room, check in arrivals, and
 ## Slice 6: Records and documents
 
 ### 12. Patient chart · needs a decision
-Find any animal by client name or phone and open one page for it: visits over time, the problem list, weight trend, attached files (lab PDFs, photos, signed consent scans), and amendments to finalised visits.
+Find any animal by client name or phone and open one page for it: visits over time, the problem list, handling alerts, weight trend, attached files (lab PDFs, photos, signed consent scans), and amendments to finalised visits.
 **Done when:** the problem list lives on the patient across visits (CR-6); an amendment shows author, time, reason, and the earlier text (CR-1); files attach to a patient or a visit; a rehomed or deceased animal keeps its full history (PT-1, PT-4).
 - [ ] Design it (spec): `/architect patient chart`
 
@@ -141,7 +141,7 @@ Record vaccinations with the vaccine lot, work out when the next ones are due pe
 - [ ] Design it (spec): `/architect vaccinations and due list`
 
 ### 14. Client printouts
-Print or save as PDF, in Russian or Azerbaijani with the clinic's letterhead: the prescription, the visit summary (выписка), the invoice, and a consent form filled in with client and pet details (basis: builds on the design system's print layouts, so no new decision).
+Print or save as PDF, in the client's language (Azerbaijani, Russian, or English) with the clinic's letterhead: the prescription, the discharge summary (выписка, one document for a visit or a stay), the invoice, and a consent form filled in with client and pet details (basis: builds on the design system's print layouts, so no new decision).
 **Done when:** each document prints in the client's chosen language from real record data; a draft prints clearly marked as a draft.
 - [ ] Build it: `/develop client printouts`
 
@@ -150,7 +150,7 @@ Print or save as PDF, in Russian or Azerbaijani with the clinic's letterhead: th
 Everything the design partner clinic needs to switch over, and the end of the pilot release (basis: your answer, front desk to checkout with one design partner clinic).
 
 ### 15. Practice settings
-The owner adds staff with their own logins and roles (vet, feldsher, administrator, groomer, owner), sets the services and price list, and enters clinic details for printouts. Role scope follows domain.md's interim answer to OPEN-4.
+The manager adds staff with their own logins and roles (veterinarian, assistant, receptionist, groomer, manager), sets the services and price list, and enters clinic details for printouts. Role scope follows domain.md's interim answer to OPEN-4.
 **Done when:** every person has their own login and none are shared; changing a price never touches past invoices; prices are whole minor units in AZN (IN-4).
 - [ ] Build it: `/develop practice settings`
 
@@ -160,7 +160,7 @@ Bring the pilot clinic's client and pet list, plus the debts they carry, in from
 - [ ] Design it (spec): `/architect client and pet import`
 
 ### 17. Owner daily view
-One screen for the owner: today's revenue by line (visits, medicines, retail), payments by method, total client debt, stock value, and lots expiring soon.
+One screen for the manager, usually the clinic's owner: today's revenue by line (visits, medicines, retail), payments by method, total client debt, stock value, and lots expiring soon.
 **Done when:** every figure ties back to the ledger and stock movements behind it, and splits by location (IN-5).
 - [ ] Build it: `/develop owner daily view`
 
@@ -206,7 +206,7 @@ Book groomers and tables, charge for the service, and keep it out of the medical
 
 ### 24. Boarding · needs a decision
 Board healthy animals (передержка) in the same cages the стационар uses, with a feeding and medication schedule and a nightly charge. If boarders' medication turns out to need a vet's supervision, that decides whether boarding splits out (domain.md §6.6).
-**Done when:** boarding and the стационар can never claim the same cage at the same time (RS-1); feeding and medication are recorded like administrations; each night is charged.
+**Done when:** boarding and the стационар can never claim the same cage at the same time (RS-1); feeding and medication are recorded in the boarding log, outside the clinical record; each night is charged.
 - [ ] Design it (spec): `/architect boarding`
 
 ## Deferred

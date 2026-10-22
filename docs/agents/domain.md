@@ -4,10 +4,10 @@ How the engineering skills should consume this repo's domain documentation when 
 
 ## Before exploring, read these
 
-- **`GLOSSARY.md`** at the repo root: a pointer file. The model vocabulary lives in `docs/domain.md` §7 (ubiquitous language: English identifiers, Russian authoritative meaning, with the Azerbaijani and Russian terms) and the numbered invariants in §8 (CR-1, RX-3, BL-6, and so on). Read §7 and §8 before naming anything.
+- **`GLOSSARY.md`** at the repo root: a pointer file. The model vocabulary lives in `docs/domain.md` §7 (ubiquitous language: English identifiers, Russian authoritative meaning, with the Azerbaijani and Russian terms) and the numbered invariants in §8 (CR-1, RX-3, BL-6, and so on). Read §7 and §8 before naming anything; §7.4 maps what the screens say (Visit, Batch, Queue) to the model terms (Encounter, Lot, Arrival).
 - The UI vocabulary (every screen, button, message, and document in Azerbaijani, Russian, and English) is the `glossary.md` of the vetora design system, a Claude Design System artifact; its link is in `docs/specs/0001-stack-architecture/rationale.md`. Read it when the output names a screen, a control, or a printed document.
 - **`docs/specs/`**: the decision records, owned by the `/architect` skill. Each `NNNN-<slug>/index.md` is the build spec of one decision and `rationale.md` beside it holds the options and reasoning. Read the specs that touch the area (0001 the stack, 0002 the data model) as you would ADRs.
-- **`docs/adr/`**: ADRs written by `/domain-modeling` for decisions too small for a spec. Absent today.
+- **`docs/adr/`**: ADRs written by `/domain-modeling` for decisions too small for a spec. 0001 moves Administration to Prescription & Dispensing.
 - **`docs/scope/scope.md`**: the feature plan and its status (planned, in progress, done), used to place a ticket.
 
 If `docs/adr/` or a glossary section is missing, **proceed silently**. Don't flag the absence; `/domain-modeling` (reached via `/grill-with-docs` and `/improve-codebase-architecture`) adds terms and ADRs lazily when they actually get resolved.
