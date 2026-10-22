@@ -43,6 +43,7 @@ pnpm --filter @vetora/clinic-web preview    # serves the built dist/
 - No personal data in URLs: search parameters hold only filters that are not personal (status, dates, location); names and phones travel in request bodies (spec 0001, "API conventions").
 - Imports carry no extension (bundler resolution); `verbatimModuleSyntax` and `erasableSyntaxOnly` are on, so types are imported with `import type`, and enums, namespaces, and parameter properties are out.
 - `src/index.css` stays a placeholder until the design system feature; it is not where styling grows.
+- Tests go beside the code as `*.test.tsx` and run with `pnpm test` at the root; the first component test needs a DOM environment (`jsdom` or `happy-dom`) declared in a `test` block of `vite.config.ts`, which is not installed yet.
 
 ## Gotchas
 

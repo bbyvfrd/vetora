@@ -13,7 +13,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | # | Feature | Phase | Status |
 |---|---------|-------|--------|
 | 1 | Stack & architecture | Foundation | in-progress |
-| 2 | Coding standards & tooling | Foundation | in-progress |
+| 2 | Coding standards & tooling | Foundation | done |
 | 3 | Data model | Foundation | in-progress |
 | 4 | Design system & UI foundation | Foundation | planned |
 | 5 | First visit from arrival to payment | Slice 1 | planned |
@@ -51,7 +51,7 @@ Decide the whole stack once, then scaffold a runnable project. The decision cove
 [Spec 0001](../specs/0001-stack-architecture/index.md) · code in `apps/api`, `apps/clinic-web`, `packages/`, `infra/`, `compose.yaml`
 _Deferred on 2026-10-22: the hosted deploy (the last Done when clause) waits until a server and a domain are affordable. Everything else builds and verifies locally; the Hosted section of the spec's `verify.md` is the checklist for that first deploy._
 
-### 2. Coding standards & tooling · in-progress
+### 2. Coding standards & tooling · done
 Capture conventions and tooling from the real scaffolded project, then install lint, format, and pre commit checks.
 **Done when:** root `AGENTS.md` reflects the real stack and treats the domain.md rule IDs as shared vocabulary for code, tests, and reviews; lint, format, and pre commit run clean.
 - [x] Capture conventions + tooling choices: `/audit`
@@ -59,7 +59,7 @@ Capture conventions and tooling from the real scaffolded project, then install l
   - [x] Biome lint and format, the scaffold formatted, checked in CI
   - [x] lefthook pre commit hook
   - [x] Vitest with a smoke test per workspace, run in CI
-- [ ] Check it runs clean: `/test`
+- [ ] Check it runs clean: `/test` · skipped on 2026-10-22 (lint, format, pre commit, and the smoke tests already run clean, locally and in CI)
 code in `biome.jsonc`, `lefthook.yml`, `vitest.config.ts`, `.vscode/`, `.github/workflows/ci.yml`
 
 ### 3. Data model · in-progress · GA

@@ -2,7 +2,7 @@
 
 ## Overview
 
-`@vetora/config`: the shared TypeScript configuration every workspace extends. Lint and format configuration lands here with scope feature 2 (`/develop tooling`).
+`@vetora/config`: the shared TypeScript configuration every workspace extends. Lint and format configuration is not here: Biome reads the one `biome.jsonc` at the repository root.
 
 ## Key files
 

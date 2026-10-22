@@ -20,6 +20,8 @@ pnpm install && pnpm local:up            # Node 24, pnpm 10, Docker; Postgres 18
 cp apps/api/.env.example apps/api/.env   # local values only
 pnpm dev                                 # API on :3000, web on :5173 (Vite proxies /api); builds the packages first
 pnpm build && pnpm typecheck             # every workspace, through Turborepo
+pnpm lint                                # Biome, read only: format, lint, import order (pnpm lint:fix applies the safe fixes, pnpm format only formats)
+pnpm test                                # Vitest in every workspace, after building contracts and i18n; pnpm test:watch keeps it running
 pnpm openapi                             # after a route change; commit openapi.json and src/generated (CI diffs them)
 ```
 
@@ -35,7 +37,7 @@ pnpm openapi                             # after a route change; commit openapi.
 - Screen text lives only in the `packages/i18n` locale files (`az`, `ru`, `en`), every key in all three; `en.json` is the typed source.
 - Shared tool versions come from the pnpm catalog (`typescript`, `zod`, `@types/node`); TypeScript stays on 6.x until openapi-typescript and drizzle-kit support 7; Drizzle, and later Better Auth, are pinned exactly, and a changelog is read before a bump.
 - Secrets never enter git: `.env` files are ignored (`.env.example` stays current), `.kamal/secrets-common` holds references only, and each app validates its configuration with zod at startup and fails loudly.
-- Lint and format: Biome, one config at the repository root, with a `noRestrictedImports` pattern for the module boundary rule; pre commit: lefthook on staged files; tests: Vitest, one root config with a project per workspace, database rules proven against the compose Postgres. Chosen on 2026-10-22 for scope feature 2; `/develop tooling` installs them, and until then CI runs build, typecheck, and the OpenAPI diff.
+- Lint and format: Biome from the root `biome.jsonc` (`pnpm lint`, `pnpm lint:fix`, `pnpm format`), run on the staged files by the lefthook pre commit hook; tests: Vitest (`pnpm test`), one root config with a project per workspace, tests beside the code as `*.test.ts` and kept out of the builds by each package's `tsconfig.build.json`; database rules get proven against the compose Postgres from the data model feature on. Chosen on 2026-10-22 for scope feature 2 and installed the same day; spec 0001's module and database client boundaries are Biome rules, described in `apps/api/AGENTS.md`.
 
 ## Git
 

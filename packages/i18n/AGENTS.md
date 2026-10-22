@@ -14,8 +14,9 @@
 ## Commands
 
 ```bash
-pnpm --filter @vetora/i18n build       # tsc to dist/, JSON copied along (resolveJsonModule); the web app imports dist
+pnpm --filter @vetora/i18n build       # tsc -p tsconfig.build.json to dist/ (tests left out), JSON copied along; the web app imports dist
 pnpm --filter @vetora/i18n typecheck
+pnpm exec vitest run --project @vetora/i18n   # at the root; pnpm test runs every workspace
 ```
 
 ## Conventions
@@ -24,6 +25,7 @@ pnpm --filter @vetora/i18n typecheck
 - Keys are grouped by screen or concept (`health.title`, `language.label`), never by component or language.
 - Plurals come from `Intl.PluralRules` (i18next 26, no plugin): `az` has `one` and `other`, `ru` has `one`, `few`, `many`, and `other`, so a counted string carries the `_one`, `_few`, `_many`, `_other` variants each language needs.
 - Wording follows the design system glossary (link in spec 0001's `rationale.md`) and `docs/domain.md` §7.4 (what the screens say).
+- `src/index.test.ts` proves every key exists in all three languages; it runs with `pnpm test` at the root, and `tsconfig.build.json` keeps tests out of `dist/`.
 
 ## Gotchas
 
