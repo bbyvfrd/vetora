@@ -25,16 +25,32 @@ function* causeChain(error: unknown): Generator<object> {
 /**
  * A Postgres error's `detail`, `hint`, and `where` can contain the conflicting value
  * (spec 0001, "API conventions"); drop them before the error is logged or reported.
- * Drizzle wraps a failed query in a DrizzleQueryError whose `cause` is the Postgres error, so the
- * whole cause chain is scrubbed.
+ * Drizzle wraps a failed query in a DrizzleQueryError whose `cause` is the Postgres error and whose
+ * `params` are the request's values, so the whole cause chain is scrubbed and the params go too.
  */
 export function scrubError(error: unknown): unknown {
   for (const level of causeChain(error)) {
     for (const key of ['detail', 'hint', 'where', 'internalQuery'] as const) {
       if (key in level) delete (level as Record<string, unknown>)[key]
     }
+    scrubQueryParams(level)
   }
   return error
+}
+
+/**
+ * A DrizzleQueryError carries the query's params as a property and in its message ("Failed query: …\nparams: …"),
+ * which its stack repeats. The query text stays (placeholders only); the values never reach a log or Sentry.
+ */
+function scrubQueryParams(level: object): void {
+  if (!('params' in level)) return
+  delete (level as { params?: unknown }).params
+  if (!(level instanceof Error)) return
+  const cut = level.message.indexOf('\nparams: ')
+  if (cut === -1) return
+  const message = level.message.slice(0, cut)
+  if (level.stack?.includes(level.message)) level.stack = level.stack.replace(level.message, message)
+  level.message = message
 }
 
 /** The innermost cause: the Postgres error inside Drizzle's wrapper, whose `code` and message say what failed. */
