@@ -14,7 +14,7 @@
     "openapi.json"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "generate": "openapi-typescript ./openapi.json -o ./src/generated/api.ts"
   },

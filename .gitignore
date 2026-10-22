@@ -23,3 +23,6 @@ infra/.state/
 
 # per developer git hook overrides
 lefthook-local.yml
+
+# Vitest artifacts (reports, attachments)
+.vitest/

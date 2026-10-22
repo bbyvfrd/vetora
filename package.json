@@ -1,6 +1,7 @@
 {
   "name": "vetora",
   "private": true,
+  "type": "module",
   "packageManager": "pnpm@10.33.0",
   "engines": {
     "node": "24.x"
@@ -14,12 +15,15 @@
     "local:down": "docker compose down",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
-    "format": "biome format --write ."
+    "format": "biome format --write .",
+    "test": "turbo run build --filter=@vetora/contracts --filter=@vetora/i18n && vitest run",
+    "test:watch": "vitest"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.2",
     "lefthook": "2.2.2",
     "turbo": "2.11.10",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "5.0.5"
   }
 }

@@ -5,6 +5,8 @@
 FROM node:24-slim AS base
 ENV PNPM_HOME=/pnpm
 ENV PATH=$PNPM_HOME:$PATH
+# No prompts and no git hook installation (lefthook) inside the image build.
+ENV CI=true
 RUN npm install -g pnpm@10.33.0 turbo@2.11.10
 WORKDIR /app
 

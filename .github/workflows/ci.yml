@@ -1,5 +1,5 @@
 # Continuous integration (spec 0001, "CI"). The checks (scope feature 2): Biome finds nothing to lint or format,
-# the monorepo builds and typechecks, and the committed OpenAPI types match the API.
+# the monorepo builds and typechecks, the committed OpenAPI types match the API, and the tests pass.
 name: CI
 
 on:
@@ -24,3 +24,4 @@ jobs:
         run: |
           pnpm openapi
           git diff --exit-code -- packages/contracts/openapi.json packages/contracts/src/generated
+      - run: pnpm test

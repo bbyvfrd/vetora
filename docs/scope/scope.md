@@ -55,11 +55,12 @@ _Deferred on 2026-10-22: the hosted deploy (the last Done when clause) waits unt
 Capture conventions and tooling from the real scaffolded project, then install lint, format, and pre commit checks.
 **Done when:** root `AGENTS.md` reflects the real stack and treats the domain.md rule IDs as shared vocabulary for code, tests, and reviews; lint, format, and pre commit run clean.
 - [x] Capture conventions + tooling choices: `/audit`
-- [ ] Install the tooling: `/develop tooling`
+- [x] Install the tooling: `/develop tooling`
   - [x] Biome lint and format, the scaffold formatted, checked in CI
-  - [ ] lefthook pre commit hook
-  - [ ] Vitest with a smoke test per workspace, run in CI
+  - [x] lefthook pre commit hook
+  - [x] Vitest with a smoke test per workspace, run in CI
 - [ ] Check it runs clean: `/test`
+code in `biome.jsonc`, `lefthook.yml`, `vitest.config.ts`, `.vscode/`, `.github/workflows/ci.yml`
 
 ### 3. Data model · in-progress · GA
 Turn domain.md's 13 contexts and 36 rules into the persistence shape: modules inside one deployable, every record aware of its location from day one (IN-5), money as whole minor units with a currency (IN-4) (basis: the data model is the costliest thing to redo).
