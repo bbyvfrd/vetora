@@ -64,8 +64,9 @@ Single-context. The vocabulary lives in `docs/domain.md` §7 and §8 (pointed at
 In `.agents/skills/` (`.claude/skills/` symlinks there). Only repo wide skills are listed here; the web and API skills are listed in those workspaces' docs.
 
 - [turborepo](.agents/skills/turborepo/): `vercel/turborepo`, task pipelines, caching, filtering, and `turbo prune` for the Docker builds
+- [vitest](.agents/skills/vitest/): `antfu/skills`, Vitest tests, mocks, coverage, filtering, and fixtures
 
-Declined: better-auth-security-best-practices, drizzle (lobehub), drizzle-orm-patterns, tanstack-router-best-practices
+Declined: better-auth-security-best-practices, drizzle (lobehub), drizzle-orm-patterns, tanstack-router-best-practices, biome (claude-mpm-skills), lefthook (agent-reference-skills)
 MCP servers: DigitalOcean (recommended), Sentry (recommended), GitHub (recommended)
 
 ## Context files
