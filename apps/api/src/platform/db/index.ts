@@ -1,7 +1,7 @@
 import { sql } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import pg from 'pg'
-import { loadConfig } from './config.js'
+import { loadConfig } from '../config.js'
 
 const { Pool } = pg
 

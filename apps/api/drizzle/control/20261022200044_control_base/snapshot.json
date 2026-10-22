@@ -1,0 +1,211 @@
+{
+  "type": "base",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "96a2708e-4283-4f4c-b38d-c624a0977576",
+  "prevIds": [
+    "00000000-0000-0000-0000-000000000000"
+  ],
+  "footprints": [
+    {
+      "statementType": "create_schema",
+      "statementTarget": [
+        "schema",
+        "control"
+      ],
+      "writes": [
+        "s|sch|control",
+        "n|sch|control",
+        "e|sch|control"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "control",
+        "practice"
+      ],
+      "writes": [
+        "s|tbl|control.practice",
+        "n|tbl|control.practice",
+        "e|tbl|control.practice",
+        "n|rel|control.practice",
+        "n|type|control.practice",
+        "n|rel|control.practice_pkey",
+        "n|rel|control.practice_slug_key",
+        "n|rel|control.practice_schema_name_key",
+        "n|rel|control.practice_role_name_key"
+      ],
+      "reads": [
+        "n|sch|control"
+      ]
+    }
+  ],
+  "ddl": [
+    {
+      "name": "control",
+      "entityType": "schemas"
+    },
+    {
+      "schema": "control",
+      "name": "practice",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "control",
+      "table": "practice",
+      "name": "id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "uuidv7()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "control",
+      "table": "practice",
+      "name": "slug",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "control",
+      "table": "practice",
+      "name": "name",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "control",
+      "table": "practice",
+      "name": "schema_name",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "control",
+      "table": "practice",
+      "name": "role_name",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "control",
+      "table": "practice",
+      "name": "status",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'provisioning'",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "control",
+      "table": "practice",
+      "name": "created_at",
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "control",
+      "table": "practice",
+      "name": "updated_at",
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "control",
+      "table": "practice",
+      "name": "practice_pkey",
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "control",
+      "table": "practice",
+      "name": "practice_slug_key",
+      "nameExplicit": false,
+      "columns": [
+        "slug"
+      ],
+      "nullsNotDistinct": false,
+      "entityType": "uniques"
+    },
+    {
+      "schema": "control",
+      "table": "practice",
+      "name": "practice_schema_name_key",
+      "nameExplicit": false,
+      "columns": [
+        "schema_name"
+      ],
+      "nullsNotDistinct": false,
+      "entityType": "uniques"
+    },
+    {
+      "schema": "control",
+      "table": "practice",
+      "name": "practice_role_name_key",
+      "nameExplicit": false,
+      "columns": [
+        "role_name"
+      ],
+      "nullsNotDistinct": false,
+      "entityType": "uniques"
+    },
+    {
+      "schema": "control",
+      "table": "practice",
+      "name": "practice_status_check",
+      "value": "\"status\" in ('provisioning', 'active', 'suspended', 'archived')",
+      "entityType": "checks"
+    }
+  ]
+}

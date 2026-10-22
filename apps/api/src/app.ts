@@ -4,7 +4,7 @@ import { HTTPException } from 'hono/http-exception'
 import { type RequestIdVariables, requestId } from 'hono/request-id'
 import { healthRoute } from './http/health.js'
 import { requestLogger } from './http/middleware.js'
-import { checkDatabase } from './platform/db.js'
+import { checkDatabase } from './platform/db/index.js'
 import { log, scrubError } from './platform/log.js'
 import { problem } from './platform/problem.js'
 

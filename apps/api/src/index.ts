@@ -2,7 +2,7 @@ import './instrument.js'
 import { serve } from '@hono/node-server'
 import { app } from './app.js'
 import { type Config, ConfigError, loadConfig } from './platform/config.js'
-import { closeDatabase } from './platform/db.js'
+import { closeDatabase } from './platform/db/index.js'
 import { log } from './platform/log.js'
 
 let config: Config

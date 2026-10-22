@@ -29,3 +29,23 @@ GRANT CREATE ON DATABASE vetora TO vetora_migrator;
 -- Nothing practice specific lives in public (spec 0002); the schemas control, ext, and p_<id> are created by migrations.
 REVOKE ALL ON SCHEMA public FROM PUBLIC;
 GRANT USAGE ON SCHEMA public TO vetora_migrator, vetora_app, vetora_backup;
+
+-- The test database (data model feature): the same encoding and grants as vetora, owned by the database tests.
+-- The API's Vitest global setup empties it before every run (apps/api/src/platform/db/test-support.ts), so the
+-- tests never touch vetora. An older volume gets it by recreating the volume: pnpm local:down -v, then pnpm local:up.
+CREATE DATABASE vetora_test
+  ENCODING 'UTF8'
+  LOCALE_PROVIDER icu
+  ICU_LOCALE 'und'
+  TEMPLATE template0;
+
+ALTER DATABASE vetora_test SET timezone TO 'UTC';
+
+REVOKE CONNECT ON DATABASE vetora_test FROM PUBLIC;
+GRANT CONNECT ON DATABASE vetora_test TO vetora_migrator, vetora_app, vetora_backup;
+GRANT CREATE ON DATABASE vetora_test TO vetora_migrator;
+
+\connect vetora_test
+
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+GRANT USAGE ON SCHEMA public TO vetora_migrator, vetora_app, vetora_backup;

@@ -11,6 +11,8 @@
       "!**/routeTree.gen.ts",
       "!packages/contracts/src/generated",
       "!packages/contracts/openapi.json",
+      // drizzle-kit's migration folders: snapshot.json beside each hand finished migration.sql.
+      "!apps/api/drizzle",
       "!pnpm-lock.yaml",
       // Third party skills and the Claude app's own files.
       "!.agents",

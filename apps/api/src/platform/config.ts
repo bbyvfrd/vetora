@@ -30,12 +30,31 @@ let cached: Config | undefined
 
 /** Parse and cache the environment. Throws ConfigError naming the variables (never their values). */
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
-  if (cached) return cached
-  const result = schema.safeParse(env)
+  cached ??= parse(schema, env)
+  return cached
+}
+
+/**
+ * What the migrate (and later provision) command needs, and the running API never reads
+ * (spec 0001, "Configuration and secrets": Migrations).
+ */
+const migratorSchema = z.object({
+  /** vetora_migrator on a direct connection, never the pooler: owns every schema, runs the migrations. */
+  DATABASE_URL_MIGRATOR: z.string().min(1),
+})
+
+export type MigratorConfig = z.infer<typeof migratorSchema>
+
+/** Parse the command's environment. Throws ConfigError naming the variable (never its value). */
+export function loadMigratorConfig(env: NodeJS.ProcessEnv = process.env): MigratorConfig {
+  return parse(migratorSchema, env)
+}
+
+function parse<T extends z.ZodType>(shape: T, env: NodeJS.ProcessEnv): z.output<T> {
+  const result = shape.safeParse(env)
   if (!result.success) {
     const names = [...new Set(result.error.issues.map((issue) => issue.path.join('.') || '(root)'))]
     throw new ConfigError(names)
   }
-  cached = result.data
-  return cached
+  return result.data
 }

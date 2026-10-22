@@ -41,6 +41,8 @@ env:
   secret:
     - DATABASE_URL_POOLED
     - DATABASE_URL_DIRECT
+    # Read only by the migrate command (kamal app exec runs it with the service's env), never by the API.
+    - DATABASE_URL_MIGRATOR
     - SENTRY_DSN_API
 
 # Logs stay on the host, 14 days worth at most (spec 0001, "Logs, uptime, metrics").
@@ -50,6 +52,6 @@ logging:
     max-size: 100m
     max-file: "14"
 
-# The migrate command (data model feature) runs here before traffic switches:
+# The migrate command runs here before traffic switches (exit 0 current, 1 failed, 2 another run holds the lock):
 #   kamal app exec -c apps/api/config/deploy.yml -d staging -p 'node apps/api/dist/migrate.js'
-# wired as a pre-deploy hook once that command exists.
+# wired as a pre-deploy hook with the hosted deploy (spec 0001 verify, Hosted section).

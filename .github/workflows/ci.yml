@@ -24,4 +24,10 @@ jobs:
         run: |
           pnpm openapi
           git diff --exit-code -- packages/contracts/openapi.json packages/contracts/src/generated
+      - name: Start Postgres for the database tests
+        run: docker compose up -d --wait postgres
       - run: pnpm test
+        env:
+          # The compose init script's local values (infra/postgres/init/01-vetora.sql); the tests use vetora_test.
+          DATABASE_URL_MIGRATOR: postgres://vetora_migrator:vetora_migrator@localhost:5432/vetora
+          DATABASE_URL_DIRECT: postgres://vetora_app:vetora_app@localhost:5432/vetora

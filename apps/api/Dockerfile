@@ -28,6 +28,8 @@ COPY --from=prune /app/out/json/ .
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --prod
 COPY --from=build /app/packages/contracts/dist ./packages/contracts/dist
 COPY --from=build /app/apps/api/dist ./apps/api/dist
+# The migration sets, read by dist/migrate.js at ../../drizzle (kamal app exec runs it before traffic switches).
+COPY --from=build /app/apps/api/drizzle ./apps/api/drizzle
 USER node
 EXPOSE 3000
 CMD ["node", "apps/api/dist/index.js"]
