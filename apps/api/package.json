@@ -10,6 +10,7 @@
     "start": "node dist/index.js",
     "openapi": "node --import=tsx src/openapi.ts",
     "migrate": "node --env-file-if-exists=.env --import=tsx src/migrate.ts",
+    "provision-practice": "node --env-file-if-exists=.env --import=tsx src/provision-practice.ts",
     "db:generate:control": "drizzle-kit generate --config drizzle.control.config.ts",
     "db:generate:practice": "drizzle-kit generate --config drizzle.practice.config.ts"
   },

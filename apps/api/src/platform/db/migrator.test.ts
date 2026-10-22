@@ -1,29 +1,18 @@
-import { cpSync, mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
-import { Writable } from 'node:stream'
+import { rmSync } from 'node:fs'
 import pg from 'pg'
-import { pino } from 'pino'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
-import { CONTROL_MIGRATIONS_FOLDER, MIGRATE_LOCK_KEY, migrate } from './migrator.js'
-import { databaseTestsEnabled, resetTestDatabase, type TestDatabaseUrls, testDatabaseUrls } from './test-support.js'
-
-/** The control set as drizzle-kit lays it out: one folder per migration, applied in name order (spec 0001, "Migrations"). */
-const controlSet = () => readdirSync(CONTROL_MIGRATIONS_FOLDER).sort()
-
-/** A pino logger whose JSON lines land in an array, so a test can read what migrate logged. */
-function captureLog() {
-  const lines: Array<Record<string, unknown>> = []
-  const sink = new Writable({
-    write(chunk, _encoding, callback) {
-      for (const line of String(chunk).split('\n')) {
-        if (line.trim()) lines.push(JSON.parse(line))
-      }
-      callback()
-    },
-  })
-  return { log: pino({ level: 'info' }, sink), lines }
-}
+import { CONTROL_MIGRATIONS_FOLDER, MIGRATE_LOCK_KEY, migrate, PRACTICE_MIGRATIONS_FOLDER } from './migrator.js'
+import {
+  captureLog,
+  controlSet,
+  databaseTestsEnabled,
+  practiceSet,
+  provisionTestPractice,
+  resetTestDatabase,
+  type TestDatabaseUrls,
+  testDatabaseUrls,
+  withExtraMigration,
+} from './test-support.js'
 
 describe.skipIf(!databaseTestsEnabled())('migrate brings up the control schema (AC-10)', () => {
   let urls: TestDatabaseUrls
@@ -91,7 +80,7 @@ describe.skipIf(!databaseTestsEnabled())('migrate brings up the control schema (
   it('lists the pending migrations on a dry run and leaves an empty database empty', async () => {
     const outcome = await migrate({ url: urls.migrator, dryRun: true })
 
-    expect(outcome).toEqual({ status: 'dry-run', pending: controlSet() })
+    expect(outcome).toEqual({ status: 'dry-run', pending: controlSet(), practices: [] })
     expect(await schemasPresent()).toEqual([])
   })
 
@@ -115,18 +104,21 @@ describe.skipIf(!databaseTestsEnabled())('migrate brings up the control schema (
   it('rolls a failing batch back and reports failed: the schema and the migrations table stay as they were', async () => {
     await migrate({ url: urls.migrator })
     // The control set plus one migration that creates a table and then fails, in a temporary folder.
-    const folder = mkdtempSync(join(tmpdir(), 'vetora-control-'))
-    cpSync(CONTROL_MIGRATIONS_FOLDER, folder, { recursive: true })
-    mkdirSync(join(folder, '20991231235959_boom'))
-    writeFileSync(
-      join(folder, '20991231235959_boom', 'migration.sql'),
+    const folder = withExtraMigration(
+      CONTROL_MIGRATIONS_FOLDER,
+      '20991231235959_boom',
       'CREATE TABLE "control"."boom" ("id" int);\n--> statement-breakpoint\nselect 1/0;\n',
     )
     const { log, lines } = captureLog()
     try {
       const outcome = await migrate({ url: urls.migrator, controlFolder: folder, log })
 
-      expect(outcome).toMatchObject({ status: 'failed', pending: ['20991231235959_boom'] })
+      expect(outcome).toMatchObject({
+        status: 'failed',
+        schema: 'control',
+        step: 'migrations',
+        pending: ['20991231235959_boom'],
+      })
       const boom = await migrator.query("select to_regclass('control.boom') as found")
       expect(boom.rows[0]).toEqual({ found: null })
       const recorded = await migrator.query('select name from control.__drizzle_migrations order by id')
@@ -201,6 +193,186 @@ describe.skipIf(!databaseTestsEnabled())('migrate brings up the control schema (
       await migrator.query('create temp table indexed (name text)')
       await migrator.query('create index on indexed (ext.unaccent_immutable(name))')
       await migrator.query('drop table indexed')
+    })
+  })
+
+  describe('the practice loop, with the control set applied', () => {
+    const extra = '20991231235959_extra'
+    const extraSql = 'CREATE TABLE "extra" ("id" int);\n'
+
+    beforeEach(async () => {
+      await migrate({ url: urls.migrator })
+    })
+
+    /** A practice registered by hand, with its role and an empty schema: the whole practice set behind. */
+    async function registerByHand(
+      slug: string,
+      schema: string,
+    ): Promise<{ slug: string; schema: string; role: string }> {
+      const role = `${schema}_role`
+      await migrator.query(
+        'insert into control.practice (slug, name, schema_name, role_name) values ($1, $2, $3, $4)',
+        [slug, 'By hand', schema, role],
+      )
+      await migrator.query(`create role ${pg.escapeIdentifier(role)} nologin`)
+      await migrator.query(`create schema ${pg.escapeIdentifier(schema)} authorization vetora_migrator`)
+      return { slug, schema, role }
+    }
+
+    const recordedIn = async (schema: string) =>
+      (
+        await migrator.query(`select name from ${pg.escapeIdentifier(schema)}.__drizzle_migrations order by id`)
+      ).rows.map((row) => row.name)
+    const tableExists = async (schema: string, table: string) =>
+      (await migrator.query('select to_regclass($1) as found', [`${pg.escapeIdentifier(schema)}.${table}`])).rows[0]
+        ?.found != null
+    const roleReads = async (role: string, schema: string) =>
+      (
+        await migrator.query(
+          `select has_schema_privilege($1, $2, 'USAGE') as usage, has_table_privilege($1, $3, 'SELECT') as "select"`,
+          [role, schema, `${pg.escapeIdentifier(schema)}.practice_settings`],
+        )
+      ).rows[0]
+
+    it('applies pending practice migrations to every registered schema in registry order, a practice behind catching up in order, with the grants step after each (AC-10)', async () => {
+      const alfa = await provisionTestPractice(urls, { slug: 'alfa' })
+      const beta = await registerByHand('beta', 'p_beta')
+      const folder = withExtraMigration(PRACTICE_MIGRATIONS_FOLDER, extra, extraSql)
+      const { log, lines } = captureLog()
+      try {
+        const outcome = await migrate({ url: urls.migrator, practiceFolder: folder, log })
+
+        expect(outcome).toEqual({
+          status: 'applied',
+          applied: [],
+          practices: [
+            { slug: 'alfa', schema: alfa.schema, applied: [extra] },
+            { slug: 'beta', schema: 'p_beta', applied: [...practiceSet(), extra] },
+          ],
+        })
+        expect(await recordedIn(alfa.schema)).toEqual([...practiceSet(), extra])
+        expect(await recordedIn('p_beta')).toEqual([...practiceSet(), extra])
+        expect(await tableExists(alfa.schema, 'extra')).toBe(true)
+        expect(await tableExists('p_beta', 'practice_settings')).toBe(true)
+        expect(await roleReads(beta.role, 'p_beta')).toEqual({ usage: true, select: true })
+        // Control first, then each practice in registry order, its grants right after its batch.
+        const order = lines
+          .filter((line) => ['nothing to do', 'applied', 'grants applied'].includes(String(line.msg)))
+          .map((line) => `${line.schema}: ${line.msg}`)
+        expect(order).toEqual([
+          'control: nothing to do',
+          `${alfa.schema}: applied`,
+          `${alfa.schema}: grants applied`,
+          ...practiceSet().map(() => 'p_beta: applied'),
+          'p_beta: applied',
+          'p_beta: grants applied',
+        ])
+      } finally {
+        rmSync(folder, { recursive: true, force: true })
+      }
+    })
+
+    it('changes nothing on a second run: every schema reports nothing to do', async () => {
+      const alfa = await provisionTestPractice(urls, { slug: 'alfa' })
+      const beta = await provisionTestPractice(urls, { slug: 'beta' })
+      const before = [await recordedIn(alfa.schema), await recordedIn(beta.schema)]
+      const { log, lines } = captureLog()
+
+      const outcome = await migrate({ url: urls.migrator, log })
+
+      expect(outcome).toEqual({
+        status: 'applied',
+        applied: [],
+        practices: [
+          { slug: 'alfa', schema: alfa.schema, applied: [] },
+          { slug: 'beta', schema: beta.schema, applied: [] },
+        ],
+      })
+      expect([await recordedIn(alfa.schema), await recordedIn(beta.schema)]).toEqual(before)
+      expect(lines.filter((line) => line.msg === 'nothing to do').map((line) => line.schema)).toEqual([
+        'control',
+        alfa.schema,
+        beta.schema,
+      ])
+    })
+
+    it('limits the run to one practice after control with --practice <slug>, and reports a slug that is not registered', async () => {
+      const alfa = await provisionTestPractice(urls, { slug: 'alfa' })
+      const beta = await provisionTestPractice(urls, { slug: 'beta' })
+      const folder = withExtraMigration(PRACTICE_MIGRATIONS_FOLDER, extra, extraSql)
+      try {
+        const outcome = await migrate({ url: urls.migrator, practiceFolder: folder, practice: 'beta' })
+
+        expect(outcome).toEqual({
+          status: 'applied',
+          applied: [],
+          practices: [{ slug: 'beta', schema: beta.schema, applied: [extra] }],
+        })
+        expect(await recordedIn(alfa.schema)).toEqual(practiceSet())
+        expect(await recordedIn(beta.schema)).toEqual([...practiceSet(), extra])
+        expect(await migrate({ url: urls.migrator, practiceFolder: folder, practice: 'gamma' })).toEqual({
+          status: 'not-registered',
+          slug: 'gamma',
+        })
+      } finally {
+        rmSync(folder, { recursive: true, force: true })
+      }
+    })
+
+    it("lists each practice's pending migrations on a dry run and changes nothing", async () => {
+      const alfa = await provisionTestPractice(urls, { slug: 'alfa' })
+      const beta = await registerByHand('beta', 'p_beta')
+      const folder = withExtraMigration(PRACTICE_MIGRATIONS_FOLDER, extra, extraSql)
+      try {
+        const outcome = await migrate({ url: urls.migrator, practiceFolder: folder, dryRun: true })
+
+        expect(outcome).toEqual({
+          status: 'dry-run',
+          pending: [],
+          practices: [
+            { slug: 'alfa', schema: alfa.schema, pending: [extra] },
+            { slug: 'beta', schema: 'p_beta', pending: [...practiceSet(), extra] },
+          ],
+        })
+        expect(await recordedIn(alfa.schema)).toEqual(practiceSet())
+        expect(await tableExists('p_beta', 'practice_settings')).toBe(false)
+        // No grants step either: the role has nothing yet.
+        const usage = await migrator.query("select has_schema_privilege($1, 'p_beta', 'USAGE') as usage", [beta.role])
+        expect(usage.rows).toEqual([{ usage: false }])
+      } finally {
+        rmSync(folder, { recursive: true, force: true })
+      }
+    })
+
+    it("stops at the first failing practice: practice 1 migrated, practice 2's migrations table unchanged (AC-10)", async () => {
+      const alfa = await provisionTestPractice(urls, { slug: 'alfa' })
+      const beta = await provisionTestPractice(urls, { slug: 'beta' })
+      // One more migration that raises only inside the second practice's schema.
+      const folder = withExtraMigration(
+        PRACTICE_MIGRATIONS_FOLDER,
+        extra,
+        `${extraSql}--> statement-breakpoint\nDO $$ BEGIN IF current_schema() = '${beta.schema}' THEN RAISE EXCEPTION 'boom at practice 2'; END IF; END $$;\n`,
+      )
+      const { log, lines } = captureLog()
+      try {
+        const outcome = await migrate({ url: urls.migrator, practiceFolder: folder, log })
+
+        expect(outcome).toEqual({
+          status: 'failed',
+          schema: beta.schema,
+          step: 'migrations',
+          pending: [extra],
+          error: expect.anything(),
+        })
+        expect(await recordedIn(alfa.schema)).toEqual([...practiceSet(), extra])
+        expect(await tableExists(alfa.schema, 'extra')).toBe(true)
+        expect(await recordedIn(beta.schema)).toEqual(practiceSet())
+        expect(await tableExists(beta.schema, 'extra')).toBe(false)
+        const failure = lines.find((line) => line.msg === 'migration failed, batch rolled back')
+        expect(failure).toMatchObject({ schema: beta.schema, slug: 'beta', pending: [extra], err: { code: 'P0001' } })
+      } finally {
+        rmSync(folder, { recursive: true, force: true })
+      }
     })
   })
 })

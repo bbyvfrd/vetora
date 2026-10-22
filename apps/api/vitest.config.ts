@@ -15,5 +15,8 @@ export default defineConfig({
   test: {
     env: { LOG_LEVEL: 'silent' },
     globalSetup: ['./src/platform/db/test-support.ts'],
+    // The database test files share vetora_test, and the migrator tests empty it before each case, so the files run
+    // one after another; within a file the cases are sequential anyway.
+    fileParallelism: false,
   },
 })
