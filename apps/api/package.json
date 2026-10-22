@@ -1,0 +1,32 @@
+{
+  "name": "@vetora/api",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node --env-file=.env --watch --import=tsx src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "start": "node dist/index.js",
+    "openapi": "node --import=tsx src/openapi.ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.1.5",
+    "@hono/zod-openapi": "^1.6.3",
+    "@sentry/node": "^11.8.0",
+    "@vetora/contracts": "workspace:*",
+    "drizzle-orm": "1.0.0-rc.5",
+    "hono": "^4.13.13",
+    "pg": "^8.23.1",
+    "pino": "^10.4.0",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@types/pg": "^8.23.1",
+    "@vetora/config": "workspace:*",
+    "drizzle-kit": "1.0.0-rc.5",
+    "tsx": "^4.23.15",
+    "typescript": "catalog:"
+  }
+}

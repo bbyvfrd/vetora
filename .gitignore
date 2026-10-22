@@ -3,3 +3,20 @@
 
 # OS noise
 .DS_Store
+
+# dependencies and build output
+node_modules/
+dist/
+.turbo/
+out/
+
+# local environment files (keep the examples)
+.env
+.env.*
+!.env.example
+
+# deploy secrets: Kamal reads these files; they must never be committed
+.kamal/secrets
+.kamal/secrets.*
+!.kamal/secrets-common
+infra/.state/

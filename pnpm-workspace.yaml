@@ -1,0 +1,15 @@
+packages:
+  - apps/*
+  - packages/*
+
+# One version of each shared tool across the monorepo (pnpm catalogs).
+# TypeScript stays on 6 until openapi-typescript and drizzle-kit support the
+# TypeScript 7 compiler API (spec 0001, follow up from the 2026-10-22 doc check).
+catalog:
+  typescript: ~6.0.3
+  zod: ^4.6.7
+  "@types/node": ^24.0.0
+
+# tsx depends on esbuild, whose install script only checks its binary.
+onlyBuiltDependencies:
+  - esbuild

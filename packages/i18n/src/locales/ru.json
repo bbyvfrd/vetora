@@ -1,0 +1,15 @@
+{
+  "app": {
+    "name": "vetora"
+  },
+  "health": {
+    "title": "Состояние API",
+    "checking": "Проверка…",
+    "ok": "Работает",
+    "unavailable": "Недоступен",
+    "version": "Версия"
+  },
+  "language": {
+    "label": "Язык"
+  }
+}

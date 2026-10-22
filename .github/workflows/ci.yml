@@ -1,0 +1,25 @@
+# Continuous integration (spec 0001, "CI"). The checks themselves grow with /audit (scope feature 2):
+# today it proves the monorepo builds, typechecks, and that the committed OpenAPI types match the API.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm turbo run build typecheck
+      - name: OpenAPI document and generated types are current
+        run: |
+          pnpm openapi
+          git diff --exit-code -- packages/contracts/openapi.json packages/contracts/src/generated

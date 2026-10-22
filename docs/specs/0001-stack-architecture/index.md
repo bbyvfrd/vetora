@@ -1,7 +1,7 @@
 # 0001. Stack and architecture for vetora
 
 **Date**: 2026-10-02
-**Status**: Proposed
+**Status**: In Progress
 
 ## Summary
 

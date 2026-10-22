@@ -1,0 +1,9 @@
+# Staging destination: FRA1, made up data only. Fill the two placeholders after infra/digitalocean.sh has run.
+servers:
+  - STAGING_DROPLET_IP
+proxy:
+  host: staging.vetora.example
+env:
+  clear:
+    APP_ENV: staging
+    PUBLIC_ORIGIN: https://staging.vetora.example

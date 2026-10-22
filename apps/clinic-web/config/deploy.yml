@@ -1,0 +1,46 @@
+# Kamal config for the clinic web app (static files behind nginx). Run from the repository root:
+#   kamal deploy -c apps/clinic-web/config/deploy.yml -d staging
+service: vetora-web
+image: bbyvfrd/vetora-web
+
+registry:
+  server: ghcr.io
+  username: bbyvfrd
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+
+builder:
+  arch: amd64
+  context: .
+  dockerfile: apps/clinic-web/Dockerfile
+  # Source maps go to Sentry during the CI build only; both are empty on a laptop build.
+  args:
+    SENTRY_ORG: <%= ENV["SENTRY_ORG"] %>
+    SENTRY_PROJECT: <%= ENV["SENTRY_PROJECT"] %>
+  secrets:
+    - SENTRY_AUTH_TOKEN
+
+ssh:
+  user: deploy
+
+# The root service owns TLS for the shared host; the API is reached through the same proxy at /api.
+proxy:
+  # Path routing needs kamal-proxy 0.10.1 or later (a routing bypass fix); set identically in both configs.
+  run:
+    version: v0.10.2
+  ssl: true
+  app_port: 80
+  healthcheck:
+    path: /up
+    interval: 3
+    timeout: 5
+
+env:
+  secret:
+    - SENTRY_DSN_WEB
+
+logging:
+  driver: json-file
+  options:
+    max-size: 100m
+    max-file: "14"

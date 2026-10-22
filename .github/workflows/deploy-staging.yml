@@ -1,0 +1,45 @@
+# Staging deploys from CI on main (spec 0001, "Who deploys"); production is deployed from your laptop during the pilot.
+# Inert until the repository variable STAGING_READY is "true": set it once infra/digitalocean.sh has run,
+# the Kamal destination files carry the real host and IP, and the "staging" environment holds the secrets below.
+name: Deploy staging
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: vars.STAGING_READY == 'true'
+    runs-on: ubuntu-latest
+    environment: staging
+    permissions:
+      contents: read
+      packages: write
+    env:
+      # GitHub Container Registry accepts the workflow token (packages: write above).
+      KAMAL_REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      DATABASE_URL_POOLED: ${{ secrets.DATABASE_URL_POOLED }}
+      DATABASE_URL_DIRECT: ${{ secrets.DATABASE_URL_DIRECT }}
+      SENTRY_DSN_API: ${{ secrets.SENTRY_DSN_API }}
+      SENTRY_DSN_WEB: ${{ secrets.SENTRY_DSN_WEB }}
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+      SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+      - run: gem install kamal -v 2.12.0
+      - name: Key only SSH as the deploy user
+        uses: webfactory/ssh-agent@v0.9.1
+        with:
+          ssh-private-key: ${{ secrets.STAGING_SSH_DEPLOY_KEY }}
+      - run: kamal deploy -c apps/api/config/deploy.yml -d staging
+      - run: kamal deploy -c apps/clinic-web/config/deploy.yml -d staging

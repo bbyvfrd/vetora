@@ -1,0 +1,64 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "vetora API",
+    "version": "0.1.0",
+    "description": "The API behind the clinic web app and, later, the pet owner app. Routes are declared with zod schemas from packages/contracts."
+  },
+  "components": {
+    "schemas": {},
+    "parameters": {}
+  },
+  "paths": {
+    "/api/health": {
+      "get": {
+        "summary": "Service health",
+        "description": "Reports the API version and whether the database answers. Used by the web app shell and by uptime checks.",
+        "responses": {
+          "200": {
+            "description": "The API and its database are up",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "ok"
+                      ]
+                    },
+                    "version": {
+                      "type": "string"
+                    },
+                    "database": {
+                      "type": "string",
+                      "enum": [
+                        "ok",
+                        "unavailable"
+                      ]
+                    },
+                    "time": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "version",
+                    "database",
+                    "time"
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The database does not answer (problem details)"
+          }
+        }
+      }
+    }
+  },
+  "webhooks": {}
+}

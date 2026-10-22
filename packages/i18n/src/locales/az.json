@@ -1,0 +1,15 @@
+{
+  "app": {
+    "name": "vetora"
+  },
+  "health": {
+    "title": "API vəziyyəti",
+    "checking": "Yoxlanılır…",
+    "ok": "İşləyir",
+    "unavailable": "Əlçatan deyil",
+    "version": "Versiya"
+  },
+  "language": {
+    "label": "Dil"
+  }
+}

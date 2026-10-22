@@ -1,0 +1,7 @@
+servers:
+  - STAGING_DROPLET_IP
+proxy:
+  host: staging.vetora.example
+env:
+  clear:
+    APP_ENV: staging

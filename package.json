@@ -1,0 +1,20 @@
+{
+  "name": "vetora",
+  "private": true,
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": "24.x"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "openapi": "turbo run openapi && pnpm --filter @vetora/contracts generate",
+    "local:up": "docker compose up -d --wait",
+    "local:down": "docker compose down"
+  },
+  "devDependencies": {
+    "turbo": "2.11.10",
+    "typescript": "catalog:"
+  }
+}

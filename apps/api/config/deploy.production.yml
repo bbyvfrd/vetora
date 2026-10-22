@@ -1,0 +1,9 @@
+# Production destination (slice 7). Deployed from your laptop during the pilot, never from CI.
+servers:
+  - PRODUCTION_DROPLET_IP
+proxy:
+  host: app.vetora.example
+env:
+  clear:
+    APP_ENV: production
+    PUBLIC_ORIGIN: https://app.vetora.example

@@ -1,0 +1,55 @@
+# Kamal config for the API (spec 0001, "Runtime and deployment topology", "Deployment").
+# Run from the repository root, always with a destination:
+#   kamal deploy -c apps/api/config/deploy.yml -d staging
+# The web app has its own config in apps/clinic-web/config; both share one host and one kamal-proxy.
+service: vetora-api
+image: bbyvfrd/vetora-api
+
+registry:
+  server: ghcr.io
+  username: bbyvfrd
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+
+builder:
+  arch: amd64
+  context: .
+  dockerfile: apps/api/Dockerfile
+
+ssh:
+  user: deploy
+
+# One origin: kamal-proxy sends /api/* here unchanged (the API serves its routes under /api itself)
+# and everything else to the web service, which is the only one that sets ssl.
+proxy:
+  # Path routing needs kamal-proxy 0.10.1 or later (a routing bypass fix); set identically in both configs.
+  run:
+    version: v0.10.2
+  path_prefix: /api
+  strip_path_prefix: false
+  app_port: 3000
+  forward_headers: false
+  healthcheck:
+    path: /up
+    interval: 3
+    timeout: 5
+
+env:
+  clear:
+    PORT: "3000"
+    LOG_LEVEL: info
+  secret:
+    - DATABASE_URL_POOLED
+    - DATABASE_URL_DIRECT
+    - SENTRY_DSN_API
+
+# Logs stay on the host, 14 days worth at most (spec 0001, "Logs, uptime, metrics").
+logging:
+  driver: json-file
+  options:
+    max-size: 100m
+    max-file: "14"
+
+# The migrate command (data model feature) runs here before traffic switches:
+#   kamal app exec -c apps/api/config/deploy.yml -d staging -p 'node apps/api/dist/migrate.js'
+# wired as a pre-deploy hook once that command exists.

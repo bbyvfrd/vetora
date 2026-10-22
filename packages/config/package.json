@@ -1,0 +1,9 @@
+{
+  "name": "@vetora/config",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Shared TypeScript config for the vetora monorepo. Lint and format config arrive with /audit (scope feature 2).",
+  "files": [
+    "*.json"
+  ]
+}

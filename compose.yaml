@@ -1,0 +1,37 @@
+# Local environment (spec 0001, "Environments"): Postgres 18 plus an S3 compatible server.
+# Start with `pnpm local:up`; the database init script runs once, on the first start of the volume.
+name: vetora
+
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d vetora"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # SeaweedFS stands in for DigitalOcean Spaces (MinIO's community edition is archived). Nothing uses it before slice 6.
+  s3:
+    image: chrislusf/seaweedfs:4.48
+    ports:
+      - "8333:8333"
+    environment:
+      AWS_ACCESS_KEY_ID: dev
+      AWS_SECRET_ACCESS_KEY: devsecret
+      S3_BUCKET: vetora
+    volumes:
+      - s3-data:/data
+
+volumes:
+  postgres-data: {}
+  s3-data: {}

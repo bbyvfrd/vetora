@@ -1,0 +1,7 @@
+servers:
+  - PRODUCTION_DROPLET_IP
+proxy:
+  host: app.vetora.example
+env:
+  clear:
+    APP_ENV: production

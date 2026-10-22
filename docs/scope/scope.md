@@ -45,10 +45,11 @@ Stack, standards, data model, and design system come before any slice (basis: fo
 Decide the whole stack once, then scaffold a runnable project. The decision covers hosting (including where clinic data may legally live, a question for your lawyer), data store and backups, sign in, file storage, translation, printing, and monitoring, so later features install their own pieces without new tool decisions.
 **Done when:** the stack is recorded in a spec, and an empty project boots locally and deploys once to a hosted environment.
 - [x] Decide the stack (spec): `/architect stack & architecture`
-- [ ] Scaffold from the decision: `/develop stack & architecture`
+- [x] Scaffold from the decision: `/develop stack & architecture`
 - [ ] Verify it: `/check verify stack & architecture`
 - [ ] Test it: `/test stack & architecture`
-[Spec 0001](../specs/0001-stack-architecture/index.md)
+[Spec 0001](../specs/0001-stack-architecture/index.md) · code in `apps/api`, `apps/clinic-web`, `packages/`, `infra/`, `compose.yaml`
+_Deferred on 2026-10-22: the hosted deploy (the last Done when clause) waits until a server and a domain are affordable. Everything else builds and verifies locally; the Hosted section of the spec's `verify.md` is the checklist for that first deploy._
 
 ### 2. Coding standards & tooling
 Capture conventions and tooling from the real scaffolded project, then install lint, format, and pre commit checks.
