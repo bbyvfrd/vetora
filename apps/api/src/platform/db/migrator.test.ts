@@ -159,6 +159,8 @@ describe.skipIf(!databaseTestsEnabled())('migrate brings up the control schema (
         await expect(app.query('delete from control.practice')).rejects.toMatchObject(denied)
         await expect(app.query('select * from control.__drizzle_migrations')).rejects.toMatchObject(denied)
         await expect(app.query("select ext.unaccent_immutable('Café')")).rejects.toMatchObject(denied)
+        // No shadowing of tables through temporary ones: TEMP is revoked from the app role (spec 0002, Security model).
+        await expect(app.query('create temp table shadow (id int)')).rejects.toMatchObject(denied)
       } finally {
         await app.end()
       }

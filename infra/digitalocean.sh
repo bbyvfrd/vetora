@@ -58,9 +58,9 @@ CREATE ROLE vetora_app LOGIN PASSWORD :'app_password';
 CREATE ROLE vetora_backup LOGIN PASSWORD :'backup_password';
 CREATE DATABASE vetora ENCODING 'UTF8' LOCALE_PROVIDER icu ICU_LOCALE 'und' TEMPLATE template0;
 ALTER DATABASE vetora SET timezone TO 'UTC';
-REVOKE CONNECT ON DATABASE vetora FROM PUBLIC;
+REVOKE CONNECT, TEMP ON DATABASE vetora FROM PUBLIC;
 GRANT CONNECT ON DATABASE vetora TO vetora_migrator, vetora_app, vetora_backup;
-GRANT CREATE ON DATABASE vetora TO vetora_migrator;
+GRANT CREATE, TEMP ON DATABASE vetora TO vetora_migrator;
 \connect vetora
 REVOKE ALL ON SCHEMA public FROM PUBLIC;
 GRANT USAGE ON SCHEMA public TO vetora_migrator, vetora_app, vetora_backup;

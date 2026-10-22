@@ -20,9 +20,11 @@ CREATE DATABASE vetora
 ALTER DATABASE vetora SET timezone TO 'UTC';
 
 -- Least privilege: nobody connects by default; the migrator owns schemas, the app and backup roles only use them.
-REVOKE CONNECT ON DATABASE vetora FROM PUBLIC;
+-- TEMP goes with CONNECT: the app role must not shadow a table with a temporary one (spec 0002, "Security model");
+-- only the migrator keeps it.
+REVOKE CONNECT, TEMP ON DATABASE vetora FROM PUBLIC;
 GRANT CONNECT ON DATABASE vetora TO vetora_migrator, vetora_app, vetora_backup;
-GRANT CREATE ON DATABASE vetora TO vetora_migrator;
+GRANT CREATE, TEMP ON DATABASE vetora TO vetora_migrator;
 
 \connect vetora
 
@@ -41,9 +43,9 @@ CREATE DATABASE vetora_test
 
 ALTER DATABASE vetora_test SET timezone TO 'UTC';
 
-REVOKE CONNECT ON DATABASE vetora_test FROM PUBLIC;
+REVOKE CONNECT, TEMP ON DATABASE vetora_test FROM PUBLIC;
 GRANT CONNECT ON DATABASE vetora_test TO vetora_migrator, vetora_app, vetora_backup;
-GRANT CREATE ON DATABASE vetora_test TO vetora_migrator;
+GRANT CREATE, TEMP ON DATABASE vetora_test TO vetora_migrator;
 
 \connect vetora_test
 
