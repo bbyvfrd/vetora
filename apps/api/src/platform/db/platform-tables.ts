@@ -19,7 +19,9 @@ import { currencyCode, langCode } from './domains.js'
  * schema, because the practice set is applied to every p_<id> schema with search_path set to it (spec 0002,
  * "Interface surface"). Their classes are registered in table-classes.ts. Every table but audit_event spreads the
  * standard columns and carries the two shared triggers, set_updated_at and audit_row, attached in the migration
- * (drizzle-kit models tables, not triggers).
+ * (drizzle-kit models tables, not triggers). Every export is tagged `@public`: a module's schema.ts builds on these
+ * (standardColumns(), a reference to staff_member or location), and Biome's noPrivateImports lets a module import
+ * nothing from src/platform/ without the tag (biome.jsonc, package visibility inside src/modules/).
  */
 
 /**
@@ -30,6 +32,7 @@ import { currencyCode, langCode } from './domains.js'
  * The two staff_member references are not indexed, a deliberate exception to spec 0002's "foreign keys are indexed"
  * (Keys): staff_member.id is never deleted or retyped (IN-6), who wrote what is read from audit_event's actor index,
  * and an index on updated_by would defeat HOT updates on every row a different person touches.
+ * @public
  */
 export const standardColumns = () => ({
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -39,9 +42,17 @@ export const standardColumns = () => ({
   version: integer('version').notNull().default(1),
 })
 
-/** The one settings row's constant id (the nil UUID): the check below keeps the table to exactly one row. */
+/**
+ * The one settings row's constant id (the nil UUID): the check below keeps the table to exactly one row.
+ * @public
+ */
 export const PRACTICE_SETTINGS_ID = '00000000-0000-0000-0000-000000000000'
 
+/**
+ * The practice's settings, exactly one row (spec 0002, "Platform and settings"), seeded by provisioning from its
+ * arguments.
+ * @public
+ */
 export const practiceSettings = pgTable(
   'practice_settings',
   {
@@ -71,7 +82,10 @@ export const practiceSettings = pgTable(
   ],
 )
 
-/** IN-5: a practice has a location from day one; provisioning seeds the default one. */
+/**
+ * IN-5: a practice has a location from day one; provisioning seeds the default one.
+ * @public
+ */
 export const location = pgTable(
   'location',
   {
@@ -89,14 +103,19 @@ export const location = pgTable(
   ],
 )
 
-/** The staff roles a member can hold (docs/domain.md §3); a label change moves the translations, never the stored value. */
+/**
+ * The staff roles a member can hold (docs/domain.md §3); a label change moves the translations, never the stored value.
+ * @public
+ */
 export const STAFF_ROLES = ['manager', 'veterinarian', 'assistant', 'receptionist', 'groomer'] as const
+/** @public */
 export type StaffRole = (typeof STAFF_ROLES)[number]
 
 /**
  * The practice's staff, the actor every write names (IN-1): a mirror of the control membership, synced idempotently
  * (slice 1); the first manager's row is written by provisioning as that manager. Stays a platform table: nearly every
  * table references it and it mirrors control, so it is infrastructure, not a module's own table.
+ * @public
  */
 export const staffMember = pgTable(
   'staff_member',
@@ -126,6 +145,7 @@ const AUDIT_ACTIONS = ['insert', 'update', 'delete'] as const
  * `changed` holds the row an insert wrote, the new values of the columns an update changed, or the row a delete removed,
  * so it carries the personal data of the tables it mirrors and never reaches a log or Sentry (spec 0002, "Security
  * model": Personal data). Never deleted (IN-6).
+ * @public
  */
 export const auditEvent = pgTable(
   'audit_event',

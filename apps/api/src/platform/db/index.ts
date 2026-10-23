@@ -1,7 +1,9 @@
-import { sql } from 'drizzle-orm'
+import { defineRelations, sql } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import pg from 'pg'
 import { loadConfig } from '../config.js'
+import * as controlSchema from './control-schema.js'
+import * as practiceSchema from './practice-schema.js'
 
 const { Pool } = pg
 
@@ -32,11 +34,24 @@ export function direct(): pg.Pool {
   return directPool
 }
 
-let database: ReturnType<typeof drizzle> | undefined
+/**
+ * Both schemas as one relational config (spec 0002, "Interface surface": Drizzle schema modules): control.practice
+ * beside every practice table, so db().query names every table of both; the column types, minor_units as bigint and
+ * lang_code as the three codes, come from the table declarations and reach select() and query alike. Relations
+ * between tables arrive with the slices that need
+ * them, as the second argument of defineRelations. The two schemas merge by export name (schema.test.ts checks that
+ * none is exported by both). The practice tables are unqualified: a request reaches them only after SET LOCAL ROLE and
+ * search_path (the request context, slice 1).
+ */
+const relations = defineRelations({ ...controlSchema, ...practiceSchema })
 
-/** The Drizzle instance over the pooled connection. Schemas arrive with the data model feature. */
+const connect = () => drizzle({ client: pooled(), relations })
+
+let database: ReturnType<typeof connect> | undefined
+
+/** The Drizzle instance over the pooled connection, typed with both schemas. */
 export function db() {
-  database ??= drizzle({ client: pooled() })
+  database ??= connect()
   return database
 }
 

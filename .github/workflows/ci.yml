@@ -12,6 +12,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          # db:check reads from the history when each migration folder was committed (apps/api/src/platform/db/migration-order.ts).
+          fetch-depth: 0
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7
         with:
@@ -20,6 +23,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
       - run: pnpm turbo run build typecheck
+      - name: Migration sets are in order (spec 0001, Migrations)
+        run: pnpm --filter @vetora/api db:check
       - name: OpenAPI document and generated types are current
         run: |
           pnpm openapi
