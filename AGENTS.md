@@ -44,7 +44,7 @@ pnpm openapi                             # after a route change; commit openapi.
 ## Git
 
 - Work lands on `main` during the pilot: no feature branches, one commit per milestone or ticket with a conventional prefix (`feat:`, `fix:`, `docs:`, `chore:`, `test:`), and `Closes #N` in the message when a ticket is done, so a review can find its spec.
-- Before `/implement` on a ticket, note `git rev-parse HEAD`: `/mattpocock-skills:code-review` diffs from that fixed point and cannot see uncommitted work.
+- Before `/implement` on a ticket, note `git rev-parse HEAD`: `/mattpocock-skills:code-review` diffs from that fixed point to HEAD, so the order is commit the ticket, review, fold the review's fixes into that commit with `--amend`, then push.
 - Agents never push; you push.
 
 ## Agent skills
