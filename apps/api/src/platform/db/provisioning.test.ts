@@ -4,6 +4,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { migrate, PRACTICE_MIGRATIONS_FOLDER } from './migrator.js'
 import { provisionPractice } from './provisioning.js'
 import {
+  asPractice,
   captureLog,
   databaseTestsEnabled,
   practiceSet,
@@ -33,6 +34,9 @@ describe.skipIf(!databaseTestsEnabled())(
       await migrate({ url: urls.migrator })
       migrator = new pg.Client({ connectionString: urls.migrator, application_name: 'provisioning.test' })
       await migrator.connect()
+      // What this file writes by hand as the migrator is attributed to it (IN-1): audit_row() refuses a migrator write
+      // with neither an actor nor app.migration.
+      await migrator.query("select set_config('app.migration', 'provisioning.test', false)")
       app = new pg.Client({ connectionString: urls.app, application_name: 'provisioning.test app' })
       await app.connect()
     })
@@ -70,36 +74,39 @@ describe.skipIf(!databaseTestsEnabled())(
       const registry = await migrator.query('select * from control.practice where id = $1', [practice.practiceId])
       const settings = await migrator.query(`select * from ${schema}.practice_settings`)
       const locations = await migrator.query(`select * from ${schema}.location order by name`)
+      const staff = await migrator.query(`select * from ${schema}.staff_member order by id`)
+      const audit = await migrator.query(
+        `select table_name, row_id, action, actor_id, source, changed from ${schema}.audit_event order by id`,
+      )
       const migrations = await migrator.query(`select id, name, hash from ${schema}.__drizzle_migrations order by id`)
       return {
         registry: registry.rows,
         settings: settings.rows,
         locations: locations.rows,
+        staff: staff.rows,
+        audit: audit.rows,
         migrations: migrations.rows,
         role: await membershipOf(practice.role),
       }
     }
 
-    /** Run `query` on the vetora_app connection inside a transaction, after SET LOCAL ROLE to the practice's role. */
-    async function asPractice<T extends pg.QueryResultRow>(
-      practice: TestPractice,
-      query: string,
-    ): Promise<pg.QueryResult<T>> {
-      await app.query('begin')
-      try {
-        await app.query(`set local role ${pg.escapeIdentifier(practice.role)}`)
-        return await app.query<T>(query)
-      } finally {
-        await app.query('rollback')
-      }
-    }
+    /** `query` in one request transaction on the vetora_app connection as the practice's manager (asPractice, test-support.ts). */
+    const queryAs = <T extends pg.QueryResultRow>(practice: TestPractice, query: string) =>
+      asPractice(app, practice, (client) => client.query<T>(query))
 
     const denied = { code: '42501' }
 
-    it('creates the registry row, the role and its membership, the schema with the practice set, the settings from the arguments, the default location, and sets the practice active (AC-10)', async () => {
+    it("creates the registry row, the role and its membership, the schema with the practice set, the manager's staff row, the settings from the arguments, and the default location, each written as the manager, and sets the practice active (AC-8, AC-10)", async () => {
       const { log, lines } = captureLog()
 
-      const alfa = await provision({ slug: 'alfa', name: 'Alfa Vet', locationName: 'Nərimanov', log })
+      const alfa = await provision({
+        slug: 'alfa',
+        name: 'Alfa Vet',
+        managerName: 'Dr Aliyeva',
+        locationName: 'Nərimanov',
+        log,
+      })
+      const manager = alfa.managerId
 
       expect(alfa.practiceId).toMatch(uuidV7)
       const registry = await migrator.query(
@@ -133,12 +140,32 @@ describe.skipIf(!databaseTestsEnabled())(
       )
       expect(tables.rows.map((row) => row.table_name)).toEqual([
         '__drizzle_migrations',
+        'audit_event',
         'location',
         'practice_settings',
+        'staff_member',
+      ])
+      // The first manager mirrors the control user id given, with the one role; the row is its own creator (IN-1).
+      const staff = await migrator.query(
+        `select id, display_name, roles, active, synced_at, created_by, updated_by, version
+         from ${pg.escapeIdentifier(alfa.schema)}.staff_member`,
+      )
+      expect(staff.rows).toEqual([
+        {
+          id: manager,
+          display_name: 'Dr Aliyeva',
+          roles: ['manager'],
+          active: true,
+          synced_at: expect.any(Date),
+          created_by: manager,
+          updated_by: manager,
+          version: 1,
+        },
       ])
       const settings = await migrator.query(
         `select legal_name, display_name, address, phone, tax_id, time_zone, currency, languages::text[] as languages,
-              default_language, care_relationship_lapse_months, backdate_limit_hours, delegation_enabled, go_live_at
+              default_language, care_relationship_lapse_months, backdate_limit_hours, delegation_enabled, go_live_at,
+              created_by, updated_by, version
        from ${pg.escapeIdentifier(alfa.schema)}.practice_settings`,
       )
       expect(settings.rows).toEqual([
@@ -156,45 +183,91 @@ describe.skipIf(!databaseTestsEnabled())(
           backdate_limit_hours: 24,
           delegation_enabled: true,
           go_live_at: null,
+          created_by: manager,
+          updated_by: manager,
+          version: 1,
         },
       ])
       const locations = await migrator.query(
-        `select name, address, phone, is_default, active from ${pg.escapeIdentifier(alfa.schema)}.location`,
+        `select name, address, phone, is_default, active, created_by, updated_by, version
+         from ${pg.escapeIdentifier(alfa.schema)}.location`,
       )
       expect(locations.rows).toEqual([
-        { name: 'Nərimanov', address: null, phone: null, is_default: true, active: true },
+        {
+          name: 'Nərimanov',
+          address: null,
+          phone: null,
+          is_default: true,
+          active: true,
+          created_by: manager,
+          updated_by: manager,
+          version: 1,
+        },
       ])
-      // The log carries the slug and the id, never the names (spec 0002, "Security model": personal data).
+      // Three inserts in the audit log, the manager as actor, the command as source (AC-8).
+      const audit = await migrator.query(
+        `select table_name, action, actor_id, source from ${pg.escapeIdentifier(alfa.schema)}.audit_event order by id`,
+      )
+      expect(audit.rows).toEqual([
+        { table_name: 'staff_member', action: 'insert', actor_id: manager, source: 'migration:provision-practice' },
+        {
+          table_name: 'practice_settings',
+          action: 'insert',
+          actor_id: manager,
+          source: 'migration:provision-practice',
+        },
+        { table_name: 'location', action: 'insert', actor_id: manager, source: 'migration:provision-practice' },
+      ])
+      // The log carries the slug and the ids, never the names (spec 0002, "Security model": personal data).
       const logged = JSON.stringify(lines)
       expect(logged).toContain(alfa.practiceId)
+      expect(logged).toContain(manager)
       expect(logged).not.toContain('Alfa Vet')
       expect(logged).not.toContain('Nərimanov')
+      expect(logged).not.toContain('Dr Aliyeva')
     })
 
-    it('changes nothing on a rerun with the same slug and name (AC-10)', async () => {
+    it('changes nothing on a rerun with the same slug and name, the manager row and the audit log included, even with another manager (AC-10)', async () => {
       const alfa = await provision({ slug: 'alfa', name: 'Alfa Vet', locationName: 'Nərimanov' })
       const before = await stateOf(alfa)
+      expect(before.staff).toHaveLength(1)
+      expect(before.audit).toHaveLength(3)
 
-      const again = await provisionTestPractice(urls, { slug: 'alfa', name: 'Alfa Vet', locationName: 'Nərimanov' })
+      const again = await provisionTestPractice(urls, {
+        slug: 'alfa',
+        name: 'Alfa Vet',
+        managerName: 'Someone else',
+        locationName: 'Elsewhere',
+      })
 
       expect(again.practiceId).toBe(alfa.practiceId)
       expect(await stateOf(alfa)).toEqual(before)
     })
 
-    it('completes a rerun after a step was undone: status back to provisioning and the settings row deleted (AC-10)', async () => {
+    it('completes a rerun after a step was undone, status back to provisioning and the settings row deleted, writing the row as the first manager even when the rerun names another (AC-10)', async () => {
       const alfa = await provision({ slug: 'alfa', name: 'Alfa Vet', locationName: 'Nərimanov' })
       const before = await stateOf(alfa)
       await migrator.query("update control.practice set status = 'provisioning' where id = $1", [alfa.practiceId])
       await migrator.query(`delete from ${pg.escapeIdentifier(alfa.schema)}.practice_settings`)
 
+      // A fresh manager id: not a staff member, so the row can only be written as the first manager (IN-1).
       const again = await provisionTestPractice(urls, { slug: 'alfa', name: 'Alfa Vet', locationName: 'Nərimanov' })
 
       expect(again.practiceId).toBe(alfa.practiceId)
+      expect(again.managerId).not.toBe(alfa.managerId)
       const after = await stateOf(alfa)
       expect(after.registry.map((row) => row.status)).toEqual(['active'])
-      expect(after.settings).toEqual(before.settings)
+      // The settings row is written again as the first manager; only the clock columns differ.
+      const withoutClock = (rows: Record<string, unknown>[]) => rows.map(({ created_at, updated_at, ...row }) => row)
+      expect(withoutClock(after.settings)).toEqual(withoutClock(before.settings))
       expect(after.locations).toEqual(before.locations)
+      expect(after.staff).toEqual(before.staff)
       expect(after.migrations).toEqual(before.migrations)
+      // The hand delete and the rerun's insert are both in the audit log, each attributed (IN-1).
+      expect(after.audit.slice(3).map((row) => [row.table_name, row.action, row.actor_id, row.source])).toEqual([
+        ['practice_settings', 'delete', null, 'migration:provisioning.test'],
+        ['practice_settings', 'insert', alfa.managerId, 'migration:provision-practice'],
+      ])
     })
 
     it('leaves a provisioning row when the practice set fails, which a rerun with the committed set completes (AC-10)', async () => {
@@ -203,7 +276,15 @@ describe.skipIf(!databaseTestsEnabled())(
       try {
         const failed = await provisionPractice({
           url: urls.migrator,
-          input: { slug: 'gamma', name: 'Gamma Vet', locationName: 'Main', timeZone: 'Asia/Baku', languages: ['az'] },
+          input: {
+            slug: 'gamma',
+            name: 'Gamma Vet',
+            managerUserId: '11111111-1111-7111-8111-111111111111',
+            managerName: 'Dr Gamma',
+            locationName: 'Main',
+            timeZone: 'Asia/Baku',
+            languages: ['az'],
+          },
           practiceFolder: folder,
         })
 
@@ -240,6 +321,8 @@ describe.skipIf(!databaseTestsEnabled())(
         input: {
           slug: 'alfa',
           name: 'Someone else',
+          managerUserId: alfa.managerId,
+          managerName: 'Dr Else',
           locationName: 'Elsewhere',
           timeZone: 'Asia/Baku',
           languages: ['az'],
@@ -255,6 +338,7 @@ describe.skipIf(!databaseTestsEnabled())(
         rows: schemasBefore.rows,
       })
       expect(JSON.stringify(lines)).not.toContain('Someone else')
+      expect(JSON.stringify(lines)).not.toContain('Dr Else')
     })
 
     it('isolates practices: vetora_app reads a practice table only after SET LOCAL ROLE to its role, and never another practice (AC-11)', async () => {
@@ -266,8 +350,8 @@ describe.skipIf(!databaseTestsEnabled())(
       // No role switch: a schema qualified SELECT is permission denied.
       await expect(app.query(settingsOf(alfa))).rejects.toMatchObject(denied)
       // As practice A: A's tables read, B's are permission denied.
-      expect((await asPractice(alfa, settingsOf(alfa))).rows).toEqual([{ display_name: 'Alfa Vet' }])
-      await expect(asPractice(alfa, settingsOf(beta))).rejects.toMatchObject(denied)
+      expect((await queryAs(alfa, settingsOf(alfa))).rows).toEqual([{ display_name: 'Alfa Vet' }])
+      await expect(queryAs(alfa, settingsOf(beta))).rejects.toMatchObject(denied)
       // vetora_app holds no grant of its own on any practice table (spec 0002, "Security model": Roles).
       const own = await migrator.query(
         `select has_schema_privilege('vetora_app', $1, 'USAGE') as usage, has_table_privilege('vetora_app', $2, 'SELECT') as "select"`,
@@ -334,12 +418,13 @@ describe.skipIf(!databaseTestsEnabled())(
         migrator.query(`insert into ${schema}.location (name, is_default) values ('Second', true)`),
       ).rejects.toMatchObject({ code: '23505' })
       await migrator.query(`insert into ${schema}.location (name, is_default) values ('Second', false)`)
-      await expect(asPractice(alfa, `delete from ${schema}.location`)).rejects.toMatchObject(denied)
-      await expect(asPractice(alfa, `delete from ${schema}.practice_settings`)).rejects.toMatchObject(denied)
-      await expect(asPractice(alfa, `truncate ${schema}.location`)).rejects.toMatchObject(denied)
-      // The practice role reads and writes both tables: the mutable class (spec 0002, "Conventions": Table classes).
+      await expect(queryAs(alfa, `delete from ${schema}.location`)).rejects.toMatchObject(denied)
+      await expect(queryAs(alfa, `delete from ${schema}.practice_settings`)).rejects.toMatchObject(denied)
+      await expect(queryAs(alfa, `truncate ${schema}.location`)).rejects.toMatchObject(denied)
+      await expect(queryAs(alfa, `delete from ${schema}.staff_member`)).rejects.toMatchObject(denied)
+      // The practice role reads and writes the mutable tables (spec 0002, "Conventions": Table classes).
       expect(
-        (await asPractice(alfa, `update ${schema}.location set active = false where name = 'Second' returning active`))
+        (await queryAs(alfa, `update ${schema}.location set active = false where name = 'Second' returning active`))
           .rows,
       ).toEqual([{ active: false }])
     })

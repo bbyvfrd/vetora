@@ -1,5 +1,5 @@
 import { getTableName } from 'drizzle-orm'
-import { location, practiceSettings } from './platform-tables.js'
+import { auditEvent, location, practiceSettings, staffMember } from './platform-tables.js'
 
 /**
  * The table class registry (spec 0002, "Conventions": Table classes; "Security model": Grants pass). Every practice
@@ -15,4 +15,7 @@ export type TableClass = (typeof TABLE_CLASSES)[number]
 export const tableClasses: ReadonlyMap<string, TableClass> = new Map<string, TableClass>([
   [getTableName(practiceSettings), 'mutable'],
   [getTableName(location), 'mutable'],
+  [getTableName(staffMember), 'mutable'],
+  /** Written only by audit_row(); the practice role reads it (AC-8, AC-9). */
+  [getTableName(auditEvent), 'function_written'],
 ])

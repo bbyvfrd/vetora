@@ -100,6 +100,9 @@ async function run(
   { controlFolder, practiceFolder, dryRun, practice, log }: ResolvedOptions,
 ): Promise<MigrateOutcome> {
   const started = performance.now()
+  // Rows a migration writes are attributed to the set (IN-1): audit_row() reads app.migration on a migrator session; a
+  // data migration that writes rows names its own folder at its top: select set_config('app.migration', '<folder>', true).
+  await setMigrationSource(client, 'control')
   const controlPending = await pendingMigrations(client, 'control', controlFolder)
 
   if (dryRun) {
@@ -143,6 +146,7 @@ async function run(
   }
 
   const practices: PracticeApplied[] = []
+  await setMigrationSource(client, 'practice')
   for (const target of targets) {
     const result = await migratePractice(client, target, { practiceFolder, log })
     if (result.status === 'failed') return result
@@ -154,6 +158,11 @@ async function run(
 }
 
 const dryRunMessage = (pending: string[]) => (pending.length ? 'dry run: would apply' : 'dry run: nothing to do')
+
+/** The name audit_event.source carries for rows this connection writes from here on: migration:<name>. */
+async function setMigrationSource(client: pg.Client, name: string): Promise<void> {
+  await client.query("select set_config('app.migration', $1, false)", [name])
+}
 
 /** The set's migrations not yet recorded in <schema>.__drizzle_migrations, in apply order. */
 async function pendingMigrations(client: pg.Client, schema: string, folder: string): Promise<string[]> {

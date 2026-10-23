@@ -12,21 +12,24 @@ import { scrubError } from './platform/log.js'
  * `provision-practice`: creates a practice behind its own role (spec 0001 "Provisioning", spec 0002 "Interface
  * surface") as vetora_migrator under the migrate lock, every step idempotent, so a rerun completes what an earlier
  * run left undone and changes nothing else. Prints the practice id. Locally
- * `pnpm --filter @vetora/api provision-practice -- --slug alfa --name "Alfa Vet" --location-name "Nərimanov"
- * [--time-zone Asia/Baku] [--languages az,ru]`; on a server `node apps/api/dist/provision-practice.js …` through
- * `kamal app exec`. A thin entry point over src/platform/db/provisioning.ts, as migrate.ts is over the migrator.
+ * `pnpm --filter @vetora/api provision-practice -- --slug alfa --name "Alfa Vet" --manager-user-id <uuid>
+ * --manager-name "Dr Aliyeva" --location-name "Nərimanov" [--time-zone Asia/Baku] [--languages az,ru]`; on a server
+ * `node apps/api/dist/provision-practice.js …` through `kamal app exec`. A thin entry point over
+ * src/platform/db/provisioning.ts, as migrate.ts is over the migrator.
  *
  * Exit codes: 0 the practice is provisioned (a rerun included), 1 the slug belongs to a practice with another name,
  * an argument is invalid, or the run did not complete (a step failed, or the connection or configuration failed),
  * 2 another migrate or provision-practice run holds the lock.
  */
 const usage =
-  'usage: provision-practice --slug <slug> --name <name> --location-name <name> [--time-zone <IANA zone>] [--languages az,ru]'
+  'usage: provision-practice --slug <slug> --name <name> --manager-user-id <uuid> --manager-name <name> --location-name <name> [--time-zone <IANA zone>] [--languages az,ru]'
 
 /** The option each argument comes from, so the log can name an invalid one without its value. */
 const optionNames: Record<string, string> = {
   slug: '--slug',
   name: '--name',
+  managerUserId: '--manager-user-id',
+  managerName: '--manager-name',
   locationName: '--location-name',
   timeZone: '--time-zone',
   languages: '--languages',
@@ -45,7 +48,15 @@ function exitCode(outcome: ProvisionOutcome): number {
 }
 
 async function main(): Promise<number> {
-  let values: { slug?: string; name?: string; 'location-name'?: string; 'time-zone'?: string; languages?: string }
+  let values: {
+    slug?: string
+    name?: string
+    'manager-user-id'?: string
+    'manager-name'?: string
+    'location-name'?: string
+    'time-zone'?: string
+    languages?: string
+  }
   try {
     // `pnpm provision-practice -- --slug …` hands the `--` on to node, which passes it to the script: drop it.
     const args = process.argv[2] === '--' ? process.argv.slice(3) : process.argv.slice(2)
@@ -54,6 +65,8 @@ async function main(): Promise<number> {
       options: {
         slug: { type: 'string' },
         name: { type: 'string' },
+        'manager-user-id': { type: 'string' },
+        'manager-name': { type: 'string' },
         'location-name': { type: 'string' },
         'time-zone': { type: 'string' },
         languages: { type: 'string' },
@@ -70,6 +83,8 @@ async function main(): Promise<number> {
   const parsed = provisionInput.safeParse({
     slug: values.slug,
     name: values.name,
+    managerUserId: values['manager-user-id'],
+    managerName: values['manager-name'],
     locationName: values['location-name'],
     timeZone: values['time-zone'],
     languages: values.languages?.split(',').map((code) => code.trim()),

@@ -11,7 +11,7 @@ import { dropRole, type TestDatabaseUrls } from './test-database.js'
 
 /**
  * The helpers the database tests share (spec 0002, "Critical test scenarios"): the migration sets as folders, a
- * throwaway practice, a log capture. The test database itself (its URLs, the reset, the Vitest globalSetup) is
+ * throwaway practice, a request transaction as its role, a log capture. The test database itself (its URLs, the reset, the Vitest globalSetup) is
  * test-database.ts, re-exported here so a test imports one module. Kept out of dist/ by tsconfig.build.json.
  */
 export {
@@ -41,6 +41,8 @@ export type TestPractice = {
   slug: string
   schema: string
   role: string
+  /** The first manager's staff_member id: the actor a test's request transactions set (IN-1). */
+  managerId: string
   drop: () => Promise<void>
 }
 
@@ -58,6 +60,8 @@ export async function provisionTestPractice(
   const input: ProvisionInput = {
     slug,
     name: options.name ?? `Practice ${slug}`,
+    managerUserId: options.managerUserId ?? randomUUID(),
+    managerName: options.managerName ?? 'Dr Test',
     locationName: options.locationName ?? 'Main',
     timeZone: options.timeZone ?? 'Asia/Baku',
     languages: options.languages ?? ['az', 'ru'],
@@ -65,7 +69,36 @@ export async function provisionTestPractice(
   const outcome = await provisionPractice({ url: urls.migrator, input, log: options.log })
   if (outcome.status !== 'provisioned') throw new Error(`test practice ${slug} was not provisioned: ${outcome.status}`)
   const practice = { practiceId: outcome.practiceId, slug, schema: outcome.schema, role: outcome.role }
-  return { ...practice, drop: () => dropTestPractice(urls, practice) }
+  return { ...practice, managerId: input.managerUserId, drop: () => dropTestPractice(urls, practice) }
+}
+
+export type RequestOptions = {
+  /** app.actor_id for the transaction: the practice's manager unless given; null leaves it unset and '' sets it empty, both refused by IN-1. */
+  actor?: string | null
+}
+
+/**
+ * One request transaction as the request context of slice 1 will run it (spec 0002, "Roles"): on a vetora_app
+ * connection, SET LOCAL ROLE to the practice role and app.actor_id for the transaction, then `run`; committed when
+ * `run` returns, rolled back when it throws, so a refused write leaves nothing and the connection is clean for the next case.
+ */
+export async function asPractice<T>(
+  app: pg.Client,
+  practice: Pick<TestPractice, 'role' | 'managerId'>,
+  run: (client: pg.Client) => Promise<T>,
+  { actor = practice.managerId }: RequestOptions = {},
+): Promise<T> {
+  await app.query('begin')
+  try {
+    await app.query(`set local role ${pg.escapeIdentifier(practice.role)}`)
+    if (actor !== null) await app.query("select set_config('app.actor_id', $1, true)", [actor])
+    const result = await run(app)
+    await app.query('commit')
+    return result
+  } catch (error) {
+    await app.query('rollback')
+    throw error
+  }
 }
 
 /** Remove a test practice as the migrator: its schema (cascade), what its role holds and the role, then its registry row. */
