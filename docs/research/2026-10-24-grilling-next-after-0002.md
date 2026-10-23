@@ -12,7 +12,7 @@ What the `/grill-with-docs` session of 2026-10-24 decided about the next unit of
 
 ## For `docs/scope/scope.md`
 
-- [x] Feature 4: status `in progress` and the decide first tag gone (2026-10-24); the spec is issue #9 (https://github.com/bbyvfrd/vetora/issues/9); add the code location when the first ticket lands.
+- [x] Feature 4: status `in progress` and the decide first tag gone (2026-10-24); the spec is issue #9 (https://github.com/bbyvfrd/vetora/issues/9), the tickets #10 to #13; add the code location when the first ticket lands.
 - [x] Feature 4's Done when: unchanged; a grilled line under it names ADRs 0003 and 0004; feature 14's basis names ADR 0004 (2026-10-24).
 
 ## For `docs/RUNBOOK.md`
@@ -44,7 +44,7 @@ What the `/grill-with-docs` session of 2026-10-24 decided about the next unit of
 - [ ] `apps/api/AGENTS.md` (at feature 14): the worker renders the print sheets to PDF with Chromium.
 - [ ] `CODING_STANDARDS.md`: unchanged; it already routes dates, numbers and sorting through the design system's formatters.
 
-## A possible cut for `/to-tickets` (a suggestion, not the contract)
+## The cut `/to-tickets` published on 2026-10-24: #10, #11, #12, #13, sub-issues of the spec #9, a straight chain
 
 1. `packages/ui` with the token compiler, the font, the stylesheet and one component (Button), wired into the health page: proves the package build, Vite consumption, typecheck, Biome, and a first jsdom test.
 2. The remaining components and the icons vendored and conformant, the print sheets among them, with the contrast test over the tokens.
