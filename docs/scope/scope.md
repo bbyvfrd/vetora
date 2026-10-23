@@ -15,7 +15,7 @@ _These are recommendations to keep your build orderly, not requirements. You dec
 | 1 | Stack & architecture | Foundation | in progress |
 | 2 | Coding standards & tooling | Foundation | done |
 | 3 | Data model | Foundation | done |
-| 4 | Design system & UI foundation | Foundation | planned |
+| 4 | Design system & UI foundation | Foundation | in progress |
 | 5 | First visit from arrival to payment | Slice 1 | planned |
 | 6 | Prescribe and dispense from stock | Slice 2 | planned |
 | 7 | Controlled drug register | Slice 2 | planned |
@@ -58,9 +58,10 @@ Turn domain.md's 13 contexts and 36 rules into the persistence shape: modules in
 Done on 2026-10-24 · [Spec 0002](../specs/0002-data-model/index.md) · code in `apps/api/drizzle/` (the control and practice migration sets), `apps/api/src/platform/db/` (the migrator, provisioning, the grants pass and table classes, the platform tables, the rules fixture), `apps/api/src/modules/*/schema.ts`, `infra/postgres/init/01-vetora.sql` · the checks are the spec's `verify.md` and `apps/api/src/rehearsal.test.ts`
 _Deferred on 2026-10-24 to slices 1 and 2: the Done when clauses that name slice tables are proven on their own tables by the slices that build them. Finalised visits append only (CR-1): `freeze_record` and `lock_parent` on `encounter`, feature 5, the triggers proven on the rules fixture today. Dispense and stock movement in one transaction (RX-3): the deferred check convention on `dispense_event`, feature 6, worked once on the fixture. Debt derived from a ledger (BL-6): the append only class on `ledger_entry` and the `client_balance` view, feature 5 and then feature 8, the class proven on scratch tables by the grants pass. Ownership over time (PT-1): an exclusion constraint on `ownership`, feature 5, nothing of it yet beyond the `btree_gist` extension it needs. Weight as a dated observation (PT-2): the append only `clinical_observation`, feature 5._
 
-### 4. Design system & UI foundation · decide first
+### 4. Design system & UI foundation · in progress
 Visual language and base components for reception desktops and ward tablets, translation ready in Azerbaijani, Russian, and English, with print layouts for client documents.
 **Done when:** `design.md` covers type, color, spacing, components, and print; base components work by keyboard and by touch with readable contrast; no screen text lives outside the Azerbaijani, Russian, and English translation files.
+_Grilled on 2026-10-24 (`docs/research/2026-10-24-grilling-next-after-0002.md`): the web app vendors the design system's source into `packages/ui` (ADR 0003); the print sheets are the one implementation of each document, rendered to PDF in the worker at feature 14 (ADR 0004); the spec is [issue #9](https://github.com/bbyvfrd/vetora/issues/9); the tickets follow on GitHub._
 
 ## Slice 1: Core loop
 
@@ -69,6 +70,7 @@ The thinnest real thread through a clinic day, and the walking skeleton for ever
 ### 5. First visit from arrival to payment · decide first · high stakes
 A vet signs in, registers a walk in client and pet, records the weight, writes and finalises the visit note, invoices it, and takes a payment. Real sign in and real data; no bookings, stock, or printing yet. The note has six sections (reason for visit, history, examination, diagnosis, treatment, recommendations); the interviews settle their labels (OPEN-10).
 **Done when:** a vet completes a walk in visit end to end in Azerbaijani, Russian, or English; the finalised note is locked (CR-1) and only a vet can finalise it (CR-2); a note in progress survives a dropped connection; a part payment leaves the rest as client debt (BL-5); every action records who did it (IN-1).
+_Before its grilling: a one session `/prototype` spike of Better Auth 1.7.12 (the relations-v2 Drizzle adapter) on Drizzle 1.0 rc, scoped in `docs/research/2026-10-24-grilling-next-after-0002.md`, Feature 5 spike._
 
 ## Slice 2: Medicines
 
@@ -117,7 +119,7 @@ Record vaccinations with the vaccine lot, work out when the next ones are due pe
 **Done when:** a vaccination records vaccine, lot, and date; due dates follow a protocol per species (PT-3); staff mark each due item as contacted, booked, or declined.
 
 ### 14. Client printouts
-Print or save as PDF, in the client's language (Azerbaijani, Russian, or English) with the clinic's letterhead: the prescription, the discharge summary (выписка, one document for a visit or a stay), the invoice, and a consent form filled in with client and pet details (basis: builds on the design system's print layouts, so no new decision).
+Print or save as PDF, in the client's language (Azerbaijani, Russian, or English) with the clinic's letterhead: the prescription, the discharge summary (выписка, one document for a visit or a stay), the invoice, and a consent form filled in with client and pet details (basis: builds on the design system's print sheets, rendered to PDF in the worker, ADR 0004, so no new decision).
 **Done when:** each document prints in the client's chosen language from real record data; a draft prints clearly marked as a draft.
 
 ## Slice 7: Pilot go live

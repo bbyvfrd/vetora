@@ -38,10 +38,10 @@ What the `/grill-with-docs` session of 2026-10-22 decided, and the edits those d
 
 ## For the design system spec (scope feature 4)
 
-- [ ] Add to the design system glossary before they reach a screen: Arrival (явка, gəliş; the Queue page lists arrivals), Authorised person (доверенное лицо, səlahiyyətli şəxs). Estimate (смета) has no Azerbaijani word yet; DispenseEvent has no UI word at all.
-- [ ] Its Owner row says "the field on the patient record"; the model keeps ownership as a dated relationship (PT-1), and the field shows the current owner.
+- [x] Add to the design system glossary before they reach a screen: Arrival (явка, gəliş; the Queue page lists arrivals), Authorised person (доверенное лицо, səlahiyyətli şəxs). Done 2026-10-24 (artifact version 19). Still owed: an Azerbaijani word for Estimate (смета), slice 8, and a UI word for DispenseEvent, slice 2.
+- [x] Its Owner row says "the field on the patient record"; the model keeps ownership as a dated relationship (PT-1), and the field shows the current owner. Reworded 2026-10-24.
 
-- [ ] Glossary rows also needed: Alert (особая отметка, xüsusi qeyd), Stock location (место хранения, saxlama yeri). The navigation rail has no page yet for the queue, the ward, the pharmacy counter, grooming, or boarding; each arrives with its slice.
+- [x] Glossary rows also needed: Alert (особая отметка, xüsusi qeyd), Stock location (место хранения, saxlama yeri). Added 2026-10-24. The navigation rail has no page yet for the queue, the ward, the pharmacy counter, grooming, or boarding; each arrives with its slice (unchanged, by design).
 
 ## For the interviews (OPEN register)
 

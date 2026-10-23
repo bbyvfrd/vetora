@@ -10,4 +10,6 @@ This file points at the vocabulary; it does not define it.
 
 _Record a new term here (term, meaning, RU, AZ, context), then fold it into `docs/domain.md` §7 deliberately._
 
+2026-10-24 (`/grill-with-docs`, what comes after spec 0002; `docs/research/2026-10-24-grilling-next-after-0002.md`): no new model terms. The design system glossary gained the UI rows for four terms `docs/domain.md` §7.3 already holds, Arrival (Gəliş, Явка), Authorised person (Səlahiyyətli şəxs, Доверенное лицо), Alert (Xüsusi qeyd, Особая отметка), Stock location (Saxlama yeri, Место хранения), and its Owner row now reads as PT-1 does: the client currently responsible for the patient, shown on the patient record; ownership can pass to another client. §7.4 is unchanged: on screen these terms keep their model names. Still owed: an Azerbaijani word for Estimate (slice 8) and a UI word for DispenseEvent (slice 2).
+
 Last fold: 2026-10-22, from the `/grill-with-docs` session; see domain.md's change log, `docs/adr/0001-administration-belongs-to-dispensing.md`, and `docs/research/2026-10-22-grilling-domain-terms.md` for the spec and scope edits it implies.
