@@ -1,0 +1,42 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "45c280a1-637d-40bc-aa59-f8309a6494f5",
+  "prevIds": [
+    "0c936922-bd2d-4229-ac3d-a09c42003744"
+  ],
+  "footprints": [
+    {
+      "statementType": "add_check",
+      "statementTarget": [
+        "table",
+        "public",
+        "practice_settings"
+      ],
+      "writes": [
+        "s|ck|public.practice_settings.practice_settings_backdate_limit_hours_check",
+        "n|ck|public.practice_settings.practice_settings_backdate_limit_hours_check",
+        "e|ck|public.practice_settings.practice_settings_backdate_limit_hours_check",
+        "n|con|public.practice_settings.practice_settings_backdate_limit_hours_check"
+      ],
+      "reads": [
+        "n|tbl|public.practice_settings",
+        "n|sch|public",
+        "n|col|public.practice_settings.backdate_limit_hours"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "practice_settings",
+        "name": "practice_settings_backdate_limit_hours_check",
+        "value": "\"backdate_limit_hours\" >= 0",
+        "entityType": "checks"
+      }
+    }
+  ]
+}

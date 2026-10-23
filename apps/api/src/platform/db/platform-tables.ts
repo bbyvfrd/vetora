@@ -58,13 +58,17 @@ export const practiceSettings = pgTable(
     languages: langCode('languages').array().notNull().default(sql`'{az,ru}'`),
     defaultLanguage: langCode('default_language').notNull(),
     careRelationshipLapseMonths: integer('care_relationship_lapse_months').notNull().default(12),
+    /** AC-13: the window assert_backdate_limit() measures occurred_at against; the check below keeps it a number of hours. */
     backdateLimitHours: integer('backdate_limit_hours').notNull().default(24),
     delegationEnabled: boolean('delegation_enabled').notNull().default(true),
-    /** Set once (the trigger arrives with the rules ticket). */
+    /** Set once: the set_once('only', 'go_live_at') trigger of the rules migration lets it go from null to a value once. */
     goLiveAt: timestamp('go_live_at', { withTimezone: true }),
     ...standardColumns(),
   },
-  (table) => [check('practice_settings_single_row', sql`${table.id} = ${sql.raw(`'${PRACTICE_SETTINGS_ID}'`)}`)],
+  (table) => [
+    check('practice_settings_single_row', sql`${table.id} = ${sql.raw(`'${PRACTICE_SETTINGS_ID}'`)}`),
+    check('practice_settings_backdate_limit_hours_check', sql`${table.backdateLimitHours} >= 0`),
+  ],
 )
 
 /** IN-5: a practice has a location from day one; provisioning seeds the default one. */

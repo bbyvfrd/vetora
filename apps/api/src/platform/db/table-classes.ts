@@ -14,11 +14,11 @@ import { auditEvent, location, practiceSettings, staffMember } from './platform-
 export type TableEntry =
   /** INSERT and SELECT: a record is never changed, a correction is a new row (CR-1, RX-4, BL-6). */
   | { class: 'append_only' }
-  /** INSERT and SELECT, and UPDATE on the named columns alone (`consent_record.withdrawn_at`); the set once trigger (#6) lets each go from null to a value once. */
+  /** INSERT and SELECT, and UPDATE on the named columns alone (`consent_record.withdrawn_at`); the set_once() trigger lets each go from null to a value once. */
   | { class: 'set_once'; setOnce: readonly [string, ...string[]] }
   /** INSERT, SELECT, UPDATE, never DELETE: a record retires by status (IN-6). `noUpdate` names columns the role never updates (`lot.quantity_on_hand`, the movement trigger's alone). */
   | { class: 'mutable'; noUpdate?: readonly string[] }
-  /** As mutable until the status column reaches its final value; the freeze trigger (#6) then refuses every change. */
+  /** As mutable until the status column reaches its final value; the freeze_record() trigger then refuses every change but the columns it names (and lock_parent() its child rows). */
   | { class: 'frozen_by_status'; noUpdate?: readonly string[] }
   /** SELECT only: the rows come from an owner run function (`audit_row()`, later `record_controlled_entry()`). */
   | { class: 'function_written' }
