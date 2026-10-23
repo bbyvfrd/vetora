@@ -3,6 +3,8 @@
 Read at review time by `/mattpocock-skills:code-review` (its Standards axis), alongside `AGENTS.md`. Mechanical rules live in `biome.jsonc`, the tests, and CI, so they are not repeated here; these are the judgement calls a reviewer checks.
 
 - **Cite the rule** a piece of code enforces: the `docs/domain.md` §8 IDs (CR-1, RX-3, BL-6, IN-1, …) go in the comment, the test name, and the review note. A rule is enforced as close to the data as possible (constraints, triggers, grants), never only in a screen.
+- **Guards fail closed**: a guard whose input is missing (a setting row that is not there, an empty list, a comparison that goes NULL) refuses the write rather than letting it through, and its tests try the missing input.
+- **Database rules**: `apps/api/docs/database.md` is the standard for a migration, a table and its registry entry, a trigger or a deferred check, and a database test; a change there is reviewed against it.
 - **Guards compare definitions**: a check that enforces a rule from the catalog (`pg_trigger`, `pg_proc`, an ACL) reads what the object is and does, such as a trigger's function, timing, events, and enabled state, or a grant's grantee with PUBLIC included, whose grants every role inherits; its tests try the bypasses (disable, rename, swap the function, grant to PUBLIC).
 - **Use the glossary's words** (`docs/domain.md` §7): English identifiers, Russian authoritative meaning, no synonyms (an Encounter is not an appointment; a Client is not an Owner). A missing term is recorded in `GLOSSARY.md`, not invented.
 - **One error shape**: problem details JSON from every route, carrying the request id; a Postgres `detail`, `hint`, or `where` never reaches a log or a response.

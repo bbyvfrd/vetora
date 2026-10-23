@@ -542,14 +542,17 @@ describe.skipIf(!databaseTestsEnabled())(
       })
 
       it('a second pass changes nothing: every relation and routine keeps its ACL (idempotent)', async () => {
+        // Each ACL as a sorted set: a pass revokes and grants again, which moves the role's item to the end of the array.
         const acls = async () =>
           (
             await migrator.query(
-              `select c.relname as name, c.relacl::text as acl from pg_class c
+              `select c.relname as name,
+                      (select array_agg(item::text order by item::text) from unnest(c.relacl) as item) as acl
+               from pg_class c
                join pg_namespace n on n.oid = c.relnamespace where n.nspname = $1 and c.relkind in ('r', 'v', 'S')
                union all
-               select p.proname, p.proacl::text from pg_proc p
-               join pg_namespace n on n.oid = p.pronamespace where n.nspname = $1
+               select p.proname, (select array_agg(item::text order by item::text) from unnest(p.proacl) as item)
+               from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = $1
                order by 1, 2`,
               [practice.schema],
             )

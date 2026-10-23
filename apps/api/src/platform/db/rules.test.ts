@@ -182,6 +182,48 @@ describe.skipIf(!databaseTestsEnabled())('the rules the database refuses to bend
     })
   })
 
+  describe('the rule codes the schema raises are the ones errors.ts lists (spec 0002, Interface surface; CODING_STANDARDS: guards compare definitions)', () => {
+    /** Every `vetora.<rule>` and `VT` code pair a RAISE EXCEPTION in `body` carries, in the SQL's own spelling. */
+    function raisedIn(body: string): [string, string][] {
+      const pairs: [string, string][] = []
+      for (const match of body.matchAll(
+        /message = (?:format\()?'(vetora\.[a-z_]+)[^']*'[^;]*?errcode = '(VT\d{3})'/gi,
+      )) {
+        pairs.push([match[1] as string, match[2] as string])
+      }
+      return pairs
+    }
+
+    it("every pair raised by a function of the practice schema, the fixture's deferred check included, is in ruleErrors or on the family code, and every listed code is raised somewhere", async () => {
+      const functions = await migrator.query<{ name: string; body: string }>(
+        `select p.proname as name, p.prosrc as body from pg_proc p
+         join pg_namespace n on n.oid = p.pronamespace where n.nspname = $1 order by p.proname`,
+        [practice.schema],
+      )
+      const raised = new Map(functions.rows.flatMap(({ body }) => raisedIn(body)))
+
+      // The pairs as the migrations and the fixture spell them today, so the extraction is known to see each one.
+      expect(raised).toEqual(
+        new Map([
+          ['vetora.no_actor', 'VT001'],
+          ['vetora.set_once', 'VT002'],
+          ['vetora.frozen_record', 'VT003'],
+          ['vetora.backdated_too_far', 'VT004'],
+          ['vetora.incomplete_fixture_companion', 'VT005'],
+        ]),
+      )
+      // The guard: the SQL and errors.ts agree pair by pair, in both directions.
+      for (const [rule, code] of raised) {
+        const expected = rule.startsWith('vetora.incomplete_')
+          ? INCOMPLETE_RULE_CODE
+          : ruleErrors[rule as keyof typeof ruleErrors]
+        expect(code, rule).toBe(expected)
+      }
+      const listed = [...Object.values(ruleErrors), INCOMPLETE_RULE_CODE].sort()
+      expect([...new Set(raised.values())].sort()).toEqual(listed)
+    })
+  })
+
   describe('AC-9 set once: a named column goes from null to a value once (spec 0002, Key invariants: Set once columns)', () => {
     const setOnce = refusal('vetora.set_once')
 

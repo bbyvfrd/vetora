@@ -65,6 +65,7 @@ Single-context. The vocabulary lives in `docs/domain.md` §7 and §8 (pointed at
 
 - Grilling: front load the fact finding and put a grounded recommendation on every question, so a whole round can be answered at once.
 - Keep `/grill-with-docs`, `/to-spec`, and `/to-tickets` in one window, and take the `ready-for-agent` label off the spec issue once it is ticketed.
+- A ticket's acceptance criteria and demo are the contract: at `/to-tickets`, check each trigger or constraint line against the class of the table it attaches to and the criterion that cites it; at `/implement`, when the path contradicts them, build to the criteria and record the reading in the commit message.
 - `/code-review` collides with a built in command: call `/mattpocock-skills:code-review`.
 - `/setup-matt-pocock-skills` edits this file, never `CLAUDE.md` (a pointer).
 - `/research` writes to `docs/research/`; `/retro` runs in the session it reviews, before `/clear`.
