@@ -6,7 +6,7 @@ import { scrubError } from './platform/log.js'
 /**
  * `migrate`: brings the database up to the committed migration sets as vetora_migrator (spec 0001 "Migrations",
  * spec 0002 "Interface surface"): the control set, then the practice set in every registered practice schema (or
- * the one `--practice <slug>` names) with the grants step after each. Locally
+ * the one `--practice <slug>` names), the grants pass inside each schema's transaction. Locally
  * `pnpm --filter @vetora/api migrate [--dry-run] [--practice <slug>]`; on a server `node apps/api/dist/migrate.js`
  * through `kamal app exec` before traffic switches. A thin entry point over src/platform/db/migrator.ts, as
  * openapi.ts is over app.ts.

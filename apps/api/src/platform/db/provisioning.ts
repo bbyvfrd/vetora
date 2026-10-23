@@ -9,7 +9,7 @@ import { MIGRATE_LOCK_KEY, migratePractice, PRACTICE_MIGRATIONS_FOLDER } from '.
  * The provision-practice command's engine (spec 0001 "Provisioning", spec 0002 "Interface surface"): one direct
  * connection as vetora_migrator under the migrate lock, and the steps in order, each idempotent, so a rerun completes
  * whatever an earlier run left undone and changes nothing that is already there: the registry row (status
- * provisioning) → the practice role and vetora_app's membership → the schema → the practice set and the grants step
+ * provisioning) → the practice role and vetora_app's membership → the schema → the practice set and the grants pass
  * → the manager's staff_member row, the settings row, and the default location, written as the manager → status
  * active. The registry row is written first and the status last, so a crash midway leaves a provisioning row the rerun
  * completes. Every row the run writes is attributed (IN-1): app.migration marks the source and the manager is the actor.
@@ -65,7 +65,7 @@ export type ProvisionOutcome =
   | { status: 'lock-held' }
   /** The slug belongs to a practice with another name: nothing was changed. */
   | { status: 'slug-taken'; slug: string }
-  /** The practice set or the grants step failed; the registry row stays in provisioning for a rerun. */
+  /** The practice set or the grants pass failed and the schema's transaction rolled back; the registry row stays in provisioning for a rerun. */
   | { status: 'failed'; schema: string; step: 'migrations' | 'grants'; pending: string[]; error: unknown }
 
 export async function provisionPractice(options: ProvisionOptions): Promise<ProvisionOutcome> {

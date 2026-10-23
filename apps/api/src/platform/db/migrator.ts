@@ -1,19 +1,20 @@
 import { fileURLToPath } from 'node:url'
 import { readMigrationFiles } from 'drizzle-orm/migrator'
 import { drizzle } from 'drizzle-orm/node-postgres'
-import { migrate as applyMigrations } from 'drizzle-orm/node-postgres/migrator'
+import { migrate as applyMigrations } from 'drizzle-orm/pg-core'
 import pg from 'pg'
 import type { Logger } from 'pino'
 import { log as baseLog, rootCause, scrubError } from '../log.js'
-import { applyGrants } from './grants.js'
+import { applyGrants, type Granted } from './grants.js'
+import { MIGRATIONS_TABLE } from './table-classes.js'
 
 /**
  * The migrate command's engine (spec 0001 "Migrations", spec 0002 "Interface surface"): one direct connection as
  * vetora_migrator (never the pooler), one advisory lock, the control set first, then the practice set applied to
- * every registered practice schema in registry order with the grants step after each. Drizzle's migration table
- * inside the schema it migrates is the truth (<schema>.__drizzle_migrations), and Drizzle applies every pending
- * migration of a schema in one transaction, so a failure leaves that schema as it was: the run stops there, earlier
- * schemas migrated, later ones untouched.
+ * every registered practice schema in registry order, the grants pass inside each schema's transaction. Drizzle's
+ * migration table inside the schema it migrates is the truth (<schema>.__drizzle_migrations), and a schema's pending
+ * migrations and its grants pass run in one transaction, so a failure in either leaves that schema as it was: the run
+ * stops there, earlier schemas migrated, later ones untouched.
  */
 
 /** The control set, in the checkout and in the image: apps/api/drizzle/control, beside dist/. */
@@ -24,8 +25,6 @@ export const PRACTICE_MIGRATIONS_FOLDER = fileURLToPath(new URL('../../../drizzl
 
 /** The one key every migrate (and later provision) run takes with pg_try_advisory_lock, so runs never overlap (AC-10). */
 export const MIGRATE_LOCK_KEY = 20261022
-
-export const MIGRATIONS_TABLE = '__drizzle_migrations'
 
 /** The command's logger: every line of a run carries `command: 'migrate'`. */
 export const migrateLog = baseLog.child({ command: 'migrate' })
@@ -53,8 +52,9 @@ export type MigrateOutcome =
   | { status: 'dry-run'; pending: string[]; practices: PracticePending[] }
   | { status: 'lock-held' }
   /**
-   * A schema's run failed and the loop stopped there: its batch was rolled back (`migrations`, nothing of `pending`
-   * landed), or its grants step failed after the batch committed (`grants`). Earlier schemas are migrated, later ones untouched.
+   * A schema's run failed and the loop stopped there: its batch (`migrations`) or the grants pass after it (`grants`)
+   * refused, and the schema's one transaction rolled back, so nothing of `pending` landed. Earlier schemas are
+   * migrated, later ones untouched.
    */
   | { status: 'failed'; schema: string; step: 'migrations' | 'grants'; pending: string[]; error: unknown }
   /** `--practice <slug>` named a slug the registry does not hold. */
@@ -111,11 +111,7 @@ async function run(
     log.info({ schema: 'control' }, 'nothing to do')
   } else {
     try {
-      await applyMigrations(drizzle({ client }), {
-        migrationsFolder: controlFolder,
-        migrationsSchema: 'control',
-        migrationsTable: MIGRATIONS_TABLE,
-      })
+      await applySet(drizzle({ client }), controlFolder, 'control')
     } catch (error) {
       scrubError(error)
       log.error(
@@ -158,6 +154,18 @@ async function run(
 }
 
 const dryRunMessage = (pending: string[]) => (pending.length ? 'dry run: would apply' : 'dry run: nothing to do')
+
+/**
+ * Drizzle's migrate() over one set: the folder's migrations, <schema>.__drizzle_migrations as the truth, every pending
+ * one in a transaction; handed a transaction as `db`, it nests that batch as a savepoint.
+ */
+function applySet(db: Parameters<typeof applyMigrations>[1], folder: string, schema: string) {
+  return applyMigrations(readMigrationFiles({ migrationsFolder: folder }), db, {
+    migrationsFolder: folder,
+    migrationsSchema: schema,
+    migrationsTable: MIGRATIONS_TABLE,
+  })
+}
 
 /** The name audit_event.source carries for rows this connection writes from here on: migration:<name>. */
 async function setMigrationSource(client: pg.Client, name: string): Promise<void> {
@@ -202,15 +210,18 @@ export type PracticeTarget = { slug: string; schema: string; role: string }
 export type PracticeRun =
   /** The schema is current and its grants are set: `applied` names what this run applied. */
   | { status: 'applied'; applied: string[] }
-  /** The batch was rolled back (`migrations`), or the grants step failed after the batch committed (`grants`). */
+  /** The batch (`migrations`) or the grants pass (`grants`) refused; the schema's transaction rolled back and nothing of `pending` landed. */
   | { status: 'failed'; schema: string; step: 'migrations' | 'grants'; pending: string[]; error: unknown }
 
 type PracticeRunOptions = { practiceFolder: string; log: Logger }
 
 /**
- * Bring one practice schema up to the practice set, then run the grants step (spec 0002, "Interface surface"):
- * search_path is set to the schema (and ext), so every unqualified name in the set lands there, and the migrations
- * table inside the schema is the truth. Shared by migrate's practice loop and by provision-practice.
+ * Bring one practice schema up to the practice set and run the grants pass, in one transaction (spec 0002, "Interface
+ * surface"; "Security model": Grants pass): search_path is set to the schema (and ext) for the transaction, so every
+ * unqualified name in the set lands there and the migrations table inside the schema is the truth, and the pass sees
+ * the batch's tables before anything is committed, so a table without a class or a trigger rolls its migration back
+ * with it. Drizzle's migrate() nests its own transaction as a savepoint when handed one. Shared by migrate's practice
+ * loop and by provision-practice.
  */
 export async function migratePractice(
   client: pg.Client,
@@ -218,33 +229,29 @@ export async function migratePractice(
   { practiceFolder, log }: PracticeRunOptions,
 ): Promise<PracticeRun> {
   const pending = await pendingMigrations(client, schema, practiceFolder)
-  await client.query(`set search_path to ${pg.escapeIdentifier(schema)}, ext`)
+  // Which step the transaction is in when it fails; a property, since the step advances inside the callback.
+  const progress: { step: 'migrations' | 'grants' } = { step: 'migrations' }
+  let granted: Granted
   try {
-    if (pending.length === 0) {
-      log.info({ schema, slug }, 'nothing to do')
-    } else {
-      try {
-        await applyMigrations(drizzle({ client }), {
-          migrationsFolder: practiceFolder,
-          migrationsSchema: schema,
-          migrationsTable: MIGRATIONS_TABLE,
-        })
-      } catch (error) {
-        scrubError(error)
-        log.error({ schema, slug, pending, err: rootCause(error) }, 'migration failed, batch rolled back')
-        return { status: 'failed', schema, step: 'migrations', pending, error }
+    granted = await drizzle({ client }).transaction(async (tx) => {
+      await client.query(`set local search_path to ${pg.escapeIdentifier(schema)}, ext`)
+      if (pending.length > 0) {
+        await applySet(tx, practiceFolder, schema)
       }
-      for (const migration of pending) log.info({ schema, slug, migration }, 'applied')
-    }
-    try {
-      await applyGrants(client, { schema, role }, log)
-    } catch (error) {
-      scrubError(error)
-      log.error({ schema, slug, role, err: rootCause(error) }, 'grants step failed')
-      return { status: 'failed', schema, step: 'grants', pending: [], error }
-    }
-  } finally {
-    await client.query('reset search_path')
+      progress.step = 'grants'
+      return applyGrants(client, { schema, role })
+    })
+  } catch (error) {
+    scrubError(error)
+    const message =
+      progress.step === 'migrations'
+        ? 'migration failed, batch rolled back'
+        : 'grants pass refused the schema, batch rolled back'
+    log.error({ schema, slug, role, pending, err: rootCause(error) }, message)
+    return { status: 'failed', schema, step: progress.step, pending, error }
   }
+  if (pending.length === 0) log.info({ schema, slug }, 'nothing to do')
+  for (const migration of pending) log.info({ schema, slug, migration }, 'applied')
+  log.info({ schema, slug, role, ...granted }, 'grants applied')
   return { status: 'applied', applied: pending }
 }

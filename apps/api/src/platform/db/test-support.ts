@@ -7,11 +7,12 @@ import pg from 'pg'
 import { type Logger, pino } from 'pino'
 import { CONTROL_MIGRATIONS_FOLDER, PRACTICE_MIGRATIONS_FOLDER } from './migrator.js'
 import { type ProvisionInput, provisionPractice } from './provisioning.js'
+import { MIGRATIONS_TABLE } from './table-classes.js'
 import { dropRole, type TestDatabaseUrls } from './test-database.js'
 
 /**
  * The helpers the database tests share (spec 0002, "Critical test scenarios"): the migration sets as folders, a
- * throwaway practice, a request transaction as its role, a log capture. The test database itself (its URLs, the reset, the Vitest globalSetup) is
+ * throwaway practice, a request transaction as its role, a log capture, two catalog reads. The test database itself (its URLs, the reset, the Vitest globalSetup) is
  * test-database.ts, re-exported here so a test imports one module. Kept out of dist/ by tsconfig.build.json.
  */
 export {
@@ -33,6 +34,22 @@ export function withExtraMigration(source: string, name: string, sql: string): s
   mkdirSync(join(folder, name))
   writeFileSync(join(folder, name, 'migration.sql'), sql)
   return folder
+}
+
+/** The migration names recorded in <schema>.__drizzle_migrations, in apply order. */
+export async function recordedMigrations(client: pg.Client, schema: string): Promise<string[]> {
+  const rows = await client.query<{ name: string }>(
+    `select name from ${pg.escapeIdentifier(schema)}.${MIGRATIONS_TABLE} order by id`,
+  )
+  return rows.rows.map((row) => row.name)
+}
+
+/** Whether <schema>.<table> exists. */
+export async function tableExists(client: pg.Client, schema: string, table: string): Promise<boolean> {
+  const found = await client.query<{ found: string | null }>('select to_regclass($1) as found', [
+    `${pg.escapeIdentifier(schema)}.${pg.escapeIdentifier(table)}`,
+  ])
+  return found.rows[0]?.found != null
 }
 
 /** A throwaway practice for a test: provisioned as the command would, dropped by `drop()` as the migrator. */

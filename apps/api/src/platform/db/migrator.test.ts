@@ -8,8 +8,10 @@ import {
   databaseTestsEnabled,
   practiceSet,
   provisionTestPractice,
+  recordedMigrations,
   resetTestDatabase,
   type TestDatabaseUrls,
+  tableExists,
   testDatabaseUrls,
   withExtraMigration,
 } from './test-support.js'
@@ -198,7 +200,8 @@ describe.skipIf(!databaseTestsEnabled())('migrate brings up the control schema (
 
   describe('the practice loop, with the control set applied', () => {
     const extra = '20991231235959_extra'
-    const extraSql = 'CREATE TABLE "extra" ("id" int);\n'
+    // One more migration on a registered table: a new table would need its class in table-classes.ts (grants.test.ts).
+    const extraSql = 'ALTER TABLE "location" ADD COLUMN "extra" text;\n'
 
     beforeEach(async () => {
       await migrate({ url: urls.migrator })
@@ -219,13 +222,13 @@ describe.skipIf(!databaseTestsEnabled())('migrate brings up the control schema (
       return { slug, schema, role }
     }
 
-    const recordedIn = async (schema: string) =>
+    const extraColumnExists = async (schema: string) =>
       (
-        await migrator.query(`select name from ${pg.escapeIdentifier(schema)}.__drizzle_migrations order by id`)
-      ).rows.map((row) => row.name)
-    const tableExists = async (schema: string, table: string) =>
-      (await migrator.query('select to_regclass($1) as found', [`${pg.escapeIdentifier(schema)}.${table}`])).rows[0]
-        ?.found != null
+        await migrator.query(
+          "select 1 from information_schema.columns where table_schema = $1 and table_name = 'location' and column_name = 'extra'",
+          [schema],
+        )
+      ).rowCount === 1
     const roleReads = async (role: string, schema: string) =>
       (
         await migrator.query(
@@ -234,7 +237,7 @@ describe.skipIf(!databaseTestsEnabled())('migrate brings up the control schema (
         )
       ).rows[0]
 
-    it('applies pending practice migrations to every registered schema in registry order, a practice behind catching up in order, with the grants step after each (AC-10)', async () => {
+    it('applies pending practice migrations to every registered schema in registry order, a practice behind catching up in order, the grants pass inside each transaction (AC-10)', async () => {
       const alfa = await provisionTestPractice(urls, { slug: 'alfa' })
       const beta = await registerByHand('beta', 'p_beta')
       const folder = withExtraMigration(PRACTICE_MIGRATIONS_FOLDER, extra, extraSql)
@@ -250,10 +253,10 @@ describe.skipIf(!databaseTestsEnabled())('migrate brings up the control schema (
             { slug: 'beta', schema: 'p_beta', applied: [...practiceSet(), extra] },
           ],
         })
-        expect(await recordedIn(alfa.schema)).toEqual([...practiceSet(), extra])
-        expect(await recordedIn('p_beta')).toEqual([...practiceSet(), extra])
-        expect(await tableExists(alfa.schema, 'extra')).toBe(true)
-        expect(await tableExists('p_beta', 'practice_settings')).toBe(true)
+        expect(await recordedMigrations(migrator, alfa.schema)).toEqual([...practiceSet(), extra])
+        expect(await recordedMigrations(migrator, 'p_beta')).toEqual([...practiceSet(), extra])
+        expect(await extraColumnExists(alfa.schema)).toBe(true)
+        expect(await tableExists(migrator, 'p_beta', 'practice_settings')).toBe(true)
         expect(await roleReads(beta.role, 'p_beta')).toEqual({ usage: true, select: true })
         // Control first, then each practice in registry order, its grants right after its batch.
         const order = lines
@@ -275,7 +278,7 @@ describe.skipIf(!databaseTestsEnabled())('migrate brings up the control schema (
     it('changes nothing on a second run: every schema reports nothing to do', async () => {
       const alfa = await provisionTestPractice(urls, { slug: 'alfa' })
       const beta = await provisionTestPractice(urls, { slug: 'beta' })
-      const before = [await recordedIn(alfa.schema), await recordedIn(beta.schema)]
+      const before = [await recordedMigrations(migrator, alfa.schema), await recordedMigrations(migrator, beta.schema)]
       const { log, lines } = captureLog()
 
       const outcome = await migrate({ url: urls.migrator, log })
@@ -288,7 +291,10 @@ describe.skipIf(!databaseTestsEnabled())('migrate brings up the control schema (
           { slug: 'beta', schema: beta.schema, applied: [] },
         ],
       })
-      expect([await recordedIn(alfa.schema), await recordedIn(beta.schema)]).toEqual(before)
+      expect([
+        await recordedMigrations(migrator, alfa.schema),
+        await recordedMigrations(migrator, beta.schema),
+      ]).toEqual(before)
       expect(lines.filter((line) => line.msg === 'nothing to do').map((line) => line.schema)).toEqual([
         'control',
         alfa.schema,
@@ -308,8 +314,8 @@ describe.skipIf(!databaseTestsEnabled())('migrate brings up the control schema (
           applied: [],
           practices: [{ slug: 'beta', schema: beta.schema, applied: [extra] }],
         })
-        expect(await recordedIn(alfa.schema)).toEqual(practiceSet())
-        expect(await recordedIn(beta.schema)).toEqual([...practiceSet(), extra])
+        expect(await recordedMigrations(migrator, alfa.schema)).toEqual(practiceSet())
+        expect(await recordedMigrations(migrator, beta.schema)).toEqual([...practiceSet(), extra])
         expect(await migrate({ url: urls.migrator, practiceFolder: folder, practice: 'gamma' })).toEqual({
           status: 'not-registered',
           slug: 'gamma',
@@ -334,9 +340,9 @@ describe.skipIf(!databaseTestsEnabled())('migrate brings up the control schema (
             { slug: 'beta', schema: 'p_beta', pending: [...practiceSet(), extra] },
           ],
         })
-        expect(await recordedIn(alfa.schema)).toEqual(practiceSet())
-        expect(await tableExists('p_beta', 'practice_settings')).toBe(false)
-        // No grants step either: the role has nothing yet.
+        expect(await recordedMigrations(migrator, alfa.schema)).toEqual(practiceSet())
+        expect(await tableExists(migrator, 'p_beta', 'practice_settings')).toBe(false)
+        // No grants pass either: the role has nothing yet.
         const usage = await migrator.query("select has_schema_privilege($1, 'p_beta', 'USAGE') as usage", [beta.role])
         expect(usage.rows).toEqual([{ usage: false }])
       } finally {
@@ -364,10 +370,10 @@ describe.skipIf(!databaseTestsEnabled())('migrate brings up the control schema (
           pending: [extra],
           error: expect.anything(),
         })
-        expect(await recordedIn(alfa.schema)).toEqual([...practiceSet(), extra])
-        expect(await tableExists(alfa.schema, 'extra')).toBe(true)
-        expect(await recordedIn(beta.schema)).toEqual(practiceSet())
-        expect(await tableExists(beta.schema, 'extra')).toBe(false)
+        expect(await recordedMigrations(migrator, alfa.schema)).toEqual([...practiceSet(), extra])
+        expect(await extraColumnExists(alfa.schema)).toBe(true)
+        expect(await recordedMigrations(migrator, beta.schema)).toEqual(practiceSet())
+        expect(await extraColumnExists(beta.schema)).toBe(false)
         const failure = lines.find((line) => line.msg === 'migration failed, batch rolled back')
         expect(failure).toMatchObject({ schema: beta.schema, slug: 'beta', pending: [extra], err: { code: 'P0001' } })
       } finally {
