@@ -7,6 +7,7 @@ import {
   beginAsPractice,
   createRulesFixture,
   databaseTestsEnabled,
+  PERMISSION_DENIED,
   provisionTestPractice,
   type RequestOptions,
   type RulesFixture,
@@ -178,7 +179,7 @@ describe.skipIf(!databaseTestsEnabled())('the rules the database refuses to bend
         [practice.role, practice.schema, functions],
       )
       expect(callable.rows).toEqual(functions.map((name) => ({ name, role: false, public: false })))
-      await expect(as(`select ${qualified('freeze_record')}()`)).rejects.toMatchObject({ code: '42501' })
+      await expect(as(`select ${qualified('freeze_record')}()`)).rejects.toMatchObject(PERMISSION_DENIED)
     })
   })
 
@@ -270,9 +271,9 @@ describe.skipIf(!databaseTestsEnabled())('the rules the database refuses to bend
         setOnce,
       )
       // The practice role holds UPDATE on the named column alone (AC-9, the grants pass): the rest is denied before any trigger.
-      expect(await failure(as(`update ${companion} set note = 'changed' where id = $1`, [id]))).toMatchObject({
-        code: '42501',
-      })
+      expect(await failure(as(`update ${companion} set note = 'changed' where id = $1`, [id]))).toMatchObject(
+        PERMISSION_DENIED,
+      )
       // The owner, whose grants are not narrowed, meets the trigger: beyond its set once column the row is append only.
       const owner = await failure(migrator.query(`update ${companion} set note = 'changed' where id = $1`, [id]))
       expect(owner).toMatchObject(setOnce)
@@ -308,7 +309,7 @@ describe.skipIf(!databaseTestsEnabled())('the rules the database refuses to bend
       )
       expect(closed.rows).toEqual([{ closing_note: 'closed', version: 4 }])
       // The practice role has no DELETE anywhere (IN-6, the grants); the owner meets the rule itself.
-      expect(await failure(as(`delete from ${record} where id = $1`, [id]))).toMatchObject({ code: '42501' })
+      expect(await failure(as(`delete from ${record} where id = $1`, [id]))).toMatchObject(PERMISSION_DENIED)
       expect(await failure(migrator.query(`delete from ${record} where id = $1`, [id]))).toMatchObject(frozen)
       const row = await as(`select note, status, closing_note from ${record} where id = $1`, [id])
       expect(row.rows).toEqual([{ note: 'edited', status: 'finalised', closing_note: 'closed' }])

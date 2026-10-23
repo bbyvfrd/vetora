@@ -6,6 +6,7 @@ import {
   captureLog,
   controlSet,
   databaseTestsEnabled,
+  PERMISSION_DENIED,
   practiceSet,
   provisionTestPractice,
   recordedMigrations,
@@ -13,6 +14,7 @@ import {
   type TestDatabaseUrls,
   tableExists,
   testDatabaseUrls,
+  UUID_V7,
   withExtraMigration,
 } from './test-support.js'
 
@@ -143,18 +145,17 @@ describe.skipIf(!databaseTestsEnabled())('migrate brings up the control schema (
       await app.connect()
       try {
         expect((await app.query('select * from control.practice')).rows).toEqual([])
-        const denied = { code: '42501' }
         await expect(
           app.query(
             "insert into control.practice (slug, name, schema_name, role_name) values ('alfa', 'Alfa Vet', 'p_alfa', 'p_alfa_role')",
           ),
-        ).rejects.toMatchObject(denied)
-        await expect(app.query("update control.practice set name = 'Other'")).rejects.toMatchObject(denied)
-        await expect(app.query('delete from control.practice')).rejects.toMatchObject(denied)
-        await expect(app.query('select * from control.__drizzle_migrations')).rejects.toMatchObject(denied)
-        await expect(app.query("select ext.unaccent_immutable('Café')")).rejects.toMatchObject(denied)
+        ).rejects.toMatchObject(PERMISSION_DENIED)
+        await expect(app.query("update control.practice set name = 'Other'")).rejects.toMatchObject(PERMISSION_DENIED)
+        await expect(app.query('delete from control.practice')).rejects.toMatchObject(PERMISSION_DENIED)
+        await expect(app.query('select * from control.__drizzle_migrations')).rejects.toMatchObject(PERMISSION_DENIED)
+        await expect(app.query("select ext.unaccent_immutable('Café')")).rejects.toMatchObject(PERMISSION_DENIED)
         // No shadowing of tables through temporary ones: TEMP is revoked from the app role (spec 0002, Security model).
-        await expect(app.query('create temp table shadow (id int)')).rejects.toMatchObject(denied)
+        await expect(app.query('create temp table shadow (id int)')).rejects.toMatchObject(PERMISSION_DENIED)
       } finally {
         await app.end()
       }
@@ -175,7 +176,7 @@ describe.skipIf(!databaseTestsEnabled())('migrate brings up the control schema (
       )
       expect(alfa.rows[0]).toEqual({
         status: 'provisioning',
-        id: expect.stringMatching(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/),
+        id: expect.stringMatching(UUID_V7),
       })
       const another = (slug: string, schemaName: string, roleName: string, status = 'provisioning') =>
         migrator.query(

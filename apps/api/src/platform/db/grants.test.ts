@@ -8,6 +8,7 @@ import {
   asPractice,
   captureLog,
   databaseTestsEnabled,
+  PERMISSION_DENIED,
   practiceSet,
   provisionTestPractice,
   recordedMigrations,
@@ -568,23 +569,22 @@ describe.skipIf(!databaseTestsEnabled())(
       })
 
       it('through the practice role: DELETE and TRUNCATE are permission denied on every table, INSERT and UPDATE on audit_event too, the migrations table is unreadable, while a mutable table takes INSERT, SELECT, and UPDATE (AC-9, AC-12, IN-6)', async () => {
-        const denied = { code: '42501' }
         const as = (query: string) => asPractice(app, practice, (client) => client.query(query))
 
         for (const table of tableClassRegistry.tables.keys()) {
-          await expect(as(`delete from ${qualified(table)}`), table).rejects.toMatchObject(denied)
-          await expect(as(`truncate ${qualified(table)}`), table).rejects.toMatchObject(denied)
+          await expect(as(`delete from ${qualified(table)}`), table).rejects.toMatchObject(PERMISSION_DENIED)
+          await expect(as(`truncate ${qualified(table)}`), table).rejects.toMatchObject(PERMISSION_DENIED)
         }
         await expect(
           as(
             `insert into ${schema}.audit_event (table_name, row_id, action, source, changed)
              values ('location', uuidv7(), 'insert', 'request', '{}')`,
           ),
-        ).rejects.toMatchObject(denied)
-        await expect(as(`update ${schema}.audit_event set changed = '{}'`)).rejects.toMatchObject(denied)
-        await expect(as(`select * from ${schema}.__drizzle_migrations`)).rejects.toMatchObject(denied)
+        ).rejects.toMatchObject(PERMISSION_DENIED)
+        await expect(as(`update ${schema}.audit_event set changed = '{}'`)).rejects.toMatchObject(PERMISSION_DENIED)
+        await expect(as(`select * from ${schema}.__drizzle_migrations`)).rejects.toMatchObject(PERMISSION_DENIED)
         // TEMP is revoked from the app role at database level (infra/postgres/init/01-vetora.sql), so no temporary table shadows a practice table.
-        await expect(app.query('create temp table shadow (id int)')).rejects.toMatchObject(denied)
+        await expect(app.query('create temp table shadow (id int)')).rejects.toMatchObject(PERMISSION_DENIED)
 
         const written = await as(`insert into ${schema}.location (name) values ('Granted') returning id`)
         expect(written.rowCount).toBe(1)

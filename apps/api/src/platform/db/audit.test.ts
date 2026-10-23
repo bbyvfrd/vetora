@@ -7,6 +7,7 @@ import { migrate, PRACTICE_MIGRATIONS_FOLDER } from './migrator.js'
 import {
   asPractice,
   databaseTestsEnabled,
+  PERMISSION_DENIED,
   provisionTestPractice,
   resetTestDatabase,
   type TestDatabaseUrls,
@@ -292,7 +293,6 @@ describe.skipIf(!databaseTestsEnabled())('every write names its actor and lands 
 
   it('audit_event is written only by the trigger: INSERT, UPDATE, and DELETE through the practice role are permission denied, and a request cannot pass as a migration (AC-8, AC-9)', async () => {
     const manager = practice.managerId
-    const denied = { code: '42501' }
     const as = (query: string, values: unknown[] = []) =>
       asPractice(app, practice, (client) => client.query(query, values))
 
@@ -302,12 +302,12 @@ describe.skipIf(!databaseTestsEnabled())('every write names its actor and lands 
          values ('location', uuidv7(), 'insert', $1, 'request', '{}')`,
         [manager],
       ),
-    ).rejects.toMatchObject(denied)
-    await expect(as(`update ${schema}.audit_event set changed = '{}'`)).rejects.toMatchObject(denied)
-    await expect(as(`delete from ${schema}.audit_event`)).rejects.toMatchObject(denied)
-    await expect(as(`truncate ${schema}.audit_event`)).rejects.toMatchObject(denied)
+    ).rejects.toMatchObject(PERMISSION_DENIED)
+    await expect(as(`update ${schema}.audit_event set changed = '{}'`)).rejects.toMatchObject(PERMISSION_DENIED)
+    await expect(as(`delete from ${schema}.audit_event`)).rejects.toMatchObject(PERMISSION_DENIED)
+    await expect(as(`truncate ${schema}.audit_event`)).rejects.toMatchObject(PERMISSION_DENIED)
     // The owner run functions are not callable by the practice role; the triggers run them (spec 0002, Security model).
-    await expect(as(`select ${schema}.current_actor()`)).rejects.toMatchObject(denied)
+    await expect(as(`select ${schema}.current_actor()`)).rejects.toMatchObject(PERMISSION_DENIED)
 
     // app.migration on a request session is ignored: the source stays request and the actor is still required.
     const forged = await asPractice(app, practice, async (client) => {

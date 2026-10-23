@@ -14,7 +14,7 @@ _These are recommendations to keep your build orderly, not requirements. You dec
 |---|---------|-------|--------|
 | 1 | Stack & architecture | Foundation | in progress |
 | 2 | Coding standards & tooling | Foundation | done |
-| 3 | Data model | Foundation | designed |
+| 3 | Data model | Foundation | done |
 | 4 | Design system & UI foundation | Foundation | planned |
 | 5 | First visit from arrival to payment | Slice 1 | planned |
 | 6 | Prescribe and dispense from stock | Slice 2 | planned |
@@ -52,10 +52,11 @@ Capture conventions and tooling from the real scaffolded project, then install l
 **Done when:** root `AGENTS.md` reflects the real stack and treats the domain.md rule IDs as shared vocabulary for code, tests, and reviews; lint, format, and pre commit run clean.
 Done on 2026-10-22 · code in `biome.jsonc`, `lefthook.yml`, `vitest.config.ts`, `.vscode/`, `.github/workflows/ci.yml`
 
-### 3. Data model · designed · high stakes
+### 3. Data model · done · high stakes
 Turn domain.md's 13 contexts and 36 rules into the persistence shape: modules inside one deployable, every record aware of its location from day one (IN-5), money as whole minor units with a currency (IN-4) (basis: the data model is the costliest thing to redo).
 **Done when:** the entities cover every planned slice without a breaking migration, and the hard rules (finalised visits append only CR-1, dispense and stock movement in one transaction RX-3, debt derived from a ledger BL-6, ownership over time PT-1, weight as a dated observation PT-2) hold in the data layer itself, not only in screens.
-[Spec 0002](../specs/0002-data-model/index.md) holds the design and the build plan · ticket it with `/to-tickets` from the spec path (reject layer shaped tickets at the quiz step) and build each ticket with `/implement`
+Done on 2026-10-24 · [Spec 0002](../specs/0002-data-model/index.md) · code in `apps/api/drizzle/` (the control and practice migration sets), `apps/api/src/platform/db/` (the migrator, provisioning, the grants pass and table classes, the platform tables, the rules fixture), `apps/api/src/modules/*/schema.ts`, `infra/postgres/init/01-vetora.sql` · the checks are the spec's `verify.md` and `apps/api/src/rehearsal.test.ts`
+_Deferred on 2026-10-24 to slices 1 and 2: the Done when clauses that name slice tables are proven on their own tables by the slices that build them. Finalised visits append only (CR-1): `freeze_record` and `lock_parent` on `encounter`, feature 5, the triggers proven on the rules fixture today. Dispense and stock movement in one transaction (RX-3): the deferred check convention on `dispense_event`, feature 6, worked once on the fixture. Debt derived from a ledger (BL-6): the append only class on `ledger_entry` and the `client_balance` view, feature 5 and then feature 8, the class proven on scratch tables by the grants pass. Ownership over time (PT-1): an exclusion constraint on `ownership`, feature 5, nothing of it yet beyond the `btree_gist` extension it needs. Weight as a dated observation (PT-2): the append only `clinical_observation`, feature 5._
 
 ### 4. Design system & UI foundation · decide first
 Visual language and base components for reception desktops and ward tablets, translation ready in Azerbaijani, Russian, and English, with print layouts for client documents.

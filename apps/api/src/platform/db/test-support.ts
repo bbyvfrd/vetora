@@ -13,8 +13,8 @@ import { dropRole, type TestDatabaseUrls } from './test-database.js'
 
 /**
  * The helpers the database tests share (spec 0002, "Critical test scenarios"): the migration sets as folders, a
- * throwaway practice, a request transaction as its role, a log capture, two catalog reads, and the rules fixture a
- * trigger or constraint is proven with. The test database itself (its URLs, the reset, the Vitest globalSetup) is
+ * throwaway practice, a request transaction as its role, a log capture, two catalog reads, the rules fixture a
+ * trigger or constraint is proven with, and a connected client for a test outside src/platform. The test database itself (its URLs, the reset, the Vitest globalSetup) is
  * test-database.ts, re-exported here so a test imports one module. Kept out of dist/ by tsconfig.build.json.
  */
 export {
@@ -24,6 +24,28 @@ export {
   type TestDatabaseUrls,
   testDatabaseUrls,
 } from './test-database.js'
+
+/**
+ * A pg.Client as the tests type it: a test outside src/platform may not import pg itself (biome.jsonc,
+ * noRestrictedImports), so this alias, `escapeIdentifier`, and `connectTestClient()` stand in for it there.
+ */
+export type TestClient = pg.Client
+
+/** pg's identifier quoting, for the same tests: a practice schema or role name carries its UUID with hyphens. */
+export const escapeIdentifier: (name: string) => string = pg.escapeIdentifier
+
+/** A connected client on one of the test database's URLs, named in pg_stat_activity; the caller ends it. */
+export async function connectTestClient(url: string, applicationName: string): Promise<TestClient> {
+  const client = new pg.Client({ connectionString: url, application_name: applicationName })
+  await client.connect()
+  return client
+}
+
+/** What a statement a role may not run fails with: SQLSTATE 42501, insufficient_privilege. */
+export const PERMISSION_DENIED = { code: '42501' } as const
+
+/** A UUID v7 as Postgres 18's uuidv7() issues it: the practice ids and every row id (spec 0002, "Conventions": Keys). */
+export const UUID_V7 = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
 /** The two sets as drizzle-kit lays them out: one folder per migration, applied in name order (spec 0001, "Migrations"). */
 export const controlSet = (): string[] => readdirSync(CONTROL_MIGRATIONS_FOLDER).sort()
@@ -318,8 +340,7 @@ async function asMigrator<T>(
   applicationName: string,
   run: (client: pg.Client) => Promise<T>,
 ): Promise<T> {
-  const client = new pg.Client({ connectionString: urls.migrator, application_name: applicationName })
-  await client.connect()
+  const client = await connectTestClient(urls.migrator, applicationName)
   try {
     return await run(client)
   } finally {

@@ -40,6 +40,6 @@ Roadmap `docs/scope/scope.md` · design records `docs/specs/` (frozen) · ADRs `
 - `gh issue create --parent` needs `gh` 2.94 or later; on an older `gh`, use the `gh api` fallback in `docs/agents/issue-tracker.md`.
 - The plugin does not update itself: `claude plugin marketplace update mattpocock`, then `claude plugin update mattpocock-skills@mattpocock`, then reload.
 
-## Where we are (2026-10-22)
+## Where we are (2026-10-24)
 
-Feature 2 (coding standards and tooling) is done. Feature 1 (stack) runs locally, with the hosted deploy waiting on a server and a domain (`docs/specs/0001-stack-architecture/verify.md`, Hosted section, a `/wizard` job). Feature 3 (data model) is designed in spec 0002: ticket it with `/to-tickets` from the spec path, rejecting layer shaped tickets at the quiz step, then `/implement` each ticket. Features 4 to 24 are picked up one at a time, grilled just in time.
+Features 2 (coding standards and tooling) and 3 (data model) are done: spec 0002's foundations are built, rehearsed on two practices through the shipped commands, and recorded in `docs/specs/0002-data-model/verify.md`; each slice adds its own tables from the spec's sketch as its first ticket. Feature 1 (stack) runs locally, with the hosted deploy waiting on a server and a domain (`docs/specs/0001-stack-architecture/verify.md`, Hosted section, a `/wizard` job). Features 4 to 24 are picked up one at a time, grilled just in time; feature 4 (design system) and feature 5 (the first visit) are next, both marked decide first.

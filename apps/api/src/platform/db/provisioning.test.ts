@@ -7,16 +7,16 @@ import {
   asPractice,
   captureLog,
   databaseTestsEnabled,
+  PERMISSION_DENIED,
   practiceSet,
   provisionTestPractice,
   resetTestDatabase,
   type TestDatabaseUrls,
   type TestPractice,
   testDatabaseUrls,
+  UUID_V7,
   withExtraMigration,
 } from './test-support.js'
-
-const uuidV7 = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
 describe.skipIf(!databaseTestsEnabled())(
   'provision-practice creates a practice behind its own role (AC-10, AC-11)',
@@ -94,8 +94,6 @@ describe.skipIf(!databaseTestsEnabled())(
     const queryAs = <T extends pg.QueryResultRow>(practice: TestPractice, query: string) =>
       asPractice(app, practice, (client) => client.query<T>(query))
 
-    const denied = { code: '42501' }
-
     it("creates the registry row, the role and its membership, the schema with the practice set, the manager's staff row, the settings from the arguments, and the default location, each written as the manager, and sets the practice active (AC-8, AC-10)", async () => {
       const { log, lines } = captureLog()
 
@@ -108,7 +106,7 @@ describe.skipIf(!databaseTestsEnabled())(
       })
       const manager = alfa.managerId
 
-      expect(alfa.practiceId).toMatch(uuidV7)
+      expect(alfa.practiceId).toMatch(UUID_V7)
       const registry = await migrator.query(
         'select slug, name, schema_name, role_name, status from control.practice where id = $1',
         [alfa.practiceId],
@@ -348,10 +346,10 @@ describe.skipIf(!databaseTestsEnabled())(
         `select display_name from ${pg.escapeIdentifier(practice.schema)}.practice_settings`
 
       // No role switch: a schema qualified SELECT is permission denied.
-      await expect(app.query(settingsOf(alfa))).rejects.toMatchObject(denied)
+      await expect(app.query(settingsOf(alfa))).rejects.toMatchObject(PERMISSION_DENIED)
       // As practice A: A's tables read, B's are permission denied.
       expect((await queryAs(alfa, settingsOf(alfa))).rows).toEqual([{ display_name: 'Alfa Vet' }])
-      await expect(queryAs(alfa, settingsOf(beta))).rejects.toMatchObject(denied)
+      await expect(queryAs(alfa, settingsOf(beta))).rejects.toMatchObject(PERMISSION_DENIED)
       // vetora_app holds no grant of its own on any practice table (spec 0002, "Security model": Roles).
       const own = await migrator.query(
         `select has_schema_privilege('vetora_app', $1, 'USAGE') as usage, has_table_privilege('vetora_app', $2, 'SELECT') as "select"`,
@@ -418,10 +416,10 @@ describe.skipIf(!databaseTestsEnabled())(
         migrator.query(`insert into ${schema}.location (name, is_default) values ('Second', true)`),
       ).rejects.toMatchObject({ code: '23505' })
       await migrator.query(`insert into ${schema}.location (name, is_default) values ('Second', false)`)
-      await expect(queryAs(alfa, `delete from ${schema}.location`)).rejects.toMatchObject(denied)
-      await expect(queryAs(alfa, `delete from ${schema}.practice_settings`)).rejects.toMatchObject(denied)
-      await expect(queryAs(alfa, `truncate ${schema}.location`)).rejects.toMatchObject(denied)
-      await expect(queryAs(alfa, `delete from ${schema}.staff_member`)).rejects.toMatchObject(denied)
+      await expect(queryAs(alfa, `delete from ${schema}.location`)).rejects.toMatchObject(PERMISSION_DENIED)
+      await expect(queryAs(alfa, `delete from ${schema}.practice_settings`)).rejects.toMatchObject(PERMISSION_DENIED)
+      await expect(queryAs(alfa, `truncate ${schema}.location`)).rejects.toMatchObject(PERMISSION_DENIED)
+      await expect(queryAs(alfa, `delete from ${schema}.staff_member`)).rejects.toMatchObject(PERMISSION_DENIED)
       // The practice role reads and writes the mutable tables (spec 0002, "Conventions": Table classes).
       expect(
         (await queryAs(alfa, `update ${schema}.location set active = false where name = 'Second' returning active`))
