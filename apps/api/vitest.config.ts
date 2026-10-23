@@ -4,7 +4,7 @@ import { defineConfig } from 'vitest/config'
 // The API's tests import the app, whose request logger would otherwise print a line per request.
 // The workspace .env (when present) supplies DATABASE_URL_MIGRATOR and DATABASE_URL_DIRECT, which turn the
 // database tests on; shell variables win over the file (CI sets them without a .env). Those tests run against
-// vetora_test, emptied by the global setup before the run (src/platform/db/test-support.ts).
+// vetora_test, emptied by the global setup before the run (src/platform/db/test-database.ts).
 try {
   process.loadEnvFile(fileURLToPath(new URL('.env', import.meta.url)))
 } catch {
@@ -14,7 +14,7 @@ try {
 export default defineConfig({
   test: {
     env: { LOG_LEVEL: 'silent' },
-    globalSetup: ['./src/platform/db/test-support.ts'],
+    globalSetup: ['./src/platform/db/test-database.ts'],
     // The database test files share vetora_test, and the migrator tests empty it before each case, so the files run
     // one after another; within a file the cases are sequential anyway.
     fileParallelism: false,

@@ -29,7 +29,8 @@ The vetora API: a Hono server on Node 24 that declares every route with a zod sc
 | `src/platform/db/table-classes.ts` | The table class registry (`append_only`, `set_once`, `mutable`, `frozen_by_status`, `function_written`): every practice table names its class here, and the grants step reads it; a module registers its tables when its schema lands |
 | `src/platform/db/platform-tables.ts`, `domains.ts` | The practice schema's platform tables (`practice_settings`, one row behind a constant id; `location`, one default per practice) declared without a schema, and the `customType`s for the SQL domains `minor_units`, `currency_code`, `lang_code` |
 | `src/platform/db/control-schema.ts`, `practice-schema.ts` | The two drizzle-kit entry points: `control.practice` (the registry) in the control set; the practice set re-exports the platform tables and gathers the modules' `schema.ts` files as they land |
-| `src/platform/db/test-support.ts` | The `vetora_test` URLs derived from `DATABASE_URL_MIGRATOR` and `DATABASE_URL_DIRECT`, the reset (`control`, `ext`, every `p_*` schema with its `p_*_role`), the Vitest `globalSetup`, `provisionTestPractice()` (a throwaway practice with a unique slug and its `drop()`), and `captureLog()`; left out of `dist/` by `tsconfig.build.json` |
+| `src/platform/db/test-database.ts` | The `vetora_test` URLs derived from `DATABASE_URL_MIGRATOR` and `DATABASE_URL_DIRECT`, the reset (`control`, `ext`, every `p_*` schema with its `p_*_role`), and the Vitest `globalSetup`; imports `pg` and nothing of the engine, so an import error elsewhere fails a test instead of crashing the runner; left out of `dist/` by `tsconfig.build.json` |
+| `src/platform/db/test-support.ts` | The helpers the database tests share: the two sets as folders (`controlSet()`, `practiceSet()`, `withExtraMigration()`), `provisionTestPractice()` (a throwaway practice with a unique slug and its `drop()`), and `captureLog()`; re-exports the test database pieces; left out of `dist/` too |
 | `src/platform/log.ts` | The pino logger with redaction, and `scrubError()` for Postgres errors, down the `cause` chain Drizzle wraps them in |
 | `src/platform/problem.ts` | `problem()`, the problem details JSON (RFC 9457) every error uses |
 | `src/modules/` | One folder per bounded context; `README.md` lists the thirteen, the data model feature creates them |
@@ -50,6 +51,8 @@ pnpm --filter @vetora/api migrate     # reads .env when present; the control set
 pnpm --filter @vetora/api provision-practice -- --slug alfa --name "Alfa Vet" --location-name "Nərimanov"   # [--time-zone Asia/Baku] [--languages az,ru], the first language is the default; prints the id; safe to rerun
 pnpm --filter @vetora/api db:generate:control --name <name>   # after editing control-schema.ts; finish the SQL by hand
 pnpm --filter @vetora/api db:generate:practice --name <name>  # after editing the platform tables or a module's schema.ts; the migrate command applies it to every practice
+docker compose exec postgres psql -U vetora_app -d vetora   # at the root; there is no local psql (-U vetora_migrator, -d vetora_test as needed)
+DATABASE_URL_MIGRATOR=postgres://vetora_migrator:vetora_migrator@localhost:5432/vetora_test pnpm --filter @vetora/api migrate   # a shell variable wins over .env: a command against vetora_test
 kamal deploy -c apps/api/config/deploy.yml -d staging   # at the root; a destination is always required
 ```
 
@@ -65,7 +68,7 @@ kamal deploy -c apps/api/config/deploy.yml -d staging   # at the root; a destina
 - One JSON log line per request (method, path, status, duration, request id), never a body or a query string; `/up` is not logged.
 - A new configuration variable goes into the zod schema in `config.ts`, into `.env.example`, into `config/deploy.yml` (`env.clear` or `env.secret`), and, when secret, into `.kamal/secrets-common`.
 - Relative imports end in `.js` (NodeNext ESM with `verbatimModuleSyntax`); there is no bundler.
-- Tests sit beside the code as `*.test.ts`: `tsconfig.json` (typecheck) includes them, `tsconfig.build.json` (build) leaves them out of `dist/`, and `vitest.config.ts` here silences the logger while they run.
+- Tests sit beside the code as `*.test.ts`: `tsconfig.json` (typecheck) includes them, `tsconfig.build.json` (build) leaves them out of `dist/`, and `vitest.config.ts` here silences the logger while they run. A helper two test files need lives in `test-support.ts`, in one place.
 - Database tests (`migrator.test.ts`, `provisioning.test.ts`) run when `DATABASE_URL_MIGRATOR` and `DATABASE_URL_DIRECT` are set (`vitest.config.ts` loads the workspace `.env`; CI sets them after `docker compose up -d --wait postgres`) and are skipped otherwise. They use `vetora_test`, created by the compose init script with the same grants as `vetora` and emptied by the `globalSetup` before each run, so they never touch `vetora`'s schemas; roles are cluster wide, so the reset drops only the `p_*_role` of a `p_*` schema it found in `vetora_test`. The test files run one after another (`fileParallelism: false`) because they share that database. A test that needs a practice takes one from `provisionTestPractice()` and drops it afterwards; isolation checks run on a `vetora_app` connection with `SET LOCAL ROLE`. With `CI` set, missing variables fail the setup instead of skipping the suite.
 
 ## Gotchas
