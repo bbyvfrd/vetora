@@ -5,7 +5,7 @@ Agent context for this repo, read by the Matt Pocock engineering skills (`/ask-m
 ## Stack
 
 - **Language / Runtime**: TypeScript, strict and ESM everywhere; Node 24 LTS, pinned through the pilot (`.nvmrc`, `engines`)
-- **Workspaces**: pnpm 10 workspaces with a version catalog (`pnpm-workspace.yaml`) and Turborepo 2 (`turbo.json`): `apps/api` (Hono 4 and Drizzle 1.0 on Postgres 18), `apps/clinic-web` (React 19 on Vite 8), `packages/contracts`, `packages/i18n`, `packages/config`
+- **Workspaces**: pnpm 10 workspaces with a version catalog (`pnpm-workspace.yaml`) and Turborepo 2 (`turbo.json`): `apps/api` (Hono 4 and Drizzle 1.0 on Postgres 18), `apps/clinic-web` (React 19 on Vite 8), `packages/ui` (the design system, ADR 0003), `packages/contracts`, `packages/i18n`, `packages/config`
 - **Runs as**: Docker images (Turborepo prune) rolled out with Kamal to DigitalOcean Frankfurt; Postgres 18 and an S3 compatible server come from `compose.yaml` locally
 - **Source of truth**: the Proposed stack table in `docs/specs/0001-stack-architecture/index.md`; each row names the slice that builds it, and each workspace doc below lists its own dependencies
 
@@ -26,7 +26,7 @@ cp apps/api/.env.example apps/api/.env   # local values only
 pnpm dev                                 # API on :3000, web on :5173 (Vite proxies /api); builds the packages first
 pnpm build && pnpm typecheck             # every workspace, through Turborepo
 pnpm lint                                # Biome, read only: format, lint, import order (pnpm lint:fix applies the safe fixes, pnpm format only formats)
-pnpm test                                # Vitest in every workspace, after building contracts and i18n; pnpm test:watch keeps it running
+pnpm test                                # Vitest in every workspace, after building contracts, i18n and ui; pnpm test:watch keeps it running
 pnpm openapi                             # after a route change; commit openapi.json and src/generated (CI diffs them)
 ```
 
@@ -37,7 +37,7 @@ pnpm openapi                             # after a route change; commit openapi.
 - One contract chain: zod schemas in `packages/contracts` declare the routes, the API publishes its OpenAPI document, both apps call it through the generated types and `openapi-fetch`. `openapi.json` and `src/generated/` are never edited by hand.
 - Errors are problem details JSON (RFC 9457) from every route, and no personal data leaves in URLs, logs, or error reports: names and phones travel in request bodies, logs carry ids and durations only, Sentry's collection options stay off, and Postgres `detail`, `hint`, and `where` are scrubbed before logging or reporting.
 - Screen text lives only in the `packages/i18n` locale files (`az`, `ru`, `en`), every key in all three; `en.json` is the typed source.
-- Shared tool versions come from the pnpm catalog (`typescript`, `zod`, `@types/node`); TypeScript stays on 6.x until openapi-typescript and drizzle-kit support 7; Drizzle, and later Better Auth, are pinned exactly, and a changelog is read before a bump.
+- Shared tool versions come from the pnpm catalog (`typescript`, `zod`, `@types/node`, `@types/react`); TypeScript stays on 6.x until openapi-typescript and drizzle-kit support 7; Drizzle, and later Better Auth, are pinned exactly, and a changelog is read before a bump.
 - Secrets never enter git: `.env` files are ignored (`.env.example` stays current), `.kamal/secrets-common` holds references only, and each app validates its configuration with zod at startup and fails loudly.
 - Lint and format: Biome from the root `biome.jsonc` (`pnpm lint`, `pnpm lint:fix`, `pnpm format`), run on the staged files by the lefthook pre commit hook; tests: Vitest (`pnpm test`), one root config with a project per workspace, tests beside the code as `*.test.ts` and kept out of the builds by each package's `tsconfig.build.json`; database rules get proven against the compose Postgres from the data model on. Chosen and installed on 2026-10-22; spec 0001's module and database client boundaries are Biome rules, described in `apps/api/AGENTS.md`.
 

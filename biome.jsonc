@@ -11,6 +11,11 @@
       "!**/routeTree.gen.ts",
       "!packages/contracts/src/generated",
       "!packages/contracts/openapi.json",
+      // packages/ui copies the design system from its artifact (ADR 0003): the token file verbatim, the compiled
+      // tokens.css that `pnpm --filter @vetora/ui tokens` rewrites, and the component stylesheet as published.
+      "!packages/ui/src/tokens/tokens.json",
+      "!packages/ui/styles/tokens.css",
+      "!packages/ui/styles/components.css",
       // drizzle-kit's migration folders: snapshot.json beside each hand finished migration.sql.
       "!apps/api/drizzle",
       "!pnpm-lock.yaml",

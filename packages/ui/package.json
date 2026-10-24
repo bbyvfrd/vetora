@@ -1,0 +1,34 @@
+{
+  "name": "@vetora/ui",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./styles.css": "./styles/index.css",
+    "./fonts/*": "./fonts/*"
+  },
+  "files": [
+    "dist",
+    "styles",
+    "fonts"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch --preserveWatchOutput",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "tokens": "tsc -p tsconfig.build.json && node dist/tokens/write.js"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@vetora/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

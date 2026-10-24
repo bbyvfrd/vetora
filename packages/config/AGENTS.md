@@ -14,7 +14,7 @@
 
 ## Conventions
 
-- A workspace extends one of the two leaf configs (`"extends": "@vetora/config/tsconfig.node.json"`) and sets only `rootDir`, `outDir`, `types`, and `include`.
+- A workspace extends one of the two leaf configs (`"extends": "@vetora/config/tsconfig.node.json"`) and sets only `rootDir`, `outDir`, `types`, and `include`. The one exception is `packages/ui`, which adds the DOM libs and `jsx` to the node config because its output runs in the browser today and in the API's worker later (ADR 0003, ADR 0004).
 - Strictness is decided here, once; a workspace may add a check (`noUnusedLocals`), never relax one.
 - No scripts and no build: the package ships its JSON files as they are (`files: ["*.json"]`).
 

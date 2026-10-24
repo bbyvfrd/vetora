@@ -1,0 +1,4 @@
+/* @vetora/ui, the design system's stylesheet: the compiled tokens, then the components. Imported once, in the
+   app's entry (apps/clinic-web/src/main.tsx). */
+@import "./tokens.css";
+@import "./components.css";

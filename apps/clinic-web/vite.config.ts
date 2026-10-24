@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { sentryVitePlugin } from '@sentry/vite-plugin'
 import { tanstackRouter } from '@tanstack/router-plugin/vite'
 import react from '@vitejs/plugin-react'
@@ -23,4 +24,10 @@ export default defineConfig({
     proxy: { '/api': 'http://localhost:3000' },
   },
   build: { sourcemap: 'hidden' },
+  test: {
+    // The DOM tests (spec #9, seam 1): a page rendered in jsdom with Testing Library; src/test-setup.ts adds jest-dom's
+    // matchers and the cleanup after each test.
+    environment: 'jsdom',
+    setupFiles: ['./src/test-setup.ts'],
+  },
 })

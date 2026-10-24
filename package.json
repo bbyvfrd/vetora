@@ -16,7 +16,7 @@
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
-    "test": "turbo run build --filter=@vetora/contracts --filter=@vetora/i18n && vitest run",
+    "test": "turbo run build --filter=@vetora/contracts --filter=@vetora/i18n --filter=@vetora/ui && vitest run",
     "test:watch": "vitest"
   },
   "devDependencies": {

@@ -1,0 +1,216 @@
+/* Compiled from tokens.json by @vetora/ui (pnpm --filter @vetora/ui tokens). Do not edit by hand: change tokens.json
+   after the artifact, then recompile. */
+
+:root, [data-theme="light"] {
+  --brand-sky: #b0daf1;
+  --brand-steel: #476c9b;
+  --brand-navy: #0a014f;
+  --primary: var(--brand-steel);
+  --primary-hover: #335885;
+  --primary-pressed: #25466f;
+  --primary-subtle: #e3f3fd;
+  --on-primary: #ffffff;
+  --link: var(--primary);
+  --surface-page: #f4f7fb;
+  --surface: #ffffff;
+  --surface-sunken: #e9eff6;
+  --surface-hover: rgba(71, 108, 155, 0.08);
+  --surface-pressed: rgba(71, 108, 155, 0.14);
+  --surface-disabled: var(--surface-sunken);
+  --surface-inverse: var(--brand-navy);
+  --surface-inverse-hover: rgba(255, 255, 255, 0.08);
+  --surface-inverse-selected: rgba(255, 255, 255, 0.16);
+  --border-subtle: #dce4ec;
+  --border: #c7d2de;
+  --border-strong: #728295;
+  --text: var(--brand-navy);
+  --text-secondary: #3a4763;
+  --text-muted: #56647a;
+  --text-disabled: #94a0ae;
+  --on-inverse: #ffffff;
+  --on-inverse-muted: var(--brand-sky);
+  --success: #007460;
+  --success-subtle: #dcf7ef;
+  --on-success: #ffffff;
+  --warning: #895709;
+  --warning-subtle: #fef0d4;
+  --on-warning: #ffffff;
+  --danger: #b02b27;
+  --danger-hover: #971b1a;
+  --danger-pressed: #7c1213;
+  --danger-subtle: #ffebe9;
+  --on-danger: #ffffff;
+  --info: var(--brand-steel);
+  --info-subtle: var(--primary-subtle);
+  --on-info: #ffffff;
+  --category-1: var(--brand-steel);
+  --category-1-subtle: #d5ebfe;
+  --category-2: var(--brand-navy);
+  --category-2-subtle: var(--brand-sky);
+  --category-3: #894ed6;
+  --category-3-subtle: #e3d7fb;
+  --category-4: #851a74;
+  --category-4-subtle: #f9dfef;
+  --focus-ring: var(--brand-steel);
+  --scrim: rgba(10, 1, 79, 0.48);
+  --print-ink: #000000;
+  --chart-1: #3d6aa3;
+  --chart-2: #179fd4;
+  --chart-3: var(--category-3);
+  --chart-4: var(--category-4);
+  --chart-5: #c8800d;
+  --chart-other: var(--border-strong);
+  --chart-seq-1: #ddebfe;
+  --chart-seq-2: #93b8e8;
+  --chart-seq-3: #6895cf;
+  --chart-seq-4: var(--chart-1);
+  --chart-seq-5: #184071;
+  --shadow-sm: 0 1px 2px rgba(10, 1, 79, 0.08);
+  --shadow-md: 0 4px 12px rgba(10, 1, 79, 0.10);
+  --shadow-lg: 0 12px 32px rgba(10, 1, 79, 0.16);
+}
+
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 999px;
+  --icon-sm: 16px;
+  --icon-md: 20px;
+  --icon-lg: 24px;
+  --icon-xl: 40px;
+  --control-sm: 28px;
+  --control-md: 36px;
+  --control-lg: 44px;
+  --row-compact: 36px;
+  --row-default: 44px;
+  --header-height: 56px;
+  --nav-rail: 240px;
+  --nav-rail-collapsed: 64px;
+  --dialog-sm: 400px;
+  --dialog-md: 560px;
+  --dialog-lg: 800px;
+  --drawer-md: 480px;
+  --drawer-lg: 720px;
+  --avatar-sm: 40px;
+  --avatar-md: 56px;
+  --schedule-slot: 24px;
+  --schedule-gutter: 56px;
+  --schedule-column: 168px;
+  --content-narrow: 720px;
+  --content-max: 1440px;
+  --aside-column: 360px;
+  --paper-a4-width: 210mm;
+  --paper-a4-height: 297mm;
+  --paper-a5-width: 148mm;
+  --paper-a5-height: 210mm;
+  --paper-receipt-width: 72mm;
+  --paper-margin: 15mm;
+  --paper-margin-sm: 10mm;
+  --z-sticky: 10;
+  --z-dropdown: 1000;
+  --z-scrim: 1100;
+  --z-dialog: 1200;
+  --z-toast: 1300;
+  --z-tooltip: 1400;
+  --font-sans: "Roboto", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.display {
+  font-family: var(--font-sans);
+  font-size: 32px;
+  line-height: 40px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.h1 {
+  font-family: var(--font-sans);
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.h2 {
+  font-family: var(--font-sans);
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.h3 {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.body-lg {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.body {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.body-strong {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.label {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.label-sm {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.caption {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+@font-face {
+  font-family: "Roboto";
+  src: url("../fonts/Roboto-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}

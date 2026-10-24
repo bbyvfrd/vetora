@@ -9,6 +9,8 @@ catalog:
   typescript: ~6.0.3
   zod: ^4.6.7
   "@types/node": ^24.0.0
+  # React 19 types, shared by the web app and the design system package.
+  "@types/react": ^19.3.0
 
 # tsx depends on esbuild, whose install script only checks its binary.
 onlyBuiltDependencies:

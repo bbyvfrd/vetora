@@ -7,7 +7,8 @@
     "checking": "Yoxlanılır…",
     "ok": "İşləyir",
     "unavailable": "Əlçatan deyil",
-    "version": "Versiya"
+    "version": "Versiya",
+    "retry": "Yenidən cəhd et"
   },
   "language": {
     "label": "Dil"

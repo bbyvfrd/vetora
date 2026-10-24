@@ -7,7 +7,8 @@
     "checking": "Checking…",
     "ok": "Up",
     "unavailable": "Unavailable",
-    "version": "Version"
+    "version": "Version",
+    "retry": "Try again"
   },
   "language": {
     "label": "Language"

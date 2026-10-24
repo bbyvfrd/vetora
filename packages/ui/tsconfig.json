@@ -1,0 +1,13 @@
+{
+  "extends": "@vetora/config/tsconfig.node.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist",
+    // The components run in the browser today and in the API's worker later (ADR 0003, ADR 0004): the Node module
+    // settings, plus the DOM libs and React's JSX transform. Relative imports therefore carry .js.
+    "lib": ["ES2024", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "types": ["node"]
+  },
+  "include": ["src"]
+}

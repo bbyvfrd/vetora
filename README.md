@@ -6,6 +6,7 @@ Practice management software for companion vet clinics, Baku first. The roadmap 
 
 - `apps/api`: Hono API on Node 24 (routes declared with zod and OpenAPI), Drizzle over Postgres.
 - `apps/clinic-web`: React + Vite app for clinic staff (TanStack Router and Query, i18next).
+- `packages/ui`: the design system as code (ADR 0003): the tokens compiled to CSS variables, Roboto, the component stylesheet and the components.
 - `packages/contracts`: zod schemas and the types generated from the API's OpenAPI document.
 - `packages/i18n`: `az`, `ru`, and `en` resources.
 - `packages/config`: shared TypeScript config.
