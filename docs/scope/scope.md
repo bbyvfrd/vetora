@@ -70,7 +70,7 @@ The thinnest real thread through a clinic day, and the walking skeleton for ever
 ### 5. First visit from arrival to payment · decide first · high stakes
 A vet signs in, registers a walk in client and pet, records the weight, writes and finalises the visit note, invoices it, and takes a payment. Real sign in and real data; no bookings, stock, or printing yet. The note has six sections (reason for visit, history, examination, diagnosis, treatment, recommendations); the interviews settle their labels (OPEN-10).
 **Done when:** a vet completes a walk in visit end to end in Azerbaijani, Russian, or English; the finalised note is locked (CR-1) and only a vet can finalise it (CR-2); a note in progress survives a dropped connection; a part payment leaves the rest as client debt (BL-5); every action records who did it (IN-1).
-_Before its grilling: a one session `/prototype` spike of Better Auth 1.7.12 (the relations-v2 Drizzle adapter) on Drizzle 1.0 rc, scoped in `docs/research/2026-10-24-grilling-next-after-0002.md`, Feature 5 spike._
+_Spike run on 2026-10-26 (`docs/research/2026-10-26-better-auth-spike.md`; the code stays on the `prototype/better-auth` branch): Better Auth 1.7.12 on the relations-v2 Drizzle adapter runs on Drizzle 1.0.0-rc.5 and Postgres 18 with the control tables hand written (UUID v7, timestamptz) and checked by `auth check schema`, username sign in as `handle@practice-slug`, the organization with the practice's id and `creatorRole: manager`, TOTP enable and verify, and the request that switches the practice role. Next: its grilling in a fresh window, with the note's four answers and open points._
 
 ## Slice 2: Medicines
 
