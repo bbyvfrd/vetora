@@ -11,5 +11,9 @@
   },
   "language": {
     "label": "Язык"
+  },
+  "shell": {
+    "skipToContent": "Перейти к содержимому",
+    "navigation": "Основная навигация"
   }
 }

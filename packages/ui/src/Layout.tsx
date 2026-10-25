@@ -16,13 +16,23 @@ export interface AppShellProps {
 /** The frame of every signed-in screen: the navigation rail on the left, the page scrolling beside it. */
 export function AppShell({ nav, skipLabel, children, height, className }: AppShellProps) {
   const id = React.useId()
+  const main = React.useRef<HTMLElement>(null)
   return (
     <div className={cx('vt-app', className)} style={height !== undefined ? { height } : undefined}>
-      <a className="vt-skip" href={`#${id}`}>
+      <a
+        className="vt-skip"
+        href={`#${id}`}
+        onClick={(event) => {
+          // Browsers differ on whether a fragment link focuses its target, so the link focuses the page itself
+          // (vetora ticket #12, a repo change under ADR 0005).
+          event.preventDefault()
+          main.current?.focus()
+        }}
+      >
         {skipLabel}
       </a>
       {nav}
-      <main id={id} className="vt-app-main" tabIndex={-1}>
+      <main id={id} ref={main} className="vt-app-main" tabIndex={-1}>
         {children}
       </main>
     </div>

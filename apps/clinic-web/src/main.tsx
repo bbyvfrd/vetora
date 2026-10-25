@@ -3,9 +3,8 @@ import { createRouter, RouterProvider } from '@tanstack/react-router'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './i18n'
-// The design system's stylesheet (tokens, components, Roboto) once, before the app's own placeholder styles.
+// The design system's stylesheet (tokens, components, Roboto), once; the app has no stylesheet of its own.
 import '@vetora/ui/styles.css'
-import './index.css'
 import { routeTree } from './routeTree.gen'
 import { initErrorReporting } from './sentry'
 
