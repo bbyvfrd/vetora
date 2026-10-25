@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Badge, Banner, Skeleton } from '@vetora/ui'
-import { useId } from 'react'
+import { Badge, Banner, PageBody, PageHeader, Skeleton } from '@vetora/ui'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
 
@@ -10,11 +9,11 @@ import { api } from '../api/client'
  * while the first check is in flight; a danger banner first in the page, offering "Try again", when the API cannot be
  * reached, on the first check or a later poll; a success badge with the version while it answers. One state at a
  * time: the query keeps its last answer beside a later error, so the badge follows the query's success state, not
- * the presence of data. The shell around it arrives with ticket #12.
+ * the presence of data. Inside the shell (ticket #12) the page is a PageHeader with the title as the h1 and a
+ * PageBody holding the status region, named by the same words so a screen reader finds it.
  */
 export function StatusPage() {
   const { t } = useTranslation()
-  const titleId = useId()
   const health = useQuery({
     queryKey: ['health'],
     queryFn: async () => {
@@ -27,28 +26,32 @@ export function StatusPage() {
   })
 
   return (
-    <section aria-labelledby={titleId} aria-busy={health.isPending || undefined}>
-      {health.isError && (
-        <Banner
-          status="danger"
-          title={t('health.loadFailed')}
-          action={{ label: t('health.retry'), onClick: () => void health.refetch() }}
-        />
-      )}
-      <h2 id={titleId}>{t('health.title')}</h2>
-      {health.isPending && (
-        <p>
-          <Skeleton width={200} />
-        </p>
-      )}
-      {health.isSuccess && (
-        <p role="status">
-          <Badge status="success" icon="check_circle">
-            {t('health.ok')}
-          </Badge>{' '}
-          {t('health.version')} {health.data.version}
-        </p>
-      )}
-    </section>
+    <>
+      <PageHeader title={t('health.title')} />
+      <PageBody>
+        <section aria-label={t('health.title')} aria-busy={health.isPending || undefined}>
+          {health.isError && (
+            <Banner
+              status="danger"
+              title={t('health.loadFailed')}
+              action={{ label: t('health.retry'), onClick: () => void health.refetch() }}
+            />
+          )}
+          {health.isPending && (
+            <p>
+              <Skeleton width={200} />
+            </p>
+          )}
+          {health.isSuccess && (
+            <p role="status">
+              <Badge status="success" icon="check_circle">
+                {t('health.ok')}
+              </Badge>{' '}
+              {t('health.version')} {health.data.version}
+            </p>
+          )}
+        </section>
+      </PageBody>
+    </>
   )
 }

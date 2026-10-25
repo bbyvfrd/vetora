@@ -11,5 +11,9 @@
   },
   "language": {
     "label": "Dil"
+  },
+  "shell": {
+    "skipToContent": "Məzmuna keç",
+    "navigation": "Əsas naviqasiya"
   }
 }

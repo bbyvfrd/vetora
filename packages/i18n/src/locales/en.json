@@ -11,5 +11,9 @@
   },
   "language": {
     "label": "Language"
+  },
+  "shell": {
+    "skipToContent": "Skip to content",
+    "navigation": "Main navigation"
   }
 }
