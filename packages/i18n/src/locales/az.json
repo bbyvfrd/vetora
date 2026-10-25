@@ -4,9 +4,8 @@
   },
   "health": {
     "title": "API vəziyyəti",
-    "checking": "Yoxlanılır…",
+    "loadFailed": "API vəziyyətini yükləmək mümkün olmadı",
     "ok": "İşləyir",
-    "unavailable": "Əlçatan deyil",
     "version": "Versiya",
     "retry": "Yenidən cəhd et"
   },

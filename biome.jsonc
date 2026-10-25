@@ -73,6 +73,33 @@
           "correctness": { "noPrivateImports": { "level": "error", "options": { "defaultVisibility": "package" } } }
         }
       }
+    },
+    {
+      // The design system's component sources, copied from the artifact (ADR 0003) and changed only by the conformance
+      // pass packages/ui/README.md describes (the mechanical pass and the hand changes it lists). These rules read the
+      // artifact's patterns as faults: ARIA composites whose keyboard handling sits on the composite (a listbox under a
+      // combobox input, a calendar grid, a menu), scrims and popup anchors that listen for the pointer, a native
+      // checkbox in the switch role, effects that list the dependencies they mean to react to, static lists keyed by
+      // position, and the table's generic row type. Off for these files only, not the package's tests, so a re-copy
+      // stays mechanical; the components' accessibility is the artifact's to prove, and axe checks what the app
+      // composes (ticket #12).
+      "includes": ["packages/ui/src/*.tsx", "!packages/ui/src/*.test.tsx"],
+      "linter": {
+        "rules": {
+          "a11y": {
+            "noAriaHiddenOnFocusable": "off",
+            "noNoninteractiveElementToInteractiveRole": "off",
+            "noNoninteractiveTabindex": "off",
+            "noStaticElementInteractions": "off",
+            "useAriaPropsForRole": "off",
+            "useFocusableInteractive": "off",
+            "useKeyWithClickEvents": "off",
+            "useSemanticElements": "off"
+          },
+          "correctness": { "useExhaustiveDependencies": "off" },
+          "suspicious": { "noArrayIndexKey": "off", "noExplicitAny": "off" }
+        }
+      }
     }
   ]
 }

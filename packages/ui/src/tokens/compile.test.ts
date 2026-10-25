@@ -182,8 +182,8 @@ describe('styles/components.css, the stylesheet copied from the artifact', () =>
     )
     const referenced = new Set([...components.matchAll(/var\((--[\w-]+)/g)].map((m) => m[1]))
     const unresolved = [...referenced].filter((name) => !defined.has(name)).sort()
-    // The schedule's column, slot and per hour counts and the tooltip's shift are set inline by Schedule and Tooltip
-    // (vendored in #11) from their props: the only variables no stylesheet declares.
+    // The schedule's column, slot and per hour counts and the tooltip's shift are set inline by Schedule.tsx and
+    // Tooltip.tsx from their props: the only variables no stylesheet declares.
     expect(unresolved).toEqual(['--vt-cols', '--vt-per-hour', '--vt-slots', '--vt-tip-shift'])
   })
 })

@@ -12,6 +12,9 @@ catalogs:
     '@types/react':
       specifier: ^19.3.0
       version: 19.3.0
+    '@types/react-dom':
+      specifier: ^19.3.0
+      version: 19.3.0
     typescript:
       specifier: ~6.0.3
       version: 6.0.3
@@ -149,7 +152,7 @@ importers:
         specifier: 'catalog:'
         version: 19.3.0
       '@types/react-dom':
-        specifier: ^19.3.0
+        specifier: 'catalog:'
         version: 19.3.0(@types/react@19.3.0)
       '@vetora/config':
         specifier: workspace:*
@@ -199,6 +202,9 @@ importers:
       react:
         specifier: ^19.0.0
         version: 19.3.1
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.3.1(react@19.3.1)
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
@@ -206,6 +212,9 @@ importers:
       '@types/react':
         specifier: 'catalog:'
         version: 19.3.0
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.3.0(@types/react@19.3.0)
       '@vetora/config':
         specifier: workspace:*
         version: link:../config

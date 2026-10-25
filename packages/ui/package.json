@@ -23,11 +23,13 @@
     "tokens": "tsc -p tsconfig.build.json && node dist/tokens/write.js"
   },
   "peerDependencies": {
-    "react": "^19.0.0"
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@types/node": "catalog:",
     "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
     "@vetora/config": "workspace:*",
     "typescript": "catalog:"
   }

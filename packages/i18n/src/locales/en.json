@@ -4,9 +4,8 @@
   },
   "health": {
     "title": "API status",
-    "checking": "Checking…",
+    "loadFailed": "The API status could not be loaded",
     "ok": "Up",
-    "unavailable": "Unavailable",
     "version": "Version",
     "retry": "Try again"
   },
