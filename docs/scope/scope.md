@@ -61,7 +61,7 @@ _Deferred on 2026-10-24 to slices 1 and 2: the Done when clauses that name slice
 ### 4. Design system & UI foundation · in progress
 Visual language and base components for reception desktops and ward tablets, translation ready in Azerbaijani, Russian, and English, with print layouts for client documents.
 **Done when:** `design.md` covers type, color, spacing, components, and print; base components work by keyboard and by touch with readable contrast; no screen text lives outside the Azerbaijani, Russian, and English translation files.
-_Grilled on 2026-10-24 (`docs/research/2026-10-24-grilling-next-after-0002.md`): the web app vendors the design system's source into `packages/ui` (ADR 0003); the print sheets are the one implementation of each document, rendered to PDF in the worker at feature 14 (ADR 0004); the spec is [issue #9](https://github.com/bbyvfrd/vetora/issues/9), its tickets #10 to #13._
+_Grilled on 2026-10-24 (`docs/research/2026-10-24-grilling-next-after-0002.md`): the web app vendors the design system's source into `packages/ui` (ADR 0003); the print sheets are the one implementation of each document, rendered to PDF in the worker at feature 14 (ADR 0004); the spec is [issue #9](https://github.com/bbyvfrd/vetora/issues/9), its tickets #10 to #13. On 2026-10-26 ADR 0005 amended ADR 0003's source of truth: once every component is vendored (#11), component code is fixed in `packages/ui` and synced up to the artifact, while tokens, words, icons and the examples stay the artifact's and come down by re-copy._
 
 ## Slice 1: Core loop
 

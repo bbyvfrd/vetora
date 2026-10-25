@@ -1,6 +1,7 @@
 ---
 status: accepted
 date: 2026-10-24
+amended: the source of truth sentence, by ADR 0005 on 2026-10-26
 ---
 
 # The web app vendors the design system's source into `packages/ui`
