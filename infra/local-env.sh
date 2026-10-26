@@ -117,6 +117,14 @@ write_api_env() {
     if [ "${current:-3000}" != "$API_PORT" ]; then
       echo "local-env: apps/api/.env says PORT=${current:-3000} but this checkout is slot $SLOT (API $API_PORT); pnpm local:setup --force rewrites it" >&2
     fi
+    # A variable the example gained since the file was written (BETTER_AUTH_SECRET with feature 5) stops the API at
+    # startup; name it here first.
+    local key
+    for key in $(sed -n 's/^\([A-Z_][A-Z0-9_]*\)=.*/\1/p' "$example"); do
+      if ! grep -q "^$key=" "$file"; then
+        echo "local-env: apps/api/.env lacks $key, which .env.example has; pnpm local:setup --force rewrites it" >&2
+      fi
+    done
     return
   fi
   sed -e "s/^PORT=.*/PORT=$API_PORT/" \

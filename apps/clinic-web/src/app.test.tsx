@@ -1,12 +1,11 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router'
-import { render, screen, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import type { Me } from '@vetora/contracts'
 import { languages } from '@vetora/i18n'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { axe } from 'vitest-axe'
 import { setLanguage } from './i18n'
-import { routeTree } from './routeTree.gen'
+import { axeOptions, meOf, problemAnswer, renderApp, stubApi, violationsOf } from './test-support'
 
 // The typed client (src/api/client.ts) captures globalThis.fetch when it is created, at import, so the stub is
 // installed before the imports above run.
@@ -16,135 +15,146 @@ const fetchMock = vi.hoisted(() => {
   return mock
 })
 
-/** The version the stubbed API reports; `words` spells it out in each status line. */
-const version = '0.1.0'
-
-/** The API answers every health check, so the status page settles on its success state. */
-function stubHealthy() {
-  fetchMock.mockImplementation(() =>
-    Promise.resolve(Response.json({ status: 'ok', version, database: 'ok', time: '2026-10-26T08:00:00.000Z' })),
-  )
-}
-
 /** The shell's words in each language, from the design system glossary through packages/i18n. */
 const words = {
   az: {
     nav: 'Əsas naviqasiya',
     skip: 'Məzmuna keç',
-    title: 'API vəziyyəti',
-    language: 'Dil',
-    status: 'İşləyir Versiya 0.1.0',
+    title: 'Bugünkü qəbullar',
+    empty: 'Bu gün qəbul yoxdur',
+    status: 'API vəziyyəti',
+    account: 'Leyla Həsənova Baytar həkim · Alfa Vet',
   },
   ru: {
     nav: 'Основная навигация',
     skip: 'Перейти к содержимому',
-    title: 'Состояние API',
-    language: 'Язык',
-    status: 'Работает Версия 0.1.0',
+    title: 'Приёмы сегодня',
+    empty: 'Сегодня приёмов нет',
+    status: 'Состояние API',
+    account: 'Leyla Həsənova Ветеринарный врач · Alfa Vet',
   },
   en: {
     nav: 'Main navigation',
     skip: 'Skip to content',
-    title: 'API status',
-    language: 'Language',
-    status: 'Up Version 0.1.0',
+    title: 'Visits today',
+    empty: 'No visits today',
+    status: 'API status',
+    account: 'Leyla Həsənova Veterinarian · Alfa Vet',
   },
 } as const
 
-/** Each axe violation on one line (the rule, the elements, the help text), so a failure reads without the raw results. */
-function violationsOf(results: Awaited<ReturnType<typeof axe>>): string[] {
-  return results.violations.map(
-    (violation) =>
-      `${violation.id} [${violation.nodes.map((node) => node.target.join(' ')).join('; ')}]: ${violation.help}`,
-  )
+/** The API as a signed in vet's browser finds it: `/api/me` answers while `signedIn` holds, then 401. */
+function stubSignedIn(me: Me = meOf()) {
+  const state = { signedIn: true }
+  const asked = stubApi(fetchMock, {
+    'GET /api/me': () => (state.signedIn ? Response.json(me) : problemAnswer(401, 'Not signed in')),
+    'GET /api/health': () =>
+      Response.json({ status: 'ok', version: '0.1.0', database: 'ok', time: '2026-10-26T08:00:00.000Z' }),
+  })
+  return { state, asked }
 }
 
-/** Mounts the app as main.tsx does, without error reporting: the real route tree on an in-memory history at "/". */
-async function renderApp() {
-  const router = createRouter({ routeTree, history: createMemoryHistory({ initialEntries: ['/'] }) })
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-  render(
-    <QueryClientProvider client={client}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>,
-  )
-  // The router renders its first match asynchronously, and the status page's answer arrives after that.
-  await screen.findByRole('status')
-}
-
-describe('the shell around the status page (spec #9, seam 1 in full: the real router with the real translations)', () => {
+describe('the shell around the signed in pages (spec #9 seam 1, spec #18 seam 3: the real router with the real translations)', () => {
   beforeEach(() => {
     fetchMock.mockReset()
-    stubHealthy()
+    localStorage.clear()
     setLanguage('az')
   })
 
-  it('renders the page inside the shell: a named rail, the h1 in the header, then the body holding the page', async () => {
-    await renderApp()
+  it('lands on Visits today inside the shell: a named rail, the h1 in the header, then the body with its empty state', async () => {
+    stubSignedIn()
+    renderApp('/')
+
+    const main = await screen.findByRole('main')
+    const title = await within(main).findByRole('heading', { level: 1, name: 'Bugünkü qəbullar' })
     expect(screen.getByRole('navigation', { name: 'Əsas naviqasiya' })).toBeInTheDocument()
-    const main = screen.getByRole('main')
-    const title = within(main).getByRole('heading', { level: 1, name: 'API vəziyyəti' })
-    const page = within(main).getByRole('region', { name: 'API vəziyyəti' })
-    // The header comes first, the body with the page after it.
-    expect(title.compareDocumentPosition(page) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(0)
-    expect(within(page).getByRole('status')).toHaveTextContent('İşləyir Versiya 0.1.0')
+    const empty = within(main).getByText('Bu gün qəbul yoxdur')
+    expect(title.compareDocumentPosition(empty) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(0)
   })
 
-  it('puts the skip link first in the tab order, then the rail item, then the language switch', async () => {
-    await renderApp()
+  it('lists the routed places, Visits today first and marked as the page, then the status page; the account entry names the person, their role and clinic, and leads to their profile (story 11)', async () => {
+    stubSignedIn()
+    renderApp('/')
+    await screen.findByRole('heading', { level: 1, name: 'Bugünkü qəbullar' })
+
+    const links = within(screen.getByRole('navigation', { name: 'Əsas naviqasiya' })).getAllByRole('link')
+    expect(links.map((link) => link.getAttribute('href'))).toEqual(['/', '/status', '/profile'])
+    expect(links[0]).toHaveAccessibleName('Bugünkü qəbullar')
+    expect(links[0]).toHaveAttribute('aria-current', 'page')
+    expect(links[1]).toHaveAccessibleName('API vəziyyəti')
+    expect(links[1]).not.toHaveAttribute('aria-current')
+    expect(links[2]).toHaveAccessibleName(words.az.account)
+    // The temporary language switch is gone from the rail: the language lives in the profile (spec #18).
+    expect(screen.queryByRole('combobox')).toBeNull()
+
+    await userEvent.setup().click(links[1] as HTMLElement)
+    expect(await screen.findByRole('heading', { level: 1, name: 'API vəziyyəti' })).toBeInTheDocument()
+    expect(links[1]).toHaveAttribute('aria-current', 'page')
+  })
+
+  it('puts the skip link first in the tab order, then the two places, then the account entry, and the skip link focuses the page', async () => {
+    stubSignedIn()
+    renderApp('/')
+    await screen.findByRole('heading', { level: 1, name: 'Bugünkü qəbullar' })
     const user = userEvent.setup()
+
     await user.tab()
     expect(screen.getByRole('link', { name: 'Məzmuna keç' })).toHaveFocus()
     await user.tab()
-    expect(within(screen.getByRole('navigation')).getByRole('link', { name: 'API vəziyyəti' })).toHaveFocus()
+    expect(screen.getByRole('link', { name: 'Bugünkü qəbullar' })).toHaveFocus()
     await user.tab()
-    expect(screen.getByRole('combobox', { name: 'Dil' })).toHaveFocus()
-  })
+    expect(screen.getByRole('link', { name: 'API vəziyyəti' })).toHaveFocus()
+    await user.tab()
+    expect(screen.getByRole('link', { name: words.az.account })).toHaveFocus()
 
-  it('moves focus to the page when the skip link is used', async () => {
-    await renderApp()
-    const user = userEvent.setup()
-    await user.tab()
+    await user.tab({ shift: true })
+    await user.tab({ shift: true })
+    await user.tab({ shift: true })
     await user.keyboard('{Enter}')
     expect(screen.getByRole('main')).toHaveFocus()
   })
 
-  it('lists only the routed places in the rail, the current one marked as the page', async () => {
-    await renderApp()
-    const links = within(screen.getByRole('navigation', { name: 'Əsas naviqasiya' })).getAllByRole('link')
-    expect(links).toHaveLength(1)
-    expect(links[0]).toHaveAccessibleName('API vəziyyəti')
-    expect(links[0]).toHaveAttribute('aria-current', 'page')
-    expect(links[0]).toHaveAttribute('href', '/')
-  })
+  it.each(languages)(
+    "speaks the language saved to the person's login, %s, whatever this computer chose before, with no axe violation (story 12)",
+    async (language) => {
+      stubSignedIn(meOf({ language }))
+      setLanguage(language === 'az' ? 'en' : 'az')
+      renderApp('/')
 
-  it("changes every word and the page's language from the switch in the rail's foot, and keeps the choice", async () => {
-    await renderApp()
-    const user = userEvent.setup()
-    for (const language of ['ru', 'en', 'az'] as const) {
-      await user.selectOptions(screen.getByRole('combobox'), language)
       const expected = words[language]
       expect(await screen.findByRole('heading', { level: 1, name: expected.title })).toBeInTheDocument()
-      const nav = screen.getByRole('navigation', { name: expected.nav })
-      expect(within(nav).getByRole('link', { name: expected.title })).toHaveAttribute('aria-current', 'page')
-      expect(screen.getByRole('region', { name: expected.title })).toBeInTheDocument()
+      expect(screen.getByRole('navigation', { name: expected.nav })).toBeInTheDocument()
       expect(screen.getByRole('link', { name: expected.skip })).toBeInTheDocument()
-      expect(screen.getByRole('combobox', { name: expected.language })).toHaveValue(language)
-      expect(screen.getByRole('status')).toHaveTextContent(expected.status)
+      expect(screen.getByRole('link', { name: expected.status })).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: expected.account })).toBeInTheDocument()
+      expect(screen.getByText(expected.empty)).toBeInTheDocument()
       expect(document.documentElement.lang).toBe(language)
-      expect(localStorage.getItem('vetora.language')).toBe(language)
-    }
+      expect(violationsOf(await axe(document.body, axeOptions))).toEqual([])
+    },
+  )
+
+  it('sends a computer with no session to the sign in page, with no message about a session ending', async () => {
+    const { state } = stubSignedIn()
+    state.signedIn = false
+    const { router } = renderApp('/status')
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Daxil ol' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/sign-in')
+    expect(screen.queryByRole('alert')).toBeNull()
+    expect(screen.queryByText('Sessiyanın vaxtı bitdi')).toBeNull()
   })
 
-  it.each(languages)('has no axe violations in %s', async (language) => {
-    await renderApp()
-    await userEvent.setup().selectOptions(screen.getByRole('combobox'), language)
-    await screen.findByRole('heading', { level: 1, name: words[language].title })
-    // Two rules are left out: the document's title is in index.html, not in this bare document, and colour contrast
-    // needs a canvas jsdom lacks (seam 2, the package's contrast test over the tokens, proves it).
-    const results = await axe(document.body, {
-      rules: { 'document-title': { enabled: false }, 'color-contrast': { enabled: false } },
-    })
-    expect(violationsOf(results)).toEqual([])
+  it('sends the person to the sign in page with "Your session has ended" when the API answers 401 after they signed in', async () => {
+    const { state } = stubSignedIn()
+    const { router, queryClient } = renderApp('/')
+    await screen.findByRole('heading', { level: 1, name: 'Bugünkü qəbullar' })
+
+    state.signedIn = false
+    await queryClient.invalidateQueries({ queryKey: ['me'] })
+
+    expect(await screen.findByText('Sessiyanın vaxtı bitdi')).toBeInTheDocument()
+    expect(screen.getByText('Davam etmək üçün yenidən daxil olun.')).toBeInTheDocument()
+    await waitFor(() => expect(router.state.location.pathname).toBe('/sign-in'))
+    expect(queryClient.getQueryData(['me'])).toBeUndefined()
   })
 })

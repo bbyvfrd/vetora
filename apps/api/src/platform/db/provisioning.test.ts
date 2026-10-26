@@ -11,6 +11,7 @@ import {
   practiceSet,
   provisionTestPractice,
   resetTestDatabase,
+  TEST_PASSWORD,
   type TestDatabaseUrls,
   type TestPractice,
   testDatabaseUrls,
@@ -68,6 +69,23 @@ describe.skipIf(!databaseTestsEnabled())(
       return rows.rows
     }
 
+    /** The practice's sign in rows: its organization, the logins under its code, their memberships. */
+    async function signInStateOf(practice: Pick<TestPractice, 'practiceId' | 'slug'>) {
+      const organizations = await migrator.query('select id, name, slug from control.organization where slug = $1', [
+        practice.slug,
+      ])
+      const logins = await migrator.query(
+        `select id, name, username, email, role, language from control."user"
+         where username like '%@' || $1 order by created_at, id`,
+        [practice.slug],
+      )
+      const members = await migrator.query(
+        'select organization_id, user_id, role from control.member where organization_id = $1 order by created_at, id',
+        [practice.practiceId],
+      )
+      return { organizations: organizations.rows, logins: logins.rows, members: members.rows }
+    }
+
     /** Everything provisioning leaves behind for a practice, read back as the migrator, to compare two runs. */
     async function stateOf(practice: TestPractice) {
       const schema = pg.escapeIdentifier(practice.schema)
@@ -87,6 +105,7 @@ describe.skipIf(!databaseTestsEnabled())(
         audit: audit.rows,
         migrations: migrations.rows,
         role: await membershipOf(practice.role),
+        signIn: await signInStateOf(practice),
       }
     }
 
@@ -94,12 +113,13 @@ describe.skipIf(!databaseTestsEnabled())(
     const queryAs = <T extends pg.QueryResultRow>(practice: TestPractice, query: string) =>
       asPractice(app, practice, (client) => client.query<T>(query))
 
-    it("creates the registry row, the role and its membership, the schema with the practice set, the manager's staff row, the settings from the arguments, and the default location, each written as the manager, and sets the practice active (AC-8, AC-10)", async () => {
+    it("creates the registry row, the role and its membership, the schema with the practice set, the manager's login, the organization with the practice's id and the manager's membership, the manager's staff row, the settings from the arguments, and the default location, each written as the manager, and sets the practice active (AC-8, AC-10)", async () => {
       const { log, lines } = captureLog()
 
       const alfa = await provision({
         slug: 'alfa',
         name: 'Alfa Vet',
+        managerHandle: 'dr.aliyeva',
         managerName: 'Dr Aliyeva',
         locationName: 'Nərimanov',
         log,
@@ -107,6 +127,22 @@ describe.skipIf(!databaseTestsEnabled())(
       const manager = alfa.managerId
 
       expect(alfa.practiceId).toMatch(UUID_V7)
+      expect(manager).toMatch(UUID_V7)
+      // Practice id = organization id (spec 0001, "Tenancy"); one login, under the practice code, a manager member.
+      expect(await signInStateOf(alfa)).toEqual({
+        organizations: [{ id: alfa.practiceId, name: 'Alfa Vet', slug: 'alfa' }],
+        logins: [
+          {
+            id: manager,
+            name: 'Dr Aliyeva',
+            username: 'dr.aliyeva@alfa',
+            email: 'dr.aliyeva@alfa.staff.invalid',
+            role: 'staff',
+            language: 'az',
+          },
+        ],
+        members: [{ organization_id: alfa.practiceId, user_id: manager, role: 'manager' }],
+      })
       const registry = await migrator.query(
         'select slug, name, schema_name, role_name, status from control.practice where id = $1',
         [alfa.practiceId],
@@ -143,7 +179,7 @@ describe.skipIf(!databaseTestsEnabled())(
         'practice_settings',
         'staff_member',
       ])
-      // The first manager mirrors the control user id given, with the one role; the row is its own creator (IN-1).
+      // The first manager mirrors their login and its membership, with the one role; the row is its own creator (IN-1).
       const staff = await migrator.query(
         `select id, display_name, roles, active, synced_at, created_by, updated_by, version
          from ${pg.escapeIdentifier(alfa.schema)}.staff_member`,
@@ -223,22 +259,26 @@ describe.skipIf(!databaseTestsEnabled())(
       expect(logged).not.toContain('Alfa Vet')
       expect(logged).not.toContain('Nərimanov')
       expect(logged).not.toContain('Dr Aliyeva')
+      expect(logged).not.toContain('dr.aliyeva')
     })
 
-    it('changes nothing on a rerun with the same slug and name, the manager row and the audit log included, even with another manager (AC-10)', async () => {
+    it('changes nothing on a rerun with the same slug and name, the logins, the organization, the manager row and the audit log included, even with another manager (AC-10)', async () => {
       const alfa = await provision({ slug: 'alfa', name: 'Alfa Vet', locationName: 'Nərimanov' })
       const before = await stateOf(alfa)
       expect(before.staff).toHaveLength(1)
       expect(before.audit).toHaveLength(3)
+      expect(before.signIn.logins).toHaveLength(1)
 
       const again = await provisionTestPractice(urls, {
         slug: 'alfa',
         name: 'Alfa Vet',
+        managerHandle: 'someone.else',
         managerName: 'Someone else',
         locationName: 'Elsewhere',
       })
 
       expect(again.practiceId).toBe(alfa.practiceId)
+      expect(again.managerId).toBe(alfa.managerId)
       expect(await stateOf(alfa)).toEqual(before)
     })
 
@@ -248,12 +288,18 @@ describe.skipIf(!databaseTestsEnabled())(
       await migrator.query("update control.practice set status = 'provisioning' where id = $1", [alfa.practiceId])
       await migrator.query(`delete from ${pg.escapeIdentifier(alfa.schema)}.practice_settings`)
 
-      // A fresh manager id: not a staff member, so the row can only be written as the first manager (IN-1).
-      const again = await provisionTestPractice(urls, { slug: 'alfa', name: 'Alfa Vet', locationName: 'Nərimanov' })
+      // Another handle: the organization names its manager already, so no login is made for it (IN-1).
+      const again = await provisionTestPractice(urls, {
+        slug: 'alfa',
+        name: 'Alfa Vet',
+        managerHandle: 'someone.else',
+        locationName: 'Nərimanov',
+      })
 
       expect(again.practiceId).toBe(alfa.practiceId)
-      expect(again.managerId).not.toBe(alfa.managerId)
+      expect(again.managerId).toBe(alfa.managerId)
       const after = await stateOf(alfa)
+      expect(after.signIn).toEqual(before.signIn)
       expect(after.registry.map((row) => row.status)).toEqual(['active'])
       // The settings row is written again as the first manager; only the clock columns differ.
       const withoutClock = (rows: Record<string, unknown>[]) => rows.map(({ created_at, updated_at, ...row }) => row)
@@ -277,12 +323,13 @@ describe.skipIf(!databaseTestsEnabled())(
           input: {
             slug: 'gamma',
             name: 'Gamma Vet',
-            managerUserId: '11111111-1111-7111-8111-111111111111',
+            managerHandle: 'dr.gamma',
             managerName: 'Dr Gamma',
             locationName: 'Main',
             timeZone: 'Asia/Baku',
             languages: ['az'],
           },
+          managerPassword: async () => TEST_PASSWORD,
           practiceFolder: folder,
         })
 
@@ -294,6 +341,13 @@ describe.skipIf(!databaseTestsEnabled())(
         })
         const registry = await migrator.query('select status from control.practice where slug = $1', ['gamma'])
         expect(registry.rows).toEqual([{ status: 'provisioning' }])
+        // The steps after the practice set never ran: no login, no organization.
+        expect(await migrator.query('select 1 from control."user" where username = \'dr.gamma@gamma\'')).toMatchObject({
+          rowCount: 0,
+        })
+        expect(await migrator.query("select 1 from control.organization where slug = 'gamma'")).toMatchObject({
+          rowCount: 0,
+        })
 
         const gamma = await provision({ slug: 'gamma', name: 'Gamma Vet' })
 
@@ -319,12 +373,13 @@ describe.skipIf(!databaseTestsEnabled())(
         input: {
           slug: 'alfa',
           name: 'Someone else',
-          managerUserId: alfa.managerId,
+          managerHandle: 'dr.else',
           managerName: 'Dr Else',
           locationName: 'Elsewhere',
           timeZone: 'Asia/Baku',
           languages: ['az'],
         },
+        managerPassword: async () => TEST_PASSWORD,
         log,
       })
 
@@ -337,6 +392,60 @@ describe.skipIf(!databaseTestsEnabled())(
       })
       expect(JSON.stringify(lines)).not.toContain('Someone else')
       expect(JSON.stringify(lines)).not.toContain('Dr Else')
+    })
+
+    it('gives a practice provisioned before sign in, its manager a staff_member row with no login, a login with that same id on a rerun, so the membership and the mirror agree (spec #18, Further Notes)', async () => {
+      const alfa = await provision({ slug: 'alfa', name: 'Alfa Vet', locationName: 'Nərimanov' })
+      // What a practice from the 2026-10-24 rehearsal holds: the staff_member row, and no login or organization.
+      await migrator.query('delete from control."user" where id = $1', [alfa.managerId])
+      await migrator.query('delete from control.organization where id = $1', [alfa.practiceId])
+      const staffBefore = (await stateOf(alfa)).staff
+
+      const again = await provisionTestPractice(urls, {
+        slug: 'alfa',
+        name: 'Alfa Vet',
+        managerHandle: 'dr.aliyeva',
+        managerName: 'Dr Aliyeva',
+        locationName: 'Nərimanov',
+      })
+
+      expect(again.managerId).toBe(alfa.managerId)
+      const after = await stateOf(alfa)
+      expect(after.staff).toEqual(staffBefore)
+      expect(after.signIn.logins).toMatchObject([{ id: alfa.managerId, username: 'dr.aliyeva@alfa' }])
+      expect(after.signIn.members).toEqual([
+        { organization_id: alfa.practiceId, user_id: alfa.managerId, role: 'manager' },
+      ])
+    })
+
+    it('refuses a manager password shorter than 10 characters: the practice stays in provisioning with no login or organization, for a rerun to complete', async () => {
+      const outcome = await provisionPractice({
+        url: urls.migrator,
+        input: {
+          slug: 'delta',
+          name: 'Delta Vet',
+          managerHandle: 'dr.delta',
+          managerName: 'Dr Delta',
+          locationName: 'Main',
+          timeZone: 'Asia/Baku',
+          languages: ['ru', 'az'],
+        },
+        managerPassword: async () => 'too short',
+      })
+
+      expect(outcome).toEqual({ status: 'password-rejected', problem: 'too-short' })
+      const registry = await migrator.query('select status from control.practice where slug = $1', ['delta'])
+      expect(registry.rows).toEqual([{ status: 'provisioning' }])
+      expect(await signInStateOf({ practiceId: '00000000-0000-0000-0000-000000000000', slug: 'delta' })).toEqual({
+        organizations: [],
+        logins: [],
+        members: [],
+      })
+
+      const delta = await provision({ slug: 'delta', name: 'Delta Vet', managerHandle: 'dr.delta', languages: ['ru'] })
+      expect((await stateOf(delta)).registry.map((row) => row.status)).toEqual(['active'])
+      // The login takes the practice's first language, its default.
+      expect((await signInStateOf(delta)).logins).toMatchObject([{ username: 'dr.delta@delta', language: 'ru' }])
     })
 
     it('isolates practices: vetora_app reads a practice table only after SET LOCAL ROLE to its role, and never another practice (AC-11)', async () => {

@@ -11,15 +11,20 @@
     "openapi": "node --import=tsx src/openapi.ts",
     "migrate": "node --env-file-if-exists=.env --import=tsx src/migrate.ts",
     "provision-practice": "node --env-file-if-exists=.env --import=tsx src/provision-practice.ts",
+    "add-staff": "node --env-file-if-exists=.env --import=tsx src/add-staff.ts",
+    "reset-password": "node --env-file-if-exists=.env --import=tsx src/reset-password.ts",
+    "auth:check": "auth check schema --config src/platform/auth/schema-check.ts",
     "db:generate:control": "drizzle-kit generate --config drizzle.control.config.ts",
     "db:generate:practice": "drizzle-kit generate --config drizzle.practice.config.ts",
     "db:check": "drizzle-kit check --config drizzle.control.config.ts && drizzle-kit check --config drizzle.practice.config.ts && node --import=tsx src/check-migrations.ts"
   },
   "dependencies": {
+    "@better-auth/drizzle-adapter": "1.7.12",
     "@hono/node-server": "^2.1.5",
     "@hono/zod-openapi": "^1.6.3",
     "@sentry/node": "^11.8.0",
     "@vetora/contracts": "workspace:*",
+    "better-auth": "1.7.12",
     "drizzle-orm": "1.0.0-rc.5",
     "hono": "^4.13.13",
     "pg": "^8.23.1",
@@ -30,6 +35,7 @@
     "@types/node": "catalog:",
     "@types/pg": "^8.23.1",
     "@vetora/config": "workspace:*",
+    "auth": "1.7.12",
     "drizzle-kit": "1.0.0-rc.5",
     "tsx": "^4.23.15",
     "typescript": "catalog:"

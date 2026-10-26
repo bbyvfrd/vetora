@@ -41,8 +41,10 @@ env:
   secret:
     - DATABASE_URL_POOLED
     - DATABASE_URL_DIRECT
-    # Read only by the migrate command (kamal app exec runs it with the service's env), never by the API.
+    # Read only by the operator commands (kamal app exec runs them with the service's env), never by the API.
     - DATABASE_URL_MIGRATOR
+    # Signs the session cookies (Better Auth); PUBLIC_ORIGIN, its base URL, is set per destination.
+    - BETTER_AUTH_SECRET
     - SENTRY_DSN_API
 
 # Logs stay on the host, 14 days worth at most (spec 0001, "Logs, uptime, metrics").

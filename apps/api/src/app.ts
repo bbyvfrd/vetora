@@ -1,8 +1,11 @@
 import { OpenAPIHono } from '@hono/zod-openapi'
 import * as Sentry from '@sentry/node'
 import { HTTPException } from 'hono/http-exception'
-import { type RequestIdVariables, requestId } from 'hono/request-id'
+import { requestId } from 'hono/request-id'
+import { getSession, getSessionRoute, signIn, signInRoute, signOut, signOutRoute } from './http/auth.js'
+import type { Env } from './http/env.js'
 import { healthRoute } from './http/health.js'
+import { getMe, languageRoute, meRoute, putLanguage } from './http/me.js'
 import { requestLogger } from './http/middleware.js'
 import { checkDatabase } from './platform/db/index.js'
 import { log, scrubError } from './platform/log.js'
@@ -19,8 +22,6 @@ export const openApiInfo = {
       'The API behind the clinic web app and, later, the pet owner app. Routes are declared with zod schemas from packages/contracts.',
   },
 } as const
-
-type Env = { Variables: RequestIdVariables }
 
 export const app = new OpenAPIHono<Env>({
   defaultHook: (result, c) => {
@@ -44,6 +45,14 @@ app.openapi(healthRoute, async (c) => {
   }
   return c.json({ status: 'ok' as const, version, database, time: new Date().toISOString() }, 200)
 })
+
+// The three Better Auth routes the allowlist lets through (src/http/auth.ts); the rest of /api/auth is the 404 below.
+app.openapi(signInRoute, signIn)
+app.openapi(signOutRoute, signOut)
+app.openapi(getSessionRoute, getSession)
+
+app.openapi(meRoute, getMe)
+app.openapi(languageRoute, putLanguage)
 
 app.doc31('/api/openapi.json', openApiInfo)
 

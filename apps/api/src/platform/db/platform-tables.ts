@@ -1,3 +1,9 @@
+import {
+  STAFF_ROLES as CONTRACT_STAFF_ROLES,
+  joinRoles as contractJoinRoles,
+  orderRoles as contractOrderRoles,
+  parseRoles as contractParseRoles,
+} from '@vetora/contracts'
 import { sql } from 'drizzle-orm'
 import {
   type AnyPgColumn,
@@ -104,12 +110,23 @@ export const location = pgTable(
 )
 
 /**
- * The staff roles a member can hold (docs/domain.md §3); a label change moves the translations, never the stored value.
+ * The staff roles a member can hold (docs/domain.md §3), defined once in @vetora/contracts beside the permission
+ * matrix; a label change moves the translations, never the stored value.
  * @public
  */
-export const STAFF_ROLES = ['manager', 'veterinarian', 'assistant', 'receptionist', 'groomer'] as const
+export const STAFF_ROLES = CONTRACT_STAFF_ROLES
 /** @public */
 export type StaffRole = (typeof STAFF_ROLES)[number]
+/**
+ * A membership's roles to and from their comma joined form (`control.member.role`), and the five in their order,
+ * from @vetora/contracts for a module, which may import only tagged platform exports.
+ * @public
+ */
+export const joinRoles = contractJoinRoles
+/** @public */
+export const parseRoles = contractParseRoles
+/** @public */
+export const orderRoles = contractOrderRoles
 
 /**
  * The practice's staff, the actor every write names (IN-1): a mirror of the control membership, synced idempotently

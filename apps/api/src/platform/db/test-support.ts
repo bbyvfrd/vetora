@@ -76,14 +76,20 @@ export async function tableExists(client: pg.Client, schema: string, table: stri
   return found.rows[0]?.found != null
 }
 
+/** The password every test login is given: ten characters or more, as a login's must be. */
+export const TEST_PASSWORD = 'correct horse battery staple'
+
 /** A throwaway practice for a test: provisioned as the command would, dropped by `drop()` as the migrator. */
 export type TestPractice = {
   practiceId: string
+  /** The practice code its staff sign in with. */
   slug: string
   schema: string
   role: string
-  /** The first manager's staff_member id: the actor a test's request transactions set (IN-1). */
+  /** The first manager's login id, which is also their staff_member id: the actor a test's request transactions set (IN-1). */
   managerId: string
+  /** The manager's handle; they sign in as `<managerHandle>@<slug>` with TEST_PASSWORD. */
+  managerHandle: string
   drop: () => Promise<void>
 }
 
@@ -91,7 +97,8 @@ type TestPracticeOptions = Partial<ProvisionInput> & { log?: Logger }
 
 /**
  * Provision a practice with a unique slug (or the one given) through provisionPractice(), the same path the command
- * takes, and hand back what a test needs to address it; a test drops it afterwards with `drop()`.
+ * takes, its manager's login and organization included, and hand back what a test needs to address it; a test drops
+ * it afterwards with `drop()`.
  */
 export async function provisionTestPractice(
   urls: TestDatabaseUrls,
@@ -101,16 +108,26 @@ export async function provisionTestPractice(
   const input: ProvisionInput = {
     slug,
     name: options.name ?? `Practice ${slug}`,
-    managerUserId: options.managerUserId ?? randomUUID(),
+    managerHandle: options.managerHandle ?? 'manager',
     managerName: options.managerName ?? 'Dr Test',
     locationName: options.locationName ?? 'Main',
     timeZone: options.timeZone ?? 'Asia/Baku',
     languages: options.languages ?? ['az', 'ru'],
   }
-  const outcome = await provisionPractice({ url: urls.migrator, input, log: options.log })
+  const outcome = await provisionPractice({
+    url: urls.migrator,
+    input,
+    managerPassword: async () => TEST_PASSWORD,
+    log: options.log,
+  })
   if (outcome.status !== 'provisioned') throw new Error(`test practice ${slug} was not provisioned: ${outcome.status}`)
   const practice = { practiceId: outcome.practiceId, slug, schema: outcome.schema, role: outcome.role }
-  return { ...practice, managerId: input.managerUserId, drop: () => dropTestPractice(urls, practice) }
+  return {
+    ...practice,
+    managerId: outcome.managerId,
+    managerHandle: input.managerHandle,
+    drop: () => dropTestPractice(urls, practice),
+  }
 }
 
 export type RequestOptions = {
@@ -159,7 +176,11 @@ export async function asPractice<T>(
   }
 }
 
-/** Remove a test practice as the migrator: its schema (cascade), what its role holds and the role, then its registry row. */
+/**
+ * Remove a test practice as the migrator: its schema (cascade), what its role holds and the role, its logins (every
+ * `…@<code>` username, their sessions, credentials and memberships with them) and its organization, then its registry
+ * row, which the organization's foreign key holds until then.
+ */
 export async function dropTestPractice(
   urls: TestDatabaseUrls,
   { practiceId, schema, role }: Pick<TestPractice, 'practiceId' | 'schema' | 'role'>,
@@ -167,6 +188,12 @@ export async function dropTestPractice(
   await asMigrator(urls, 'vetora-test-practice', async (client) => {
     await client.query(`drop schema if exists ${pg.escapeIdentifier(schema)} cascade`)
     await dropRole(client, role)
+    await client.query(
+      `delete from control."user"
+       where username like '%@' || (select slug from control.practice where id = $1)`,
+      [practiceId],
+    )
+    await client.query('delete from control.organization where id = $1', [practiceId])
     await client.query('delete from control.practice where id = $1', [practiceId])
   })
 }

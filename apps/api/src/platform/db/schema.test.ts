@@ -144,13 +144,24 @@ describe('the module schema skeleton (AC-1; spec 0002, Interface surface: Drizzl
     }
   })
 
-  it('practice-schema.ts gathers every platform table and every module schema; control-schema.ts holds the registry', () => {
+  it('practice-schema.ts gathers every platform table and every module schema; control-schema.ts holds the registry and the sign in tables', () => {
     const source = readFileSync(new URL('./practice-schema.ts', import.meta.url), 'utf8')
     for (const module of MODULES) {
       expect(source, module).toContain(`export * from '../../modules/${module}/schema.js'`)
     }
     expect(tableNames(practiceSchema)).toEqual(expect.arrayContaining(tableNames(platformTables)))
-    expect(tableNames(controlSchema)).toEqual(['practice'])
+    // The registry, and the models Better Auth's configured plugins declare (spec #18; no two factor table, ADR 0008).
+    expect(tableNames(controlSchema)).toEqual([
+      'account',
+      'invitation',
+      'member',
+      'organization',
+      'practice',
+      'rate_limit',
+      'session',
+      'user',
+      'verification',
+    ])
   })
 })
 

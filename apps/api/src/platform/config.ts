@@ -8,8 +8,10 @@ const schema = z.object({
   APP_ENV: z.enum(['local', 'staging', 'production']).default('local'),
   PORT: z.coerce.number().int().positive().default(3000),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
-  /** The one origin both apps are served from, e.g. https://app.example.com */
+  /** The one origin both apps are served from, e.g. https://app.example.com; Better Auth's baseURL and trusted origin. */
   PUBLIC_ORIGIN: z.url(),
+  /** Signs Better Auth's session cookies: 32 characters or more, from the Kamal secrets (`openssl rand -base64 32`). */
+  BETTER_AUTH_SECRET: z.string().min(32),
   /** The app role through the connection pooler: request traffic. */
   DATABASE_URL_POOLED: z.string().min(1),
   /** The app role on a direct connection: LISTEN and the worker (later features). */

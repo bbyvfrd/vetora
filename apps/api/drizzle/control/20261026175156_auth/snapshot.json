@@ -1,0 +1,2153 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "f8ffd914-b8e4-4e8b-a08f-bfc4c96fc35c",
+  "prevIds": [
+    "96a2708e-4283-4f4c-b38d-c624a0977576"
+  ],
+  "footprints": [
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "control",
+        "account"
+      ],
+      "writes": [
+        "s|tbl|control.account",
+        "n|tbl|control.account",
+        "e|tbl|control.account",
+        "n|rel|control.account",
+        "n|type|control.account",
+        "n|rel|control.account_pkey"
+      ],
+      "reads": [
+        "n|sch|control"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "control",
+        "invitation"
+      ],
+      "writes": [
+        "s|tbl|control.invitation",
+        "n|tbl|control.invitation",
+        "e|tbl|control.invitation",
+        "n|rel|control.invitation",
+        "n|type|control.invitation",
+        "n|rel|control.invitation_pkey"
+      ],
+      "reads": [
+        "n|sch|control"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "control",
+        "member"
+      ],
+      "writes": [
+        "s|tbl|control.member",
+        "n|tbl|control.member",
+        "e|tbl|control.member",
+        "n|rel|control.member",
+        "n|type|control.member",
+        "n|rel|control.member_pkey"
+      ],
+      "reads": [
+        "n|sch|control"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "control",
+        "organization"
+      ],
+      "writes": [
+        "s|tbl|control.organization",
+        "n|tbl|control.organization",
+        "e|tbl|control.organization",
+        "n|rel|control.organization",
+        "n|type|control.organization",
+        "n|rel|control.organization_pkey",
+        "n|rel|control.organization_slug_key"
+      ],
+      "reads": [
+        "n|sch|control"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "control",
+        "rate_limit"
+      ],
+      "writes": [
+        "s|tbl|control.rate_limit",
+        "n|tbl|control.rate_limit",
+        "e|tbl|control.rate_limit",
+        "n|rel|control.rate_limit",
+        "n|type|control.rate_limit",
+        "n|rel|control.rate_limit_pkey",
+        "n|rel|control.rate_limit_key_key"
+      ],
+      "reads": [
+        "n|sch|control"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "control",
+        "session"
+      ],
+      "writes": [
+        "s|tbl|control.session",
+        "n|tbl|control.session",
+        "e|tbl|control.session",
+        "n|rel|control.session",
+        "n|type|control.session",
+        "n|rel|control.session_pkey",
+        "n|rel|control.session_token_key"
+      ],
+      "reads": [
+        "n|sch|control"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "control",
+        "user"
+      ],
+      "writes": [
+        "s|tbl|control.user",
+        "n|tbl|control.user",
+        "e|tbl|control.user",
+        "n|rel|control.user",
+        "n|type|control.user",
+        "n|rel|control.user_pkey",
+        "n|rel|control.user_email_key",
+        "n|rel|control.user_username_key"
+      ],
+      "reads": [
+        "n|sch|control"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "control",
+        "verification"
+      ],
+      "writes": [
+        "s|tbl|control.verification",
+        "n|tbl|control.verification",
+        "e|tbl|control.verification",
+        "n|rel|control.verification",
+        "n|type|control.verification",
+        "n|rel|control.verification_pkey"
+      ],
+      "reads": [
+        "n|sch|control"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "control",
+        "account",
+        "account_user_id_idx"
+      ],
+      "writes": [
+        "s|idx|control.account_user_id_idx",
+        "n|idx|control.account_user_id_idx",
+        "e|idx|control.account_user_id_idx",
+        "n|rel|control.account_user_id_idx"
+      ],
+      "reads": [
+        "n|tbl|control.account",
+        "n|sch|control",
+        "n|col|control.account.user_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "control",
+        "invitation",
+        "invitation_organization_id_idx"
+      ],
+      "writes": [
+        "s|idx|control.invitation_organization_id_idx",
+        "n|idx|control.invitation_organization_id_idx",
+        "e|idx|control.invitation_organization_id_idx",
+        "n|rel|control.invitation_organization_id_idx"
+      ],
+      "reads": [
+        "n|tbl|control.invitation",
+        "n|sch|control",
+        "n|col|control.invitation.organization_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "control",
+        "invitation",
+        "invitation_email_idx"
+      ],
+      "writes": [
+        "s|idx|control.invitation_email_idx",
+        "n|idx|control.invitation_email_idx",
+        "e|idx|control.invitation_email_idx",
+        "n|rel|control.invitation_email_idx"
+      ],
+      "reads": [
+        "n|tbl|control.invitation",
+        "n|sch|control",
+        "n|col|control.invitation.email"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "control",
+        "member",
+        "member_organization_id_idx"
+      ],
+      "writes": [
+        "s|idx|control.member_organization_id_idx",
+        "n|idx|control.member_organization_id_idx",
+        "e|idx|control.member_organization_id_idx",
+        "n|rel|control.member_organization_id_idx"
+      ],
+      "reads": [
+        "n|tbl|control.member",
+        "n|sch|control",
+        "n|col|control.member.organization_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "control",
+        "member",
+        "member_user_id_idx"
+      ],
+      "writes": [
+        "s|idx|control.member_user_id_idx",
+        "n|idx|control.member_user_id_idx",
+        "e|idx|control.member_user_id_idx",
+        "n|rel|control.member_user_id_idx"
+      ],
+      "reads": [
+        "n|tbl|control.member",
+        "n|sch|control",
+        "n|col|control.member.user_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "control",
+        "member",
+        "member_organization_user_uidx"
+      ],
+      "writes": [
+        "s|idx|control.member_organization_user_uidx",
+        "n|idx|control.member_organization_user_uidx",
+        "e|idx|control.member_organization_user_uidx",
+        "n|rel|control.member_organization_user_uidx"
+      ],
+      "reads": [
+        "n|tbl|control.member",
+        "n|sch|control",
+        "n|col|control.member.organization_id",
+        "n|col|control.member.user_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "control",
+        "session",
+        "session_user_id_idx"
+      ],
+      "writes": [
+        "s|idx|control.session_user_id_idx",
+        "n|idx|control.session_user_id_idx",
+        "e|idx|control.session_user_id_idx",
+        "n|rel|control.session_user_id_idx"
+      ],
+      "reads": [
+        "n|tbl|control.session",
+        "n|sch|control",
+        "n|col|control.session.user_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "control",
+        "verification",
+        "verification_identifier_idx"
+      ],
+      "writes": [
+        "s|idx|control.verification_identifier_idx",
+        "n|idx|control.verification_identifier_idx",
+        "e|idx|control.verification_identifier_idx",
+        "n|rel|control.verification_identifier_idx"
+      ],
+      "reads": [
+        "n|tbl|control.verification",
+        "n|sch|control",
+        "n|col|control.verification.identifier"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "control",
+        "account"
+      ],
+      "writes": [
+        "s|fk|control.account.account_user_id_user_id_fkey",
+        "n|fk|control.account.account_user_id_user_id_fkey",
+        "e|fk|control.account.account_user_id_user_id_fkey",
+        "n|con|control.account.account_user_id_user_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|control.account",
+        "n|sch|control",
+        "n|tbl|control.user",
+        "n|sch|control",
+        "n|col|control.account.user_id",
+        "n|col|control.user.id",
+        "e|uniqueness|control.user.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "control",
+        "invitation"
+      ],
+      "writes": [
+        "s|fk|control.invitation.invitation_organization_id_organization_id_fkey",
+        "n|fk|control.invitation.invitation_organization_id_organization_id_fkey",
+        "e|fk|control.invitation.invitation_organization_id_organization_id_fkey",
+        "n|con|control.invitation.invitation_organization_id_organization_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|control.invitation",
+        "n|sch|control",
+        "n|tbl|control.organization",
+        "n|sch|control",
+        "n|col|control.invitation.organization_id",
+        "n|col|control.organization.id",
+        "e|uniqueness|control.organization.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "control",
+        "invitation"
+      ],
+      "writes": [
+        "s|fk|control.invitation.invitation_inviter_id_user_id_fkey",
+        "n|fk|control.invitation.invitation_inviter_id_user_id_fkey",
+        "e|fk|control.invitation.invitation_inviter_id_user_id_fkey",
+        "n|con|control.invitation.invitation_inviter_id_user_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|control.invitation",
+        "n|sch|control",
+        "n|tbl|control.user",
+        "n|sch|control",
+        "n|col|control.invitation.inviter_id",
+        "n|col|control.user.id",
+        "e|uniqueness|control.user.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "control",
+        "member"
+      ],
+      "writes": [
+        "s|fk|control.member.member_organization_id_organization_id_fkey",
+        "n|fk|control.member.member_organization_id_organization_id_fkey",
+        "e|fk|control.member.member_organization_id_organization_id_fkey",
+        "n|con|control.member.member_organization_id_organization_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|control.member",
+        "n|sch|control",
+        "n|tbl|control.organization",
+        "n|sch|control",
+        "n|col|control.member.organization_id",
+        "n|col|control.organization.id",
+        "e|uniqueness|control.organization.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "control",
+        "member"
+      ],
+      "writes": [
+        "s|fk|control.member.member_user_id_user_id_fkey",
+        "n|fk|control.member.member_user_id_user_id_fkey",
+        "e|fk|control.member.member_user_id_user_id_fkey",
+        "n|con|control.member.member_user_id_user_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|control.member",
+        "n|sch|control",
+        "n|tbl|control.user",
+        "n|sch|control",
+        "n|col|control.member.user_id",
+        "n|col|control.user.id",
+        "e|uniqueness|control.user.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "control",
+        "organization"
+      ],
+      "writes": [
+        "s|fk|control.organization.organization_id_practice_id_fkey",
+        "n|fk|control.organization.organization_id_practice_id_fkey",
+        "e|fk|control.organization.organization_id_practice_id_fkey",
+        "n|con|control.organization.organization_id_practice_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|control.organization",
+        "n|sch|control",
+        "n|tbl|control.practice",
+        "n|sch|control",
+        "n|col|control.organization.id",
+        "n|col|control.practice.id",
+        "e|uniqueness|control.practice.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "control",
+        "session"
+      ],
+      "writes": [
+        "s|fk|control.session.session_user_id_user_id_fkey",
+        "n|fk|control.session.session_user_id_user_id_fkey",
+        "e|fk|control.session.session_user_id_user_id_fkey",
+        "n|con|control.session.session_user_id_user_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|control.session",
+        "n|sch|control",
+        "n|tbl|control.user",
+        "n|sch|control",
+        "n|col|control.session.user_id",
+        "n|col|control.user.id",
+        "e|uniqueness|control.user.id"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "name": "account",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "name": "invitation",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "name": "member",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "name": "organization",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "name": "rate_limit",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "name": "session",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "name": "user",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "name": "verification",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "account",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "account",
+        "name": "account_id",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "account",
+        "name": "provider_id",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "account",
+        "name": "user_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "account",
+        "name": "access_token",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "account",
+        "name": "refresh_token",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "account",
+        "name": "id_token",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "account",
+        "name": "access_token_expires_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "account",
+        "name": "refresh_token_expires_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "account",
+        "name": "scope",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "account",
+        "name": "password",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "account",
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "account",
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "invitation",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "invitation",
+        "name": "organization_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "invitation",
+        "name": "email",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "invitation",
+        "name": "role",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "invitation",
+        "name": "status",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "'pending'",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "invitation",
+        "name": "expires_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "invitation",
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "invitation",
+        "name": "inviter_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "member",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "member",
+        "name": "organization_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "member",
+        "name": "user_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "member",
+        "name": "role",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "member",
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "organization",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "organization",
+        "name": "name",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "organization",
+        "name": "slug",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "organization",
+        "name": "logo",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "organization",
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "organization",
+        "name": "metadata",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "rate_limit",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "rate_limit",
+        "name": "key",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "rate_limit",
+        "name": "count",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "rate_limit",
+        "name": "last_request",
+        "type": "bigint",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "session",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "session",
+        "name": "expires_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "session",
+        "name": "token",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "session",
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "session",
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "session",
+        "name": "ip_address",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "session",
+        "name": "user_agent",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "session",
+        "name": "user_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "session",
+        "name": "impersonated_by",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "session",
+        "name": "active_organization_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "user",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "user",
+        "name": "name",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "user",
+        "name": "email",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "user",
+        "name": "email_verified",
+        "type": "boolean",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "false",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "user",
+        "name": "image",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "user",
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "user",
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "user",
+        "name": "username",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "user",
+        "name": "display_username",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "user",
+        "name": "role",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "user",
+        "name": "banned",
+        "type": "boolean",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": "false",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "user",
+        "name": "ban_reason",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "user",
+        "name": "ban_expires",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "user",
+        "name": "language",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "verification",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "verification",
+        "name": "identifier",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "verification",
+        "name": "value",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "verification",
+        "name": "expires_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "verification",
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "verification",
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "account",
+        "name": "account_user_id_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "user_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "invitation",
+        "name": "invitation_organization_id_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "organization_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "invitation",
+        "name": "invitation_email_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "email",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "member",
+        "name": "member_organization_id_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "organization_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "member",
+        "name": "member_user_id_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "user_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "member",
+        "name": "member_organization_user_uidx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "organization_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          },
+          {
+            "value": "user_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": true,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "session",
+        "name": "session_user_id_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "user_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "verification",
+        "name": "verification_identifier_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "identifier",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "account",
+        "name": "account_user_id_user_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "user_id"
+        ],
+        "schemaTo": "control",
+        "tableTo": "user",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "invitation",
+        "name": "invitation_organization_id_organization_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "organization_id"
+        ],
+        "schemaTo": "control",
+        "tableTo": "organization",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "invitation",
+        "name": "invitation_inviter_id_user_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "inviter_id"
+        ],
+        "schemaTo": "control",
+        "tableTo": "user",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "member",
+        "name": "member_organization_id_organization_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "organization_id"
+        ],
+        "schemaTo": "control",
+        "tableTo": "organization",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "member",
+        "name": "member_user_id_user_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "user_id"
+        ],
+        "schemaTo": "control",
+        "tableTo": "user",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "organization",
+        "name": "organization_id_practice_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "id"
+        ],
+        "schemaTo": "control",
+        "tableTo": "practice",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "session",
+        "name": "session_user_id_user_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "user_id"
+        ],
+        "schemaTo": "control",
+        "tableTo": "user",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "account",
+        "name": "account_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "invitation",
+        "name": "invitation_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "member",
+        "name": "member_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "organization",
+        "name": "organization_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "rate_limit",
+        "name": "rate_limit_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "session",
+        "name": "session_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "user",
+        "name": "user_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "verification",
+        "name": "verification_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "organization",
+        "name": "organization_slug_key",
+        "nameExplicit": false,
+        "columns": [
+          "slug"
+        ],
+        "nullsNotDistinct": false,
+        "entityType": "uniques"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "rate_limit",
+        "name": "rate_limit_key_key",
+        "nameExplicit": false,
+        "columns": [
+          "key"
+        ],
+        "nullsNotDistinct": false,
+        "entityType": "uniques"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "session",
+        "name": "session_token_key",
+        "nameExplicit": false,
+        "columns": [
+          "token"
+        ],
+        "nullsNotDistinct": false,
+        "entityType": "uniques"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "user",
+        "name": "user_email_key",
+        "nameExplicit": false,
+        "columns": [
+          "email"
+        ],
+        "nullsNotDistinct": false,
+        "entityType": "uniques"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "user",
+        "name": "user_username_key",
+        "nameExplicit": false,
+        "columns": [
+          "username"
+        ],
+        "nullsNotDistinct": false,
+        "entityType": "uniques"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "member",
+        "name": "member_role_check",
+        "value": "\"role\" <> '' and string_to_array(\"role\", ',') <@ array['manager', 'veterinarian', 'assistant', 'receptionist', 'groomer']::text[]",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "user",
+        "name": "user_language_check",
+        "value": "\"language\" in ('az', 'ru', 'en')",
+        "entityType": "checks"
+      }
+    }
+  ]
+}

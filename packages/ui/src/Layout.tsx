@@ -200,7 +200,9 @@ export function AuthLayout({ brand, title, subtitle, children, onSubmit, footer,
   )
   return (
     <div className={cx('vt-auth', className)} style={height !== undefined ? { height } : undefined}>
-      <div className="vt-auth-brand">{brand}</div>
+      {/* A header, the page's banner landmark, so the brand is not content outside every landmark beside the main
+          (vetora ticket #19, a repo change under ADR 0005). */}
+      <header className="vt-auth-brand">{brand}</header>
       <main className="vt-auth-main">
         {onSubmit ? (
           <form className="vt-auth-form" noValidate onSubmit={onSubmit}>

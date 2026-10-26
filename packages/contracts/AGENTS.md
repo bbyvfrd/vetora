@@ -2,7 +2,7 @@
 
 ## Overview
 
-`@vetora/contracts`: the zod schemas every API route is declared with, and the `paths`, `components`, and `operations` types generated from the API's OpenAPI document (spec 0001, "Contracts"). The API imports the schemas; both apps import the types. Roles join with the first visit feature.
+`@vetora/contracts`: the zod schemas every API route is declared with, the five staff roles and the permission matrix both apps read, and the `paths`, `components`, and `operations` types generated from the API's OpenAPI document (spec 0001, "Contracts"; spec #18). The API imports the schemas; both apps import the types.
 
 ## Key files
 
@@ -10,6 +10,8 @@
 |---|---|
 | `src/index.ts` | The public surface: each schema module and the generated types |
 | `src/health.ts` | `HealthResponse`, the schema behind `GET /api/health` |
+| `src/staff.ts` | `STAFF_ROLES` and `StaffRole` (the five), `joinRoles()` and `parseRoles()` (a membership's roles to and from Better Auth's comma joined `control.member.role`, in the order of the five) with `orderRoles()`, `permissions` (spec #18's matrix: each action and the roles that may perform it) and `can(roles, action)`; the API's route checks (#21) and the web app's hiding both read it, and the API's platform tables re-export the roles and the three helpers, tagged for the modules. `staff.test.ts` writes the spec's table out per role |
+| `src/auth.ts`, `src/me.ts` | `SignInRequest` and `SessionResponse` (the two Better Auth routes the allowlist declares), `Me`, `LanguageUpdate` and `Language` (`GET /api/me`, `PUT /api/me/language`) |
 | `openapi.json` | The API's published document, written by `pnpm openapi`; committed, and CI diffs it |
 | `src/generated/api.ts` | Generated from `openapi.json` by openapi-typescript; committed, never edited by hand |
 

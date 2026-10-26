@@ -1,5 +1,6 @@
 import { parseArgs } from 'node:util'
-import { ConfigError, loadMigratorConfig } from './platform/config.js'
+import { ConfigError, loadConfig, loadMigratorConfig } from './platform/config.js'
+import { closeDatabase } from './platform/db/index.js'
 import {
   provisionLog as log,
   type ProvisionOutcome,
@@ -7,28 +8,31 @@ import {
   provisionPractice,
 } from './platform/db/provisioning.js'
 import { scrubError } from './platform/log.js'
+import { readPassword } from './platform/prompt.js'
 
 /**
- * `provision-practice`: creates a practice behind its own role (spec 0001 "Provisioning", spec 0002 "Interface
- * surface") as vetora_migrator under the migrate lock, every step idempotent, so a rerun completes what an earlier
- * run left undone and changes nothing else. Prints the practice id. Locally
- * `pnpm --filter @vetora/api provision-practice -- --slug alfa --name "Alfa Vet" --manager-user-id <uuid>
- * --manager-name "Dr Aliyeva" --location-name "Nərimanov" [--time-zone Asia/Baku] [--languages az,ru]`; on a server
- * `node apps/api/dist/provision-practice.js …` through `kamal app exec`. A thin entry point over
- * src/platform/db/provisioning.ts, as migrate.ts is over the migrator.
+ * `provision-practice`: creates a practice behind its own role with its first manager's login and its organization
+ * (spec 0001 "Provisioning", spec 0002 "Interface surface", spec #18 "Commands") as vetora_migrator under the migrate
+ * lock, every step idempotent, so a rerun completes what an earlier run left undone and changes nothing else. Prints
+ * the practice id. Locally `pnpm --filter @vetora/api provision-practice -- --slug alfa --name "Alfa Vet"
+ * --manager-handle dr.aliyeva --manager-name "Dr Aliyeva" --location-name "Nərimanov" [--time-zone Asia/Baku]
+ * [--languages az,ru]`; on a server `node apps/api/dist/provision-practice.js …` through `kamal app exec`. The
+ * manager's password is asked at a hidden prompt, or read from standard input when it is not a terminal, and only when
+ * their login is created (src/platform/prompt.ts). A thin entry point over src/platform/db/provisioning.ts, as
+ * migrate.ts is over the migrator.
  *
  * Exit codes: 0 the practice is provisioned (a rerun included), 1 the slug belongs to a practice with another name,
- * an argument is invalid, or the run did not complete (a step failed, or the connection or configuration failed),
- * 2 another migrate or provision-practice run holds the lock.
+ * an argument or the password is invalid, or the run did not complete (a step failed, or the connection or
+ * configuration failed), 2 another migrate or provision-practice run holds the lock.
  */
 const usage =
-  'usage: provision-practice --slug <slug> --name <name> --manager-user-id <uuid> --manager-name <name> --location-name <name> [--time-zone <IANA zone>] [--languages az,ru]'
+  'usage: provision-practice --slug <slug> --name <name> --manager-handle <handle> --manager-name <name> --location-name <name> [--time-zone <IANA zone>] [--languages az,ru]'
 
 /** The option each argument comes from, so the log can name an invalid one without its value. */
 const optionNames: Record<string, string> = {
   slug: '--slug',
   name: '--name',
-  managerUserId: '--manager-user-id',
+  managerHandle: '--manager-handle',
   managerName: '--manager-name',
   locationName: '--location-name',
   timeZone: '--time-zone',
@@ -43,6 +47,7 @@ function exitCode(outcome: ProvisionOutcome): number {
       return 2
     case 'slug-taken':
     case 'failed':
+    case 'password-rejected':
       return 1
   }
 }
@@ -51,7 +56,7 @@ async function main(): Promise<number> {
   let values: {
     slug?: string
     name?: string
-    'manager-user-id'?: string
+    'manager-handle'?: string
     'manager-name'?: string
     'location-name'?: string
     'time-zone'?: string
@@ -65,7 +70,7 @@ async function main(): Promise<number> {
       options: {
         slug: { type: 'string' },
         name: { type: 'string' },
-        'manager-user-id': { type: 'string' },
+        'manager-handle': { type: 'string' },
         'manager-name': { type: 'string' },
         'location-name': { type: 'string' },
         'time-zone': { type: 'string' },
@@ -83,7 +88,7 @@ async function main(): Promise<number> {
   const parsed = provisionInput.safeParse({
     slug: values.slug,
     name: values.name,
-    managerUserId: values['manager-user-id'],
+    managerHandle: values['manager-handle'],
     managerName: values['manager-name'],
     locationName: values['location-name'],
     timeZone: values['time-zone'],
@@ -101,6 +106,8 @@ async function main(): Promise<number> {
   let url: string
   try {
     url = loadMigratorConfig().DATABASE_URL_MIGRATOR
+    // The manager's login goes through Better Auth, which reads the API's own configuration (src/platform/config.ts).
+    loadConfig()
   } catch (error) {
     if (error instanceof ConfigError) {
       log.fatal({ variables: error.variables }, error.message)
@@ -110,12 +117,25 @@ async function main(): Promise<number> {
   }
 
   try {
-    const outcome = await provisionPractice({ url, input: parsed.data, log })
+    const outcome = await provisionPractice({
+      url,
+      input: parsed.data,
+      managerPassword: () => readPassword("the manager's password"),
+      log,
+    })
     if (outcome.status === 'provisioned') console.log(outcome.practiceId)
+    if (outcome.status === 'password-rejected') {
+      log.fatal(
+        { problem: outcome.problem },
+        'the password needs 10 to 128 characters; nothing after the grants changed',
+      )
+    }
     return exitCode(outcome)
   } catch (error) {
     log.fatal({ err: scrubError(error) }, 'provision-practice did not complete')
     return 1
+  } finally {
+    await closeDatabase()
   }
 }
 

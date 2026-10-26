@@ -65,6 +65,9 @@ export function NavRail({
       <Icon name="account_circle" size="lg" />
       <span className={cx('vt-nav-who', collapsed && 'vt-sr')}>
         <span className="vt-nav-label">{account.name}</span>
+        {/* A space between the two lines, so the entry's name reads "name detail", not the two run together; the
+            flex column drops it from the layout (vetora ticket #19, a repo change under ADR 0005). */}
+        {account.detail ? ' ' : null}
         {account.detail ? <span className="vt-nav-detail">{account.detail}</span> : null}
       </span>
     </>
