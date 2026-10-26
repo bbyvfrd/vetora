@@ -3,9 +3,9 @@ import { describe, expect, it } from 'vitest'
 import * as ui from './index.js'
 
 /**
- * What the artifact's components/src/index.ts exports, name for name (spec #9, ticket #11): the package's public
- * interface is exactly the artifact's, nothing hidden and nothing added. A name the artifact's index gains or loses
- * changes these lists in the same re-copy.
+ * What the artifact's components/src/index.ts exported at the fork point (spec #9, ticket #11), name for name, plus
+ * what the repo has added since under ADR 0005: the package's public interface is exactly these lists, nothing hidden
+ * and nothing else. A repo addition is listed in docs/design.md's ledger and reaches the artifact by a sync up.
  */
 const artifactValues = [
   'Icon',
@@ -76,6 +76,9 @@ const artifactValues = [
   'plural',
   'compareText',
 ]
+
+/** Added in the repo since the fork point (ADR 0005): the money wrapper of ticket #13, minor units to an amount (IN-4). */
+const repoValues = ['formatMinorUnits']
 
 const artifactTypes = [
   'IconProps',
@@ -192,9 +195,9 @@ function typeExports(): string[] {
     .filter(Boolean)
 }
 
-describe('@vetora/ui, the artifact’s component index vendored (ADR 0003)', () => {
-  it('exports every value the artifact’s index exports, and nothing else', () => {
-    expect(Object.keys(ui).sort()).toEqual([...artifactValues].sort())
+describe('@vetora/ui, the artifact’s component index vendored (ADR 0003) and the repo’s additions since (ADR 0005)', () => {
+  it('exports every value the artifact’s index exported at the fork point and every repo addition, and nothing else', () => {
+    expect(Object.keys(ui).sort()).toEqual([...artifactValues, ...repoValues].sort())
   })
 
   it('exports every type the artifact’s index exports, and nothing else', () => {

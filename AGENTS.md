@@ -13,6 +13,7 @@ Agent context for this repo, read by the Matt Pocock engineering skills (`/ask-m
 
 - **Roadmap**: `docs/scope/scope.md`, the feature list with each feature's done when and status. A feature starts with `/grill-with-docs`, becomes a `/to-spec` issue and `/to-tickets` tickets on GitHub, and is built with `/implement`.
 - **Design records**: `docs/specs/0001-stack-architecture/` (the stack and its rules) and `docs/specs/0002-data-model/` (tables, roles, constraints, build plan), frozen on 2026-10-22. New specs are GitHub issues; a change to these two is an ADR that names the section it amends.
+- **Design system**: `docs/design.md`, what the code needs from the vetora design system (a Claude Design System artifact): who decides each kind of thing (ADR 0005), the tokens and type classes, every component and where it lives, the print sheets, the formatters and the time zone boundary, how words flow into `packages/i18n`, and the ledger of the repo's changes to the component sources. The brand book itself stays in the artifact.
 - **Decisions and vocabulary**: ADRs in `docs/adr/`; `GLOSSARY.md` points at `docs/domain.md` §7 and §8 (`docs/agents/domain.md` says how to use them).
 - **Research**: `docs/research/`, one cited file per question (`/research` writes there).
 - **Work items**: GitHub Issues through `gh` (`docs/agents/issue-tracker.md`), with the triage labels in `docs/agents/triage-labels.md`.
@@ -84,6 +85,7 @@ MCP servers: DigitalOcean (recommended), Sentry (recommended), GitHub (recommend
 
 - [apps/api/AGENTS.md](apps/api/AGENTS.md): the Hono API, its platform layer, error and log rules, Kamal deploy
 - [apps/clinic-web/AGENTS.md](apps/clinic-web/AGENTS.md): the React and Vite staff app, file routes, typed client, i18n, runtime config
+- [packages/ui/AGENTS.md](packages/ui/AGENTS.md): the design system package, its tokens, components and formatters, and the two directions of ADR 0005
 - [packages/contracts/AGENTS.md](packages/contracts/AGENTS.md): zod schemas and the generated OpenAPI types
 - [packages/i18n/AGENTS.md](packages/i18n/AGENTS.md): the az, ru, and en resources and their plural rules
 - [packages/config/AGENTS.md](packages/config/AGENTS.md): the shared TypeScript configs

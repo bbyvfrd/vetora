@@ -1,10 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { defaultLanguage, isLanguage, languageNames, languages, resources } from './index.js'
-
-function keyPaths(value: unknown, prefix = ''): string[] {
-  if (typeof value !== 'object' || value === null) return [prefix]
-  return Object.entries(value).flatMap(([key, child]) => keyPaths(child, prefix ? `${prefix}.${key}` : key))
-}
+import { formsPaths, keyPaths, missingForms } from './plurals.js'
 
 describe('@vetora/i18n', () => {
   it('ships az, ru, and en, with az as the default', () => {
@@ -13,10 +9,18 @@ describe('@vetora/i18n', () => {
     expect(Object.keys(languageNames)).toEqual([...languages])
   })
 
-  it('has every translation key in every language', () => {
+  it('has every translation key in every language, a counted noun as one key', () => {
     const reference = keyPaths(resources.en.translation).sort()
     for (const language of languages) {
       expect(keyPaths(resources[language].translation).sort(), language).toEqual(reference)
+    }
+  })
+
+  it('counts the same nouns in every language, each with the forms its language needs (spec #9, "Counts")', () => {
+    const reference = formsPaths(resources.en.translation).sort()
+    for (const language of languages) {
+      expect(formsPaths(resources[language].translation).sort(), language).toEqual(reference)
+      expect(missingForms(resources[language].translation, language), language).toEqual([])
     }
   })
 
