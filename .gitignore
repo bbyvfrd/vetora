@@ -1,5 +1,9 @@
 # personal Claude Code settings (plugin toggles, permissions)
 .claude/settings.local.json
+# the worktrees Claude Code and the Claude app create, one per task (AGENTS.md, Worktrees): whole checkouts
+.claude/worktrees/
+# written per checkout by pnpm local:setup with that checkout's ports
+.claude/launch.json
 
 # OS noise
 .DS_Store

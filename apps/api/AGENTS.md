@@ -40,13 +40,13 @@ The vetora API: a Hono server on Node 24 that declares every route with a zod sc
 | `src/modules/` | One folder per bounded context, thirteen: `schema.ts` holds the context's Drizzle tables (empty until its slice, its comment naming the tables spec 0002 assigns it), `index.ts` its public interface; `README.md` lists them and says how a slice adds its tables |
 | `drizzle.control.config.ts`, `drizzle.practice.config.ts` | The two drizzle-kit configs behind `db:generate:control` and `db:generate:practice`: the schema file, the `out` folder, and the migrations table per set |
 | `drizzle/control/`, `drizzle/practice/` | The migration sets, one folder per migration (`<timestamp_name>/migration.sql` beside drizzle-kit's `snapshot.json`), copied into the image beside `dist/`; the SQL is finished by hand (extensions, functions, triggers, domains, the control grants), so a later `generate` is empty. The practice set is applied to every `p_<id>` schema with `search_path` set to it, so its names stay unqualified and each practice holds its own copy of every object |
-| `.env.example` | Every variable the API and its commands read, with local values; copy it to `.env` |
+| `.env.example` | Every variable the API and its commands read, with the main folder's local values; `pnpm local:setup` writes `.env` from it with this checkout's ports (`docs/agents/worktrees.md`) |
 | `tsconfig.build.json`, `vitest.config.ts` | The build config (tests and the test support left out of `dist/`) and the test runner's settings for this workspace (logger silent, `.env` loaded, the test database reset in `globalSetup`) |
 
 ## Commands
 
 ```bash
-pnpm --filter @vetora/api dev         # node --watch through tsx, reads .env; needs pnpm local:up at the root
+pnpm --filter @vetora/api dev         # node --watch through tsx, reads .env (this checkout's port); needs pnpm local:up at the root
 pnpm --filter @vetora/api build       # tsc -p tsconfig.build.json to dist/, tests left out
 pnpm --filter @vetora/api typecheck
 pnpm exec vitest run --project @vetora/api   # at the root; pnpm test runs every workspace
@@ -57,8 +57,8 @@ pnpm --filter @vetora/api provision-practice -- --slug alfa --name "Alfa Vet" --
 pnpm --filter @vetora/api db:generate:control --name <name>   # after editing control-schema.ts; finish the SQL by hand
 pnpm --filter @vetora/api db:generate:practice --name <name>  # after editing the platform tables or a module's schema.ts; the migrate command applies it to every practice
 pnpm --filter @vetora/api db:check    # drizzle-kit check on both sets, then the order check (migration-order.ts): a folder out of order fails; CI runs it with the full history
-docker compose exec postgres psql -U vetora_app -d vetora   # at the root; there is no local psql (-U vetora_migrator, -d vetora_test as needed)
-DATABASE_URL_MIGRATOR=postgres://vetora_migrator:vetora_migrator@localhost:5432/vetora_test pnpm --filter @vetora/api migrate   # a shell variable wins over .env: a command against vetora_test
+docker compose exec postgres psql -U vetora_app -d vetora   # at the root, this checkout's cluster; there is no local psql (-U vetora_migrator, -d vetora_test as needed)
+DATABASE_URL_MIGRATOR=postgres://vetora_migrator:vetora_migrator@localhost:5432/vetora_test pnpm --filter @vetora/api migrate   # a shell variable wins over .env: a command against vetora_test (5432 is the main folder's port; a worktree's is in pnpm local:status)
 kamal deploy -c apps/api/config/deploy.yml -d staging   # at the root; a destination is always required
 ```
 

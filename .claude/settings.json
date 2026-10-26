@@ -1,0 +1,28 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/infra/local-env.sh session-start",
+            "timeout": 180,
+            "statusMessage": "Setting up this checkout's local environment (infra/local-env.sh)"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/infra/local-env.sh session-end",
+            "timeout": 30,
+            "statusMessage": "Sweeping worktrees whose work has landed (infra/local-env.sh)"
+          }
+        ]
+      }
+    ]
+  }
+}

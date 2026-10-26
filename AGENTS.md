@@ -21,9 +21,9 @@ Agent context for this repo, read by the Matt Pocock engineering skills (`/ask-m
 ## Commands
 
 ```bash
-pnpm install && pnpm local:up            # Node 24, pnpm 10, Docker; Postgres 18 and an S3 server from compose.yaml
-cp apps/api/.env.example apps/api/.env   # local values only
-pnpm dev                                 # API on :3000, web on :5173 (Vite proxies /api); builds the packages first
+pnpm local:setup && pnpm local:up        # Node 24, pnpm 10, Docker: this checkout's .env files, launch.json and dependencies, then Postgres 18 and an S3 server (compose.yaml) on its slot's ports
+pnpm local:status                        # the slot: ports and Compose project (slot 0, the main folder: API :3000, web :5173, Postgres :5432); local:destroy drops its containers and data, local:gc cleans up after removed worktrees
+pnpm dev                                 # API and web on the slot's ports (Vite proxies /api); builds the packages first
 pnpm build && pnpm typecheck             # every workspace, through Turborepo
 pnpm lint                                # Biome, read only: format, lint, import order (pnpm lint:fix applies the safe fixes, pnpm format only formats)
 pnpm test                                # Vitest in every workspace, after building contracts, i18n and ui; pnpm test:watch keeps it running
@@ -43,9 +43,10 @@ pnpm openapi                             # after a route change; commit openapi.
 
 ## Git
 
-- Work lands on `main` during the pilot: no feature branches, one commit per milestone or ticket with a conventional prefix (`feat:`, `fix:`, `docs:`, `chore:`, `test:`), and `Closes #N` in the message when a ticket is done, so a review can find its spec.
-- Before `/implement` on a ticket, note `git rev-parse HEAD`: `/mattpocock-skills:code-review` diffs from that fixed point to HEAD, so the order is commit the ticket, review, fold the review's fixes into that commit with `--amend`, then push.
-- Agents never push; you push.
+- The main folder stays on `main` and lands work; every task that touches code runs in its own worktree under `.claude/worktrees/` on its own branch, with its own slot of ports and database cluster (`pnpm local:setup`, which the SessionStart hook runs). `docs/agents/worktrees.md` is the procedure: start, work under the worktree Bash guard, keep up with `main`, land; a worktree whose branch has landed is swept away with its branch and containers by the next session start or end (`pnpm local:gc`).
+- One commit per ticket with a conventional prefix (`feat:`, `fix:`, `docs:`, `chore:`, `test:`) and `Closes #N` in the message, so a review can find its spec; docs only work may commit to `main` in the main folder when no other session writes there.
+- `/mattpocock-skills:code-review` diffs `main...HEAD` in the worktree: commit the ticket, review, fold the review's fixes into that commit with `--amend`.
+- A branch lands through a pull request merged by squash (ADR 0006). Agents never push; you push and merge.
 
 ## Agent skills
 

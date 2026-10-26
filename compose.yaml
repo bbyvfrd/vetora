@@ -1,6 +1,10 @@
 # Local environment (spec 0001, "Environments"): Postgres 18 plus an S3 compatible server.
 # Start with `pnpm local:up`; the database init script runs once, on the first start of the volume.
-name: vetora
+# The project name and the host ports come from this checkout's .env, written by `pnpm local:setup`
+# (infra/local-env.sh): the main checkout is `vetora` on 5432 and 8333, a worktree under .claude/worktrees gets its
+# own project and ports, so two checkouts never share a cluster (the API's tests reset vetora_test and create cluster
+# wide roles). Without that file Compose stops here instead of attaching to another checkout's containers.
+name: ${COMPOSE_PROJECT_NAME:?run pnpm local:setup first}
 
 services:
   postgres:
@@ -10,7 +14,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: postgres
     ports:
-      - "5432:5432"
+      - "${VETORA_POSTGRES_PORT:?run pnpm local:setup first}:5432"
     volumes:
       - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
       - postgres-data:/var/lib/postgresql
@@ -24,7 +28,7 @@ services:
   s3:
     image: chrislusf/seaweedfs:4.48
     ports:
-      - "8333:8333"
+      - "${VETORA_S3_PORT:?run pnpm local:setup first}:8333"
     environment:
       AWS_ACCESS_KEY_ID: dev
       AWS_SECRET_ACCESS_KEY: devsecret

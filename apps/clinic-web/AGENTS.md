@@ -27,13 +27,13 @@ The web app for clinic staff: React 19 on Vite 8, rendered in the browser and se
 | `src/i18n.ts`, `src/i18next.d.ts` | i18next setup, the per browser language (`localStorage` key `vetora.language`, default `az`), typed translation keys |
 | `src/sentry.ts` | Reads `/config.json` at runtime and starts Sentry with every collection option off |
 | `src/test-setup.ts` | jest-dom's matchers, a `scrollTo` stub for the router, and Testing Library's cleanup, loaded by the `test` block of `vite.config.ts` |
-| `vite.config.ts` | Router plugin before React, the `/api` dev proxy to `:3000`, hidden source maps uploaded only when `SENTRY_AUTH_TOKEN` is set (CI), the `test` block (jsdom, the setup file) |
+| `vite.config.ts` | Router plugin before React, the dev port and the `/api` proxy target read from the root `.env` (`pnpm local:setup`; a taken port fails instead of drifting), hidden source maps uploaded only when `SENTRY_AUTH_TOKEN` is set (CI), the `test` block (jsdom, the setup file) |
 | `docker/nginx.conf`, `docker/10-runtime-config.sh` | `/up`, caching rules, 404 for `.map` files, `index.html` for every route; `/config.json` written from the container environment at start |
 
 ## Commands
 
 ```bash
-pnpm --filter @vetora/clinic-web dev        # Vite on :5173; the API must run too (pnpm dev at the root starts both)
+pnpm --filter @vetora/clinic-web dev        # Vite on this checkout's web port (5173 in the main folder, pnpm local:status); the API must run too (pnpm dev at the root starts both)
 pnpm --filter @vetora/clinic-web build      # tsc -b, then vite build to dist/
 pnpm --filter @vetora/clinic-web typecheck  # tsc -b
 pnpm --filter @vetora/clinic-web preview    # serves the built dist/

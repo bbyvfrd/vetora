@@ -17,11 +17,12 @@ Practice management software for companion vet clinics, Baku first. The roadmap 
 Needs Node 24, pnpm 10 (`corepack enable` or `npm i -g pnpm`), and Docker.
 
 ```bash
-pnpm install
-pnpm local:up                      # Postgres 18 and an S3 compatible server (compose.yaml)
-cp apps/api/.env.example apps/api/.env
-pnpm dev                           # API on :3000, web on :5173 (the web app proxies /api)
+pnpm local:setup                   # this checkout's .env files, .claude/launch.json and dependencies
+pnpm local:up                      # Postgres 18 and an S3 compatible server (compose.yaml) on this checkout's ports
+pnpm dev                           # API on :3000, web on :5173 in the main folder (the web app proxies /api)
 ```
+
+Parallel work runs in worktrees under `.claude/worktrees/`, each on its own ports and database (`pnpm local:status` shows which): `docs/agents/worktrees.md`.
 
 Checks: `pnpm build`, `pnpm typecheck`. After changing a route, `pnpm openapi` rewrites `packages/contracts/openapi.json` and the generated types; commit both (CI checks they match).
 

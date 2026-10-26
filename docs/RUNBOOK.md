@@ -4,8 +4,8 @@ The day to day flow with the Matt Pocock skills (plugin `mattpocock-skills`). `/
 
 ## Pick a loop
 
-- **Small loop, one window.** `/grill-with-docs <feature>` sharpens the idea and writes ADRs and glossary terms as it goes; then `/implement` in the same window builds it, driving `/tdd` at the agreed seams, running `/mattpocock-skills:code-review`, and committing to `main`. Then `/pr` if there is a pull request to describe, and `/retro` after a rough build.
-- **Medium loop, several sessions.** `/grill-with-docs`, then `/to-spec` (one GitHub issue, the spec), then `/to-tickets` (tracer bullet tickets with their blocking links), all in one unbroken window. Take the `ready-for-agent` label off the spec issue once it is ticketed. Then per ticket: note `git rev-parse HEAD`, read the spec sections the ticket's **Spec** line names (by heading, not the whole record) and the tickets its "Not here" section names (their shapes bind this one), `/implement #N`, `/clear`. Or `/implement-spec` to work the whole ticket graph in worktrees on one integration branch.
+- **Small loop, one window.** `/grill-with-docs <feature>` sharpens the idea and writes ADRs and glossary terms as it goes; then `/implement` in the same window builds it, driving `/tdd` at the agreed seams, running `/mattpocock-skills:code-review`, and committing on the task's branch in its worktree. Then `/pr` for the pull request that lands it, and `/retro` after a rough build.
+- **Medium loop, several sessions.** `/grill-with-docs`, then `/to-spec` (one GitHub issue, the spec), then `/to-tickets` (tracer bullet tickets with their blocking links), all in one unbroken window. Take the `ready-for-agent` label off the spec issue once it is ticketed. Then per ticket: a session in its own worktree (the app's **Worktree** toggle), read the spec sections the ticket's **Spec** line names (by heading, not the whole record) and the tickets its "Not here" section names (their shapes bind this one), `/implement #N`, review, push and open the pull request, `/clear`. Or `/implement-spec` to work the whole ticket graph in worktrees on one integration branch.
 - **Big loop.** `/wayfinder` for a bounded chunk that is too big and foggy for one session: it charts a `wayfinder:map` issue with decision tickets, resolved one per session, and it plans without building. Create the `wayfinder:` labels (`map`, `research`, `prototype`, `grilling`, `task`) before the first run. A cleared map goes `/to-spec #<map>`, `/to-tickets`, `/implement`.
 
 ## Detours
@@ -17,6 +17,15 @@ The day to day flow with the Matt Pocock skills (plugin `mattpocock-skills`). `/
 - A fact to check against primary sources: `/research`, which writes to `docs/research/`.
 - A step only a human can do (the first hosted deploy, secrets, a cutover): `/wizard` writes the script.
 - Housekeeping every few days once real code exists: `/improve-codebase-architecture`.
+
+## Worktrees
+
+Every task that touches code runs in its own worktree, so sessions run side by side without sharing a port, a database or a checkout (ADR 0006; the procedure, the Bash guard's rules, and the failure table are in `docs/agents/worktrees.md`).
+
+- Start a session with the **Worktree** toggle on; its first context line names the slot (API, web and Postgres ports) that the SessionStart hook set up. In a terminal: `claude -w 12-app-shell`, or `git worktree add -b feat/12-app-shell .claude/worktrees/12-app-shell main`, then `pnpm local:setup --up` inside it.
+- The main folder stays on `main`: it is where you `git pull` after a merge and where docs only work (grilling, specs, research) may commit directly.
+- Land with a pull request merged by squash (`gh pr merge --squash --delete-branch`), then `git pull` in the main folder. The worktree, its branch and its containers are removed by the next sweep (every session start and end, or `pnpm local:gc`) once the branch has landed and nothing is uncommitted; a worktree a live session holds waits for that session to end.
+- A prototype's worktree is kept (`ExitWorktree` keep; remove deletes the branch); its cluster goes with `pnpm local:destroy`.
 
 ## Session hygiene
 
@@ -33,13 +42,15 @@ Roadmap `docs/scope/scope.md` · design records `docs/specs/` (frozen) · ADRs `
 
 - Most skills (23 of 38, among them `to-tickets`, `to-spec`, `implement`, `grill-with-docs`, `wayfinder`) carry `disable-model-invocation`: you type them as `/mattpocock-skills:<name>`, and an agent cannot call them for you. A session briefed to "run /to-tickets" does the work by hand instead, so type the skill yourself in the session where you want it to run.
 - `/code-review` collides with a built in command: type `/mattpocock-skills:code-review`.
-- `/implement` commits to the current branch (here `main`), never closes the ticket, and ticks no criteria; the review diffs `<fixed point>...HEAD`, so note `git rev-parse HEAD` before each ticket, commit before the review, amend the review's fixes into the same commit, and put `Closes #N` in the message (the push closes the ticket).
+- `/implement` commits to the current branch (the worktree's), never closes the ticket, and ticks no criteria; review since `main` (`main...HEAD`), amend the review's fixes into the same commit, and put `Closes #N` in the commit and the pull request body (the squash merge closes the ticket).
 - `/to-spec` labels the spec `ready-for-agent`; an unattended agent would try to build all of it, so remove the label after `/to-tickets`.
 - If `/grill-with-docs` did not change `GLOSSARY.md`, ask which skills loaded; it sometimes skips `domain-modeling`.
 - `/setup-matt-pocock-skills` edits `CLAUDE.md` when it finds one; here it must edit `AGENTS.md`.
 - `gh issue create --parent` needs `gh` 2.94 or later; on an older `gh`, use the `gh api` fallback in `docs/agents/issue-tracker.md`.
 - The plugin does not update itself: `claude plugin marketplace update mattpocock`, then `claude plugin update mattpocock-skills@mattpocock`, then reload.
 
-## Where we are (2026-10-24)
+## Where we are (2026-10-26)
+
+Since 2026-10-26 work runs in worktrees (ADR 0006): the main folder on `main`, a worktree per task with its own slot of ports and database. Ticket #12 landed on 2026-10-26 through pull request #14; #13 is next.
 
 Features 2 (coding standards and tooling) and 3 (data model) are done: spec 0002's foundations are built, rehearsed on two practices through the shipped commands, and recorded in `docs/specs/0002-data-model/verify.md`; each slice adds its own tables from the spec's sketch as its first ticket. Feature 1 (stack) runs locally, with the hosted deploy waiting on a server and a domain (`docs/specs/0001-stack-architecture/verify.md`, Hosted section, a `/wizard` job). Features 4 to 24 are picked up one at a time, grilled just in time. Feature 4 (design system) was grilled on 2026-10-24 (`docs/research/2026-10-24-grilling-next-after-0002.md`, ADRs 0003 and 0004): its spec is issue #9 and its tickets #10 to #13, built in order with `/implement`. Feature 5 (the first visit) is paused until they land; a one session Better Auth `/prototype` spike (the record's Feature 5 spike section) precedes its grilling.
