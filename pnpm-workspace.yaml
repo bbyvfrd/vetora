@@ -14,7 +14,7 @@ catalog:
   # React DOM's types, shared by the web app and the design system package (its portals: Dialog, Drawer, PrintPreview).
   "@types/react-dom": ^19.3.0
 
-# tsx depends on esbuild, whose install script only checks its binary.
+# esbuild (through tsx, and directly in @vetora/ui for the artifact's bundle): its install script only checks its binary.
 onlyBuiltDependencies:
   - esbuild
   # lefthook: its install script wires the git hooks on pnpm install (skipped when CI is set).
