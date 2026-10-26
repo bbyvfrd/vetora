@@ -88,7 +88,7 @@ Signing in locally: `pnpm local:up` and `pnpm --filter @vetora/api migrate`, the
 - A password reaches a command from `readPassword()` (`src/platform/prompt.ts`) alone, never an argument, so none lands in shell history; a command asks for one only when it writes one.
 - Better Auth is reached over HTTP only through the three routes of `src/http/auth.ts`; anything else a feature needs from it (a staff screen, a reset) goes through its server side API from platform code (`src/platform/auth/`), as the commands do.
 - One JSON log line per request (method, path, status, duration, request id), never a body or a query string; `/up` is not logged.
-- A new configuration variable goes into the zod schema in `config.ts`, into `.env.example`, into `config/deploy.yml` (`env.clear` or `env.secret`), and, when secret, into `.kamal/secrets-common`.
+- A new configuration variable goes into the zod schema in `config.ts`, into `.env.example`, into `config/deploy.yml` (`env.clear` or `env.secret`), and, when secret, into `.kamal/secrets-common` and the `env:` block of `.github/workflows/deploy-staging.yml`, whose value is a secret of the GitHub "staging" environment.
 - Relative imports end in `.js` (NodeNext ESM with `verbatimModuleSyntax`); there is no bundler.
 - Tests sit beside the code as `*.test.ts`: `tsconfig.json` (typecheck) includes them, `tsconfig.build.json` (build) leaves them out of `dist/`, and `vitest.config.ts` here silences the logger while they run. A helper two test files need lives in `test-support.ts`, in one place.
 

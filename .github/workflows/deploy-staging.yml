@@ -25,6 +25,8 @@ jobs:
       KAMAL_REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
       DATABASE_URL_POOLED: ${{ secrets.DATABASE_URL_POOLED }}
       DATABASE_URL_DIRECT: ${{ secrets.DATABASE_URL_DIRECT }}
+      # Signs the session cookies; staging's own value (openssl rand -base64 32), never another environment's.
+      BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
       SENTRY_DSN_API: ${{ secrets.SENTRY_DSN_API }}
       SENTRY_DSN_WEB: ${{ secrets.SENTRY_DSN_WEB }}
       SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
