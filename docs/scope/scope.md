@@ -16,7 +16,7 @@ _These are recommendations to keep your build orderly, not requirements. You dec
 | 2 | Coding standards & tooling | Foundation | done |
 | 3 | Data model | Foundation | done |
 | 4 | Design system & UI foundation | Foundation | done |
-| 5 | First visit from arrival to payment | Slice 1 | planned |
+| 5 | First visit from arrival to payment | Slice 1 | in progress |
 | 6 | Prescribe and dispense from stock | Slice 2 | planned |
 | 7 | Controlled drug register | Slice 2 | planned |
 | 8 | Payments and client debt | Slice 3 | planned |
@@ -68,10 +68,11 @@ _Grilled on 2026-10-24 (`docs/research/2026-10-24-grilling-next-after-0002.md`):
 
 The thinnest real thread through a clinic day, and the walking skeleton for everything after it (basis: tracer bullet development).
 
-### 5. First visit from arrival to payment · decide first · high stakes
+### 5. First visit from arrival to payment · in progress · high stakes
 A vet signs in, registers a walk in client and pet, records the weight, writes and finalises the visit note, invoices it, and takes a payment. Real sign in and real data; no bookings, stock, or printing yet. The note has six sections (reason for visit, history, examination, diagnosis, treatment, recommendations); the interviews settle their labels (OPEN-10).
 **Done when:** a vet completes a walk in visit end to end in Azerbaijani, Russian, or English; the finalised note is locked (CR-1) and only a vet can finalise it (CR-2); a note in progress survives a dropped connection; a part payment leaves the rest as client debt (BL-5); every action records who did it (IN-1).
-_Spike run on 2026-10-26 (`docs/research/2026-10-26-better-auth-spike.md`; the code stays on the `prototype/better-auth` branch): Better Auth 1.7.12 on the relations-v2 Drizzle adapter runs on Drizzle 1.0.0-rc.5 and Postgres 18 with the control tables hand written (UUID v7, timestamptz) and checked by `auth check schema`, username sign in as `handle@practice-slug`, the organization with the practice's id and `creatorRole: manager`, TOTP enable and verify, and the request that switches the practice role. Next: its grilling in a fresh window, with the note's four answers and open points._
+_Spike run on 2026-10-26 (`docs/research/2026-10-26-better-auth-spike.md`; the code stays on the `prototype/better-auth` branch): Better Auth 1.7.12 on the relations-v2 Drizzle adapter runs on Drizzle 1.0.0-rc.5 and Postgres 18 with the control tables hand written (UUID v7, timestamptz) and checked by `auth check schema`, username sign in as `handle@practice-slug`, the organization with the practice's id and `creatorRole: manager`, TOTP enable and verify, and the request that switches the practice role._
+_Grilled on 2026-10-26 (`docs/research/2026-10-26-grilling-feature-5.md`): staff logins come from operator commands through one staff service; sign in is clinic code, username and password, with a 12 hour session and a per account lock after five failures; the visit starts from the patient (no Arrival yet) and holds four vital signs, six plain text sections and the invoice card; one invoice per visit, service lines only, part or full payment by cash or card. Two factor and PIN switching move to feature 15, and the problem list, alerts, structured diagnoses and amendments to feature 12 (ADR 0008); discounts, prepayment, transfer and voids to feature 8. Six tracer bullet tickets. Next: `/to-spec` and `/to-tickets` in the same window._
 
 ## Slice 2: Medicines
 
@@ -90,7 +91,7 @@ An append only register for controlled drugs, built in from the start on domain.
 Cash, part payments, and running debt are everyday events here, not edge cases (basis: domain.md §4.2).
 
 ### 8. Payments and client debt · decide first · high stakes
-Make front desk money real for a cash market: part payments, running client debt (долг, borc) across visits, paying off old debt, the fiscal receipt number from the clinic's own cash register, and fixing mistakes without deleting anything.
+Make front desk money real for a cash market: part payments, running client debt (долг, borc) across visits, paying off old debt, the fiscal receipt number from the clinic's own cash register, and fixing mistakes without deleting anything. It also takes what feature 5 left out: discounts per line and across an invoice, overpayment and prepayment, payment by transfer, void and refund, and the amount received and change for cash.
 **Done when:** a client's debt is the sum of an append only ledger (BL-6); one payment can settle several invoices; the clinic's fiscal receipt number is recorded per payment, so one payment that settles several invoices has one receipt and two part payments have two (BL-4, OPEN-7); corrections are new entries, never edits; the day closes with a cash and card summary.
 
 ## Slice 4: Stock and the counter
@@ -106,13 +107,13 @@ Sell food, preventatives, and accessories over the counter to a known client or 
 ## Slice 5: Bookings
 
 ### 11. Bookings and waiting room · decide first
-Book appointments by type and length for a vet or a room, check in arrivals, and keep walk ins and emergencies in a live queue beside the booked list.
+Book appointments by type and length for a vet or a room, check in arrivals, and keep walk ins and emergencies in a live queue beside the booked list. Reception weighs the animal before the visit, and from here on a visit links to its arrival.
 **Done when:** the appointment type sets length and resources (RS-2); no resource can be double booked (RS-1); a booking and a visit stay separate things (SC-1); reception sees who is waiting, for whom, and since when.
 
 ## Slice 6: Records and documents
 
 ### 12. Patient chart · decide first
-Find any animal by client name or phone and open one page for it: visits over time, the problem list, handling alerts, weight trend, attached files (lab PDFs, photos, signed consent scans), and amendments to finalised visits.
+Find any animal by client name or phone and open one page for it: visits over time, the problem list, handling alerts, weight trend, attached files (lab PDFs, photos, signed consent scans), and amendments to finalised visits. The problem list, alerts, structured diagnoses and amendments build their tables here, moved from slice 1 (ADR 0008), and clients are found by name as well as by phone.
 **Done when:** the problem list lives on the patient across visits (CR-6); an amendment shows author, time, reason, and the earlier text (CR-1); files attach to a patient or a visit; a rehomed or deceased animal keeps its full history (PT-1, PT-4).
 
 ### 13. Vaccinations and due list · decide first
@@ -128,7 +129,7 @@ Print or save as PDF, in the client's language (Azerbaijani, Russian, or English
 Everything the design partner clinic needs to switch over, and the end of the pilot release (basis: your answer, front desk to checkout with one design partner clinic).
 
 ### 15. Practice settings
-The manager adds staff with their own logins and roles (veterinarian, assistant, receptionist, groomer, manager), sets the services and price list, and enters clinic details for printouts. Role scope follows domain.md's interim answer to OPEN-4.
+The manager adds staff with their own logins and roles (veterinarian, assistant, receptionist, groomer, manager), sets the services and price list, and enters clinic details for printouts. Role scope follows domain.md's interim answer to OPEN-4. Two factor sign in for managers and the platform admin (with recovery from a lost device) and PIN switching are designed and built here (ADR 0008); the staff and price list screens sit on the services feature 5 builds; a manager resets passwords and unlocks logins, and each person changes their own password.
 **Done when:** every person has their own login and none are shared; changing a price never touches past invoices; prices are whole minor units in AZN (IN-4).
 
 ### 16. Client and pet import · decide first
