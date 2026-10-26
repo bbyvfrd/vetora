@@ -2,6 +2,16 @@
 
 How a change to the practice or control schema is written, guarded, and proven: the migrations, the tables and their registry entries, the actor and audit columns, the rule errors, the rule triggers, the deferred checks, and the database tests with the rules fixture. Read it before the first such change in a ticket; the reviewer holds the change to it (`CODING_STANDARDS.md`). The engine files are listed in [AGENTS.md](../AGENTS.md) (Key files, Commands); the design is spec 0002 (`docs/specs/0002-data-model/index.md`), and the rule IDs are `docs/domain.md` §8.
 
+## Commands
+
+```bash
+pnpm --filter @vetora/api db:generate:control --name <name>   # after editing control-schema.ts; finish the SQL by hand
+pnpm --filter @vetora/api db:generate:practice --name <name>  # after editing the platform tables or a module's schema.ts; the migrate command applies it to every practice
+pnpm --filter @vetora/api db:check    # drizzle-kit check on both sets, then the order check (migration-order.ts): a folder out of order fails; CI runs it with the full history
+docker compose exec postgres psql -U vetora_app -d vetora   # at the root, this checkout's cluster; there is no local psql (-U vetora_migrator, -d vetora_test as needed)
+DATABASE_URL_MIGRATOR=postgres://vetora_migrator:vetora_migrator@localhost:5432/vetora_test pnpm --filter @vetora/api migrate   # a shell variable wins over .env: a command against vetora_test (5432 is the main folder's port; a worktree's is in pnpm local:status)
+```
+
 ## Migrations
 
 - Migrations are forward only and generated in order (`db:generate:*`), one folder per migration under `drizzle/<set>/`; a schema's pending migrations run in one transaction (a practice schema's together with its grants pass), so none may use `CREATE INDEX CONCURRENTLY`. drizzle-kit models tables only: extensions, functions, triggers, domains, and the control grants are written by hand into the generated `migration.sql`, each statement after a `--> statement-breakpoint` line (a domain goes before the first table that uses it); a new control table grants SELECT to `vetora_backup` there (dumps read everything). The migrate command exits 0 when current, 1 when the run did not complete (a schema's batch or its grants pass failed and the schema's transaction rolled back, `--practice` named an unknown slug, or the configuration or connection failed), 2 when another run holds the lock.

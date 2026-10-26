@@ -25,6 +25,8 @@ jobs:
       KAMAL_REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
       DATABASE_URL_POOLED: ${{ secrets.DATABASE_URL_POOLED }}
       DATABASE_URL_DIRECT: ${{ secrets.DATABASE_URL_DIRECT }}
+      # vetora_migrator's URL for the operator commands (kamal app exec migrate), never read by the API.
+      DATABASE_URL_MIGRATOR: ${{ secrets.DATABASE_URL_MIGRATOR }}
       # Signs the session cookies; staging's own value (openssl rand -base64 32), never another environment's.
       BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
       SENTRY_DSN_API: ${{ secrets.SENTRY_DSN_API }}

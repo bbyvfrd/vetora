@@ -6,3 +6,6 @@ pre-commit:
       # Format, lint, sort imports, and apply the safe fixes to the staged files, then stage those fixes.
       run: pnpm exec biome check --write --no-errors-on-unmatched --files-ignore-unknown=true {staged_files}
       stage_fixed: true
+    - name: context size
+      # Every AGENTS.md within its budget (infra/check-context-size.sh): a few milliseconds, so it runs on every commit.
+      run: infra/check-context-size.sh

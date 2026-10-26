@@ -47,6 +47,9 @@ const migratorSchema = z.object({
 
 export type MigratorConfig = z.infer<typeof migratorSchema>
 
+/** Every variable the API and its commands read; `deploy-secrets.test.ts` checks each is named wherever a server needs it. */
+export const configVariables = [...Object.keys(schema.shape), ...Object.keys(migratorSchema.shape)]
+
 /** Parse the command's environment. Throws ConfigError naming the variable (never its value). */
 export function loadMigratorConfig(env: NodeJS.ProcessEnv = process.env): MigratorConfig {
   return parse(migratorSchema, env)

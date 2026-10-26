@@ -17,7 +17,7 @@
     "local:down": "docker compose down",
     "local:destroy": "infra/local-env.sh destroy",
     "local:gc": "infra/local-env.sh gc",
-    "lint": "biome check .",
+    "lint": "biome check . && infra/check-context-size.sh",
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
     "test": "turbo run build --filter=@vetora/contracts --filter=@vetora/i18n --filter=@vetora/ui && vitest run",

@@ -22,7 +22,8 @@
 #                   project (prototype/* branches are kept); locks whose session is gone are released; Compose
 #                   projects whose worktree is gone are removed; stale worktree records are pruned
 #   session-start   Claude Code's SessionStart hook (.claude/settings.json): setup, --up inside a worktree when
-#                   Docker runs, the sweep, then one or two lines of context on stdout for the agent
+#                   Docker runs, the sweep, then a few lines of context on stdout for the agent (the Bash guard's
+#                   rule among them in a worktree)
 #   session-end     Claude Code's SessionEnd hook: the sweep, silently
 set -euo pipefail
 
@@ -32,6 +33,10 @@ UP=0
 FORCE=0
 QUIET=0
 INSTALL=1
+
+# The worktree session's Bash guard in one line (docs/agents/worktrees.md, Work), printed where an agent in a worktree
+# reads it: the session start context and the output of pnpm local:setup, which a session runs after EnterWorktree.
+GUARD_RULE="In this worktree, create and change source files with the Write and Edit tools, give every pnpm, docker, git and sed call a literal absolute path, and put one step per Bash call: the worktree guard refuses what it cannot prove stays here (docs/agents/worktrees.md, Work)."
 
 die() { echo "local-env: $*" >&2; exit 1; }
 note() { [ "$QUIET" = 1 ] || echo "$*"; }
@@ -195,6 +200,7 @@ print_status() {
   local kind="main checkout" running
   if is_linked_worktree; then kind="worktree"; fi
   echo "slot $SLOT ($kind): API http://localhost:$API_PORT, web http://localhost:$WEB_PORT, Postgres localhost:$PG_PORT, S3 localhost:$S3_PORT, Compose project $PROJECT"
+  if [ "$kind" = worktree ]; then echo "$GUARD_RULE"; fi
   if docker_ok; then
     running=$(running_services)
     echo "containers running: ${running:-none} (pnpm local:up starts them, pnpm local:destroy removes them with their data)"
@@ -349,6 +355,7 @@ cmd_session_start() {
       exec "$target/infra/local-env.sh" session-start </dev/null
     fi
     echo "vetora local environment: $target predates infra/local-env.sh (its branch was cut before the worktree rules landed), so nothing was set up. Rebase it onto main, then run pnpm local:setup --up there. Rules: AGENTS.md, Worktrees."
+    echo "$GUARD_RULE"
     exit 0
   fi
   QUIET=1
@@ -363,6 +370,7 @@ cmd_session_start() {
     running=$(running_services)
   fi
   echo "vetora local environment, slot $SLOT: API http://localhost:$API_PORT, web http://localhost:$WEB_PORT, Postgres localhost:$PG_PORT, Compose project $PROJECT (running: ${running:-none}$started; pnpm local:up starts it). .env, apps/api/.env and .claude/launch.json match this slot and dependencies are installed. Rules: AGENTS.md, Worktrees."
+  if is_linked_worktree; then echo "$GUARD_RULE"; fi
   local swept
   swept=$(cmd_gc 2>/dev/null | grep -v '^Docker is not running' || true)
   if [ -n "$swept" ]; then echo "Worktree sweep: $swept"; fi
