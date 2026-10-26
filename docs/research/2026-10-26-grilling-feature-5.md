@@ -68,6 +68,8 @@ The facts behind this round were read in Better Auth 1.7.12's sources (`npm pack
 
 Blocking: 1 → 2 → 3; 4 and 5 after 3; 6 after 5. Tickets 4 and 5 may run side by side but both edit the visit page, so they run one after the other.
 
+**As published (2026-10-26):** the spec is issue #18; `/to-tickets` split two of the six to fit one session each, the sign in lock out of sign in and the vital signs out of the visit, giving eight sub-issues of #18 with native blocking edges: #19 sign in; #20 the lock (after #19); #21 register a client and a pet (after #19); #22 the visit and its note (after #21); #23 vital signs, #24 the dropped connection and #25 the invoice (each after #22, run one at a time); #26 take payment and the walks (after #20, #23, #24 and #25).
+
 ## For `docs/scope/scope.md`
 
 - [x] Feature 5: the grilled line (this record, the ADR), status `in progress` and the decide first tag gone (2026-10-26).
