@@ -4,6 +4,7 @@ const required = {
   PUBLIC_ORIGIN: 'http://localhost:5173',
   DATABASE_URL_POOLED: 'postgres://vetora_app:secret-value@localhost:5432/vetora',
   DATABASE_URL_DIRECT: 'postgres://vetora_app:secret-value@localhost:5432/vetora',
+  BETTER_AUTH_SECRET: 'secret-value-of-thirty-two-chars',
 }
 
 // loadConfig caches its result, so every test loads the module afresh.
@@ -32,8 +33,21 @@ describe('loadConfig', () => {
     }
     expect(error).toBeInstanceOf(ConfigError)
     expect((error as InstanceType<typeof ConfigError>).variables).toEqual(
-      expect.arrayContaining(['PUBLIC_ORIGIN', 'DATABASE_URL_POOLED']),
+      expect.arrayContaining(['PUBLIC_ORIGIN', 'DATABASE_URL_POOLED', 'BETTER_AUTH_SECRET']),
     )
+    expect(String(error)).not.toContain('secret-value')
+  })
+
+  it('refuses a Better Auth secret shorter than 32 characters, naming it without its value', async () => {
+    const { ConfigError, loadConfig } = await freshConfig()
+    let error: unknown
+    try {
+      loadConfig({ ...required, BETTER_AUTH_SECRET: 'secret-value-too-short' })
+    } catch (caught) {
+      error = caught
+    }
+    expect(error).toBeInstanceOf(ConfigError)
+    expect((error as InstanceType<typeof ConfigError>).variables).toEqual(['BETTER_AUTH_SECRET'])
     expect(String(error)).not.toContain('secret-value')
   })
 })

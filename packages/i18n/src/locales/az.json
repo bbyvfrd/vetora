@@ -15,5 +15,58 @@
   "shell": {
     "skipToContent": "Məzmuna keç",
     "navigation": "Əsas naviqasiya"
+  },
+  "signin": {
+    "title": "Daxil ol",
+    "brandLine": "Baytarlıq klinikaları üçün idarəetmə",
+    "clinicCode": "Klinika kodu",
+    "username": "İstifadəçi adı",
+    "password": "Şifrə",
+    "submit": "Daxil ol",
+    "submitting": "Daxil olunur",
+    "forgot": "Şifrəni unutmusunuz? Klinikanın rəhbərinə müraciət edin."
+  },
+  "account": {
+    "profile": "Profil",
+    "clinic": "Klinika",
+    "role": "Rol",
+    "signOut": "Çıx"
+  },
+  "role": {
+    "manager": "Rəhbər",
+    "veterinarian": "Baytar həkim",
+    "assistant": "Həkim köməkçisi",
+    "receptionist": "Administrator",
+    "groomer": "Qrumer"
+  },
+  "visitsToday": {
+    "title": "Bugünkü qəbullar"
+  },
+  "empty": {
+    "visitsToday": {
+      "title": "Bu gün qəbul yoxdur"
+    }
+  },
+  "error": {
+    "signin": {
+      "title": "Klinika kodu, istifadəçi adı və ya şifrə düzgün deyil",
+      "body": "Hər üçünü yoxlayın və yenidən cəhd edin."
+    },
+    "session": {
+      "title": "Sessiyanın vaxtı bitdi",
+      "body": "Davam etmək üçün yenidən daxil olun."
+    },
+    "load": {
+      "title": "Səhifəni yükləmək mümkün olmadı",
+      "body": "Bağlantını yoxlayın və yenidən cəhd edin. Heç nə itməyib.",
+      "button": "Yenidən cəhd et"
+    },
+    "offline": {
+      "title": "Bağlantı yoxdur",
+      "body": "İnternet bağlantısını yoxlayın. Yazdıqlarınız yerindədir."
+    }
+  },
+  "field": {
+    "required": "Bu sahəni doldurun"
   }
 }

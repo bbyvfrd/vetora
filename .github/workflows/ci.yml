@@ -25,6 +25,14 @@ jobs:
       - run: pnpm turbo run build typecheck
       - name: Migration sets are in order (spec 0001, Migrations)
         run: pnpm --filter @vetora/api db:check
+      - name: The control tables hold what Better Auth writes (spec #18, auth check schema)
+        # The committed configuration, with no database: the pool is created and never connected.
+        run: pnpm --filter @vetora/api auth:check
+        env:
+          PUBLIC_ORIGIN: http://localhost:5173
+          BETTER_AUTH_SECRET: ci-only-secret-for-the-schema-check-0000
+          DATABASE_URL_POOLED: postgres://nobody:nobody@127.0.0.1:1/nowhere
+          DATABASE_URL_DIRECT: postgres://nobody:nobody@127.0.0.1:1/nowhere
       - name: OpenAPI document and generated types are current
         run: |
           pnpm openapi

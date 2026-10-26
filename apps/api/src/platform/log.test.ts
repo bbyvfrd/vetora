@@ -1,6 +1,32 @@
+import { spawnSync } from 'node:child_process'
+import { fileURLToPath } from 'node:url'
 import { DrizzleQueryError } from 'drizzle-orm'
 import { describe, expect, it } from 'vitest'
 import { rootCause, scrubError } from './log.js'
+
+describe('log', () => {
+  it("writes each line before the next statement runs, so a command's result printed after its log is stdout's last line (on Linux, where a pipe is written at once, a buffered log crossed it in CI)", () => {
+    // The real logger in a child process whose stdout blocks, as a pipe does on Linux, with a run's worth of earlier
+    // lines still to write when the result is printed.
+    const script = `
+      import { log } from './src/platform/log.ts'
+      process.stdout._handle?.setBlocking?.(true)
+      for (let i = 0; i < 2000; i++) log.info({ step: i }, 'earlier line')
+      log.info('staff member in place')
+      console.log('the-result')
+    `
+    const run = spawnSync(process.execPath, ['--import=tsx', '--input-type=module', '--eval', script], {
+      cwd: fileURLToPath(new URL('../..', import.meta.url)),
+      env: { PATH: process.env.PATH ?? '', LOG_LEVEL: 'info' },
+      encoding: 'utf8',
+    })
+
+    expect(run.stderr).toBe('')
+    const lines = run.stdout.trim().split('\n')
+    expect(lines).toHaveLength(2002)
+    expect(lines.at(-1)).toBe('the-result')
+  }, 30_000)
+})
 
 describe('scrubError', () => {
   it("drops a Postgres error's detail, hint, and where, down the cause chain Drizzle wraps it in", () => {

@@ -15,5 +15,58 @@
   "shell": {
     "skipToContent": "Skip to content",
     "navigation": "Main navigation"
+  },
+  "signin": {
+    "title": "Sign in",
+    "brandLine": "Practice management for veterinary clinics",
+    "clinicCode": "Clinic code",
+    "username": "Username",
+    "password": "Password",
+    "submit": "Sign in",
+    "submitting": "Signing in",
+    "forgot": "Forgot your password? Ask the clinic's manager."
+  },
+  "account": {
+    "profile": "Profile",
+    "clinic": "Clinic",
+    "role": "Role",
+    "signOut": "Sign out"
+  },
+  "role": {
+    "manager": "Manager",
+    "veterinarian": "Veterinarian",
+    "assistant": "Assistant",
+    "receptionist": "Receptionist",
+    "groomer": "Groomer"
+  },
+  "visitsToday": {
+    "title": "Visits today"
+  },
+  "empty": {
+    "visitsToday": {
+      "title": "No visits today"
+    }
+  },
+  "error": {
+    "signin": {
+      "title": "The clinic code, username or password is not right",
+      "body": "Check all three and try again."
+    },
+    "session": {
+      "title": "Your session has ended",
+      "body": "Sign in again to continue."
+    },
+    "load": {
+      "title": "This page could not be loaded",
+      "body": "Check the connection and try again. Nothing has been lost.",
+      "button": "Try again"
+    },
+    "offline": {
+      "title": "No connection",
+      "body": "Check the internet connection. Everything you typed is still here."
+    }
+  },
+  "field": {
+    "required": "Fill in this field"
   }
 }

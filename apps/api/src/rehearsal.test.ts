@@ -1,5 +1,3 @@
-import { spawn } from 'node:child_process'
-import { fileURLToPath } from 'node:url'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { ruleErrors } from './platform/db/errors.js'
 import { MIGRATE_LOCK_KEY } from './platform/db/migrator.js'
@@ -16,11 +14,13 @@ import {
   practiceSet,
   recordedMigrations,
   resetTestDatabase,
+  TEST_PASSWORD,
   type TestClient,
   type TestDatabaseUrls,
   testDatabaseUrls,
   UUID_V7,
 } from './platform/db/test-support.js'
+import { type Command, type CommandRun, commandEnv, runCommand as runShipped } from './test-support.js'
 
 /**
  * The two practice rehearsal (spec 0002, build plan step 6, and its "Critical test scenarios": Happy path, Isolation,
@@ -34,66 +34,31 @@ import {
  * filter skips the provisioning they need.
  */
 
-/** apps/api: the commands run here, so `--import=tsx` resolves from this workspace and `src/<command>.ts` is relative. */
-const API_DIR = fileURLToPath(new URL('..', import.meta.url))
-
 /** pino's numeric levels, as the log lines carry them. */
 const LEVEL = { warn: 40, error: 50, fatal: 60 } as const
-
-type CommandRun = {
-  code: number | null
-  stdout: string
-  stderr: string
-  /** The JSON log lines the command wrote (pino, on stdout), parsed. */
-  lines: Record<string, unknown>[]
-}
 
 /** Every run of the file, for the hygiene check at the end: nothing a command printed may carry the URL or a name. */
 const runs: CommandRun[] = []
 
-/**
- * One command as a subprocess, in an environment of its own: the variables given and PATH, never this process's
- * DATABASE_URL_MIGRATOR, which points at vetora.
- */
-function runCommand(
-  command: 'migrate' | 'provision-practice',
+/** One shipped command as a subprocess (test-support.ts), kept for the hygiene check. */
+async function runCommand(
+  command: Command,
   args: string[],
   env: Record<string, string>,
+  stdin?: string,
 ): Promise<CommandRun> {
-  return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, ['--import=tsx', `src/${command}.ts`, ...args], {
-      cwd: API_DIR,
-      env: { PATH: process.env.PATH ?? '', ...env },
-      stdio: ['ignore', 'pipe', 'pipe'],
-    })
-    let stdout = ''
-    let stderr = ''
-    child.stdout.setEncoding('utf8')
-    child.stderr.setEncoding('utf8')
-    child.stdout.on('data', (chunk: string) => {
-      stdout += chunk
-    })
-    child.stderr.on('data', (chunk: string) => {
-      stderr += chunk
-    })
-    child.on('error', reject)
-    child.on('close', (code) => {
-      const lines = stdout
-        .split('\n')
-        .filter((line) => line.startsWith('{'))
-        .map((line) => JSON.parse(line) as Record<string, unknown>)
-      const run = { code, stdout, stderr, lines }
-      runs.push(run)
-      resolve(run)
-    })
-  })
+  const run = await runShipped(command, args, env, stdin)
+  runs.push(run)
+  return run
 }
 
 /** A practice as the rehearsal provisions it: the command's arguments, then what it printed and the registry derived. */
 type Practice = {
   slug: string
   name: string
-  /** The control user id the manager will sign in with (slice 1), given as --manager-user-id. */
+  /** The manager's handle, given as --manager-handle; they sign in as `<handle>@<slug>`. */
+  managerHandle: string
+  /** The login provisioning created for the manager, read back after the run: their staff_member id too. */
   managerId: string
   managerName: string
   locationName: string
@@ -109,7 +74,8 @@ type Registered = Pick<Practice, 'slug' | 'name' | 'id' | 'schema' | 'role'>
 const alfa: Practice = {
   slug: 'alfa',
   name: 'Alfa Vet',
-  managerId: '11111111-1111-7111-8111-111111111111',
+  managerHandle: 'dr.aliyeva',
+  managerId: '',
   managerName: 'Dr Aliyeva',
   locationName: 'Nərimanov',
   id: '',
@@ -120,7 +86,8 @@ const alfa: Practice = {
 const beta: Practice = {
   slug: 'beta',
   name: 'Beta Vet',
-  managerId: '22222222-2222-7222-8222-222222222222',
+  managerHandle: 'dr.bayramova',
+  managerId: '',
   managerName: 'Dr Bayramova',
   locationName: 'Gənclik',
   id: '',
@@ -163,12 +130,13 @@ describe.skipIf(!databaseTestsEnabled())(
       runCommand('migrate', args, { DATABASE_URL_MIGRATOR: urls.migrator, LOG_LEVEL: 'info' })
 
     /**
-     * `provision-practice` for a practice, the slug or name overridden where a case says so; the log at info so a
-     * run's lines can be read, or silent when the id alone on stdout is the point.
+     * `provision-practice` for a practice, the slug, name or handle overridden where a case says so, the manager's
+     * password on standard input; the log at info so a run's lines can be read, or silent when the id alone on stdout
+     * is the point.
      */
     const provision = (
       practice: Practice,
-      overrides: Partial<Pick<Practice, 'slug' | 'name'>> = {},
+      overrides: Partial<Pick<Practice, 'slug' | 'name' | 'managerHandle'>> = {},
       logLevel: 'info' | 'silent' = 'info',
     ) => {
       const input = { ...practice, ...overrides }
@@ -179,15 +147,33 @@ describe.skipIf(!databaseTestsEnabled())(
           input.slug,
           '--name',
           input.name,
-          '--manager-user-id',
-          input.managerId,
+          '--manager-handle',
+          input.managerHandle,
           '--manager-name',
           input.managerName,
           '--location-name',
           input.locationName,
         ],
-        { DATABASE_URL_MIGRATOR: urls.migrator, LOG_LEVEL: logLevel },
+        commandEnv(urls, logLevel),
+        `${TEST_PASSWORD}\n`,
       )
+    }
+
+    /** A practice's sign in rows (spec #18): its organization, the logins under its code, their memberships. */
+    async function signInRowsOf(practice: Practice) {
+      return {
+        organizations: (
+          await migrator.query('select id, slug from control.organization where slug = $1', [practice.slug])
+        ).rows,
+        logins: (
+          await migrator.query(`select id, username from control."user" where username like '%@' || $1`, [
+            practice.slug,
+          ])
+        ).rows,
+        members: (
+          await migrator.query('select user_id, role from control.member where organization_id = $1', [practice.id])
+        ).rows,
+      }
     }
 
     /** One statement through a practice's role as its manager, in a request transaction of its own (asPractice, test-support.ts). */
@@ -209,6 +195,13 @@ describe.skipIf(!databaseTestsEnabled())(
           )
         ).rows
       }
+      const signIn = (
+        await migrator.query(
+          `select (select count(*)::int from control.organization) as organizations,
+                  (select count(*)::int from control."user") as logins,
+                  (select count(*)::int from control.member) as members`,
+        )
+      ).rows
       const counts: Record<string, Record<string, number>> = {}
       for (const practice of registered) {
         const perTable: Record<string, number> = {}
@@ -220,7 +213,7 @@ describe.skipIf(!databaseTestsEnabled())(
         }
         counts[practice.schema] = perTable
       }
-      return { registry, migrations, counts }
+      return { registry, migrations, counts, signIn }
     }
 
     it('migrate on an empty database applies the control set and finds no practice to migrate: exit 0 (AC-10)', async () => {
@@ -252,6 +245,17 @@ describe.skipIf(!databaseTestsEnabled())(
         practice.id = printed
         practice.schema = `p_${practice.id}`
         practice.role = `p_${practice.id}_role`
+        const login = await migrator.query<{ id: string }>('select id from control."user" where username = $1', [
+          `${practice.managerHandle}@${practice.slug}`,
+        ])
+        practice.managerId = login.rows[0]?.id ?? ''
+        expect(practice.managerId, practice.slug).toMatch(UUID_V7)
+        // One organization with the practice's id, one login under its code, one membership as manager (spec #18).
+        expect(await signInRowsOf(practice), practice.slug).toEqual({
+          organizations: [{ id: practice.id, slug: practice.slug }],
+          logins: [{ id: practice.managerId, username: `${practice.managerHandle}@${practice.slug}` }],
+          members: [{ user_id: practice.managerId, role: 'manager' }],
+        })
       }
       // The registry is readable by vetora_app without a role switch: it routes a request (spec 0002, Security model).
       const registry = await app.query(
@@ -561,17 +565,21 @@ describe.skipIf(!databaseTestsEnabled())(
       expect(await stateOf()).toEqual(before)
     }, 40_000)
 
-    it('no run printed the connection string or a name: a command logs ids, slugs, schema and role names, and counts (spec 0002, Security model: personal data)', () => {
+    it('no run printed a connection string, a name, a handle or a password: a command logs ids, slugs, schema and role names, and counts (spec 0002, Security model: personal data)', () => {
       // Every kind of run is in the sample: the successful ones with their log, the refused ones, the held lock.
       expect(new Set(runs.map((run) => run.code))).toEqual(new Set([0, 1, 2]))
       const printed = runs.map((run) => run.stdout + run.stderr).join('\n')
       expect(printed).not.toContain('vetora_migrator:')
+      expect(printed).not.toContain('vetora_app:')
       for (const name of [
         'Alfa Vet',
         'Beta Vet',
         'Gamma Vet',
         'Dr Aliyeva',
         'Dr Bayramova',
+        'dr.aliyeva',
+        'dr.bayramova',
+        TEST_PASSWORD,
         'Nərimanov',
         'Gənclik',
         'Someone else',
