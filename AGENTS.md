@@ -26,7 +26,7 @@ pnpm local:setup && pnpm local:up        # Node 24, pnpm 10, Docker: this checko
 pnpm local:status                        # the slot: ports and Compose project (slot 0, the main folder: API :3000, web :5173, Postgres :5432); local:destroy drops its containers and data, local:gc cleans up after removed worktrees
 pnpm dev                                 # API and web on the slot's ports (Vite proxies /api); builds the packages first
 pnpm build && pnpm typecheck             # every workspace, through Turborepo
-pnpm lint                                # Biome, read only: format, lint, import order (pnpm lint:fix applies the safe fixes, pnpm format only formats)
+pnpm lint                                # read only: Biome (format, lint, import order), then the AGENTS.md size budget, infra/check-context-size.sh (pnpm lint:fix applies Biome's safe fixes)
 pnpm test                                # Vitest in every workspace, after building contracts, i18n and ui; pnpm test:watch keeps it running
 pnpm openapi                             # after a route change; commit openapi.json and src/generated (CI diffs them)
 ```
@@ -68,6 +68,8 @@ Single-context. The vocabulary lives in `docs/domain.md` §7 and §8 (pointed at
 - Grilling: front load the fact finding and put a grounded recommendation on every question, so a whole round can be answered at once.
 - Keep `/grill-with-docs`, `/to-spec`, and `/to-tickets` in one window, and take the `ready-for-agent` label off the spec issue once it is ticketed.
 - A ticket's acceptance criteria and demo are the contract: at `/to-tickets`, check each trigger or constraint line against the class of the table it attaches to and the criterion that cites it; at `/implement`, when the path contradicts them, build to the criteria and record the reading in the commit message.
+- At `/to-tickets`, cut in two a ticket whose path would touch more than about 40 files: #19 touched 82, and its session ended with 800k tokens of context re-read on every turn.
+- At `/implement`, read the spec by the sections the ticket's **Spec** line names (save the issue body to a file, then read those headings), and another ticket only when its "Not here" names it.
 - `/code-review` collides with a built in command: call `/mattpocock-skills:code-review`.
 - `/setup-matt-pocock-skills` edits this file, never `CLAUDE.md` (a pointer).
 - `/research` writes to `docs/research/`; `/retro` runs in the session it reviews, before `/clear`.
@@ -78,8 +80,6 @@ In `.agents/skills/` (`.claude/skills/` symlinks there). Only repo wide skills a
 
 - [turborepo](.agents/skills/turborepo/): `vercel/turborepo`, task pipelines, caching, filtering, and `turbo prune` for the Docker builds
 - [vitest](.agents/skills/vitest/): `antfu/skills`, Vitest tests, mocks, coverage, filtering, and fixtures
-
-MCP servers: DigitalOcean (recommended), Sentry (recommended), GitHub (recommended)
 
 ## Context files
 

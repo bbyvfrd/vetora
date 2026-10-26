@@ -13,29 +13,24 @@ The web app for clinic staff: React 19 on Vite 8, rendered in the browser and se
 
 ## Key files
 
+Each file's own comments say what it owns and why; this index finds the file.
+
 | File | Owns |
 |---|---|
-| `src/main.tsx` | Mounts the app: the `QueryClient`, the router from `createAppRouter()`, the i18n side effect import, error reporting |
-| `src/router.ts` | `createAppRouter(queryClient, history?)`: the route tree with the query client in its context, and the session's end handled once: a 401 from a vetora route after `/api/me` had answered clears the cache and goes to `/sign-in?ended=true` (error.session) |
-| `src/session.ts` | `meQuery` (`/api/me`, the app's first call after sign in; `SignedOut` on a 401), `signIn()` (joins `handle@code` in lower case, remembers the clinic code in `localStorage` key `vetora.clinicCode` after a success), `signOut()`, `rememberedClinicCode()` |
-| `src/routes/__root.tsx` | The root: the query client in the router's context and nothing else; the signed in pages sit in `_app.tsx`, the sign in page outside it |
-| `src/routes/_app.tsx` | The signed in shell (tickets #12 and #19): its guard ensures `/api/me` before any page loads and sends a person with no session to `/sign-in`; `AppShell` with the `NavRail` (the reversed logo as its brand, one section of routed places with `aria-current` from the router's location, the account entry at its foot: the name, the roles and clinic, a link to `/profile`), the skip link's text and the rail's name from the `shell.*` keys, `<Outlet />` inside; the interface follows the language saved to the login. `places` lists the routed places with their route, icon and title key (Visits today at `/`, then the status page at `/status`); a new place is a row there |
-| `src/routes/_app/index.tsx`, `status.tsx`, `profile.tsx`, `src/routes/sign-in.tsx` | Visits today (the signed in home), the status page, the profile, and the sign in page outside the shell (`?ended=true` shows that the session ended) |
-| `src/pages/SignInPage.tsx` | The sign in page as the design system's SignInPage example lays it out (artifact version 23): `AuthLayout` with the stacked reversed logo and its line, Clinic code (filled from this computer's last sign in), Username, Password, one button, the forgotten password line, the language choice in the three languages' own names; one refusal message whatever was wrong (error.signin), the password cleared; error.offline without a connection; error.session after a session ended |
-| `src/pages/VisitsTodayPage.tsx`, `ProfilePage.tsx` | Visits today, empty until the visit arrives (an `EmptyState`); the profile: the person, their clinic and roles, the language `Select` saved to the login (`PUT /api/me/language`, put back when refused), and Sign out |
-| `src/pages/StatusPage.tsx` | The status page, in the rail after Visits today: a `PageHeader` with the title as the h1 and a `PageBody` holding the status region (named by the same title), which polls `/api/health` every 30 s and shows the brand book's page states with `@vetora/ui`: a `Skeleton` with the region `aria-busy` while the first check is in flight, a danger `Banner` first in the page with "Try again" when the API is down, a success `Badge` with the version when it is up. `StatusPage.test.tsx` beside it is the DOM test of the three states |
-| `src/app.test.tsx` | Seam 1 of spec #9 and seam 3 of spec #18: mounts the real route tree on an in-memory history with the real translations and proves the signed in shell as a person meets it: Visits today in the shell, the named rail with its two routed places and the current one marked, the account entry, the skip link first in the tab order and focusing `main`, the language of the login in each of the three with axe finding nothing, no session leading to the sign in page, and a 401 after sign in leading there with error.session |
-| `src/pages/SignInPage.test.tsx`, `ProfilePage.test.tsx` | Seam 3 of spec #18 for the two pages, through the real router: the fields and the language choice in each language with axe, the remembered clinic code, `handle@code` sent in lower case, the one refusal message, the empty fields, no connection; the profile from the account entry, the language saved and put back when refused, Sign out back to the sign in page with the code filled in, axe in each language |
-| `src/test-support.tsx` | The DOM tests' helpers: `stubApi()` (the stubbed fetch, routed by `METHOD /path`, recording what was asked), `problemAnswer()`, `meOf()`, `renderApp(path)` (the app as main.tsx mounts it, on a memory history), `violationsOf()` and `axeOptions` |
-| `src/assets/` | The reversed horizontal logo for the rail, the stacked reversed logo for the sign in page's brand panel, and the reversed mark (for a collapsed rail later), copied from the design system artifact's asset store (its `assets/Logos`) |
-| `index.html`, `public/` | The favicon set and `site.webmanifest` from the artifact's `assets/Favicon` with the link tags its README gives (its dark tab style line is in `favicon.svg`), `theme-color`, and `color-scheme` light; `public/config.json` is the local runtime config |
+| `src/main.tsx` | Mounts the app: the query client, the router, i18n, error reporting |
+| `src/router.ts` | `createAppRouter()`: the route tree, and the one place a 401 ends the session |
+| `src/session.ts` | `meQuery` (`/api/me`), `signIn()`, `signOut()`, the remembered clinic code |
+| `src/routes/` | The file routes: `__root.tsx`, `_app.tsx` (the signed in shell, its guard, the rail's `places`), the pages behind it in `_app/`, `sign-in.tsx` outside it |
 | `src/routeTree.gen.ts` | Generated by the router plugin from `src/routes/`; never edited by hand |
-| `src/api/client.ts` | `api`, the typed client on `window.location.origin` (same origin, spelled out so the DOM tests can run it) |
-| `src/i18n.ts`, `src/i18next.d.ts` | i18next setup, the per browser language (`localStorage` key `vetora.language`, default `az`; the sign in page's choice, overridden by the login's language once signed in), typed translation keys |
-| `src/sentry.ts` | Reads `/config.json` at runtime and starts Sentry with every collection option off |
-| `src/test-setup.ts` | jest-dom's matchers, a `scrollTo` stub for the router, and Testing Library's cleanup, loaded by the `test` block of `vite.config.ts` |
-| `vite.config.ts` | Router plugin before React, the dev port and the `/api` proxy target read from the root `.env` (`pnpm local:setup`; a taken port fails instead of drifting), hidden source maps uploaded only when `SENTRY_AUTH_TOKEN` is set (CI), the `test` block (jsdom, the setup file) |
-| `docker/nginx.conf`, `docker/10-runtime-config.sh` | `/up`, caching rules, 404 for `.map` files, `index.html` for every route; `/config.json` written from the container environment at start |
+| `src/pages/` | The page each route mounts, its DOM test beside it (Visits today's is in `app.test.tsx`) |
+| `src/app.test.tsx` | The shell's DOM test: the real route tree on a memory history, the three languages, axe |
+| `src/test-support.tsx`, `src/test-setup.ts` | The DOM tests' helpers (`stubApi()`, `renderApp()`, `violationsOf()`); jest-dom, the `scrollTo` stub, cleanup |
+| `src/api/client.ts` | `api`, the typed client on the page's own origin |
+| `src/i18n.ts`, `src/i18next.d.ts` | i18next and the per browser language; the typed translation keys |
+| `src/sentry.ts` | Sentry from `/config.json`, every collection option off |
+| `src/assets/`, `index.html`, `public/` | The logos, the favicon set and the manifest from the artifact; `public/config.json`, the local runtime config |
+| `vite.config.ts` | The router plugin, the dev port and `/api` proxy from the root `.env`, source maps for Sentry in CI, the `test` block |
+| `docker/` | nginx (`/up`, caching, 404 for `.map`, `index.html` for every route) and `/config.json` written at container start |
 
 ## Commands
 
@@ -50,7 +45,7 @@ pnpm --filter @vetora/clinic-web preview    # serves the built dist/
 
 - A route is a file under `src/routes/` using `createFileRoute`; the plugin regenerates `routeTree.gen.ts` during dev and build.
 - The API is reached only through `api` from `src/api/client.ts`, so every call is typed against the OpenAPI document; server state lives in TanStack Query (`useQuery` with array keys), not in component state.
-- No screen text in components: every string is a key in `packages/i18n` (`t('health.title')`) that exists in `az`, `ru`, and `en`; `document.documentElement.lang` follows the chosen language. A word the design system glossary lacks is added there first, then to the three locale files (`docs/design.md`, "Words").
+- No screen text in components: every string is a key in `packages/i18n` (`t('health.title')`) that exists in `az`, `ru`, and `en`; `document.documentElement.lang` follows the chosen language, which once signed in is the one saved to the login (`_app.tsx`). A word the design system glossary lacks is added there first, then to the three locale files (`docs/design.md`, "Words").
 - Values are shown through the design system's formatters from `@vetora/ui`, never raw `Intl` for `az` (`CODING_STANDARDS.md`, "Screen text"). A stored amount in minor units goes through `formatMinorUnits` with its currency (IN-4); `formatMoney` is never called with a stored amount, and `InvoiceTable` and `Receipt`, which take manat numbers today, are changed in `packages/ui` before the first invoice screen (`docs/design.md`, "Not yet"). `formatDate` and `formatTime` take a day as `YYYY-MM-DD` or a `Date` already in the practice's wall clock: a UTC instant from the API is converted first with `date-fns` and `@date-fns/tz`, installed with the first screen that shows an instant, and business dates are computed in the API and travel as dates (`docs/design.md`, "Formatters"). A count goes through `formatCount` with the noun's forms read from the translation files (`t(key, { returnObjects: true })`); lists of names sort with `compareText`.
 - Runtime values (Sentry DSN, environment, release) come from `/config.json`, never from `import.meta.env` at build time, so one image serves every environment.
 - No personal data in URLs: search parameters hold only filters that are not personal (status, dates, location); names and phones travel in request bodies (spec 0001, "API conventions").
@@ -81,5 +76,3 @@ pnpm --filter @vetora/clinic-web preview    # serves the built dist/
 - [0001 Stack and architecture](../../docs/specs/0001-stack-architecture/index.md): the clinic web app row, one origin, errors, translations
 - Spec #9 (feature 4, a GitHub issue) and ADR 0003: the design system consumed from `@vetora/ui`, the status page as the first screen on it; ADR 0005: component code is the repo's, design data the artifact's
 - [`docs/design.md`](../../docs/design.md): the design system as the code needs it: tokens, type, components, print, the formatters and the time zone boundary, how words flow, the ledger
-
-_Drafted from the repo on 2026-10-22, worth a quick human pass; edit freely._

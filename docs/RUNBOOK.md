@@ -5,7 +5,7 @@ The day to day flow with the Matt Pocock skills (plugin `mattpocock-skills`). `/
 ## Pick a loop
 
 - **Small loop, one window.** `/grill-with-docs <feature>` sharpens the idea and writes ADRs and glossary terms as it goes; then `/implement` in the same window builds it, driving `/tdd` at the agreed seams, running `/mattpocock-skills:code-review`, and committing on the task's branch in its worktree. Then `/pr` for the pull request that lands it, and `/retro` after a rough build.
-- **Medium loop, several sessions.** `/grill-with-docs`, then `/to-spec` (one GitHub issue, the spec), then `/to-tickets` (tracer bullet tickets with their blocking links), all in one unbroken window. Take the `ready-for-agent` label off the spec issue once it is ticketed. Then per ticket: a session in its own worktree (the app's **Worktree** toggle), read the spec sections the ticket's **Spec** line names (by heading, not the whole record) and the tickets its "Not here" section names (their shapes bind this one), `/implement #N`, review, push and open the pull request, `/clear`. Or `/implement-spec` to work the whole ticket graph in worktrees on one integration branch.
+- **Medium loop, several sessions.** `/grill-with-docs`, then `/to-spec` (one GitHub issue, the spec), then `/to-tickets` (tracer bullet tickets with their blocking links), all in one unbroken window. Take the `ready-for-agent` label off the spec issue once it is ticketed. Then per ticket: a session in its own worktree (the app's **Worktree** toggle), `/implement #N` (it reads the spec by the sections the ticket names, `AGENTS.md`), review, push and open the pull request, `/clear`. Or `/implement-spec` to work the whole ticket graph in worktrees on one integration branch.
 - **Big loop.** `/wayfinder` for a bounded chunk that is too big and foggy for one session: it charts a `wayfinder:map` issue with decision tickets, resolved one per session, and it plans without building. Create the `wayfinder:` labels (`map`, `research`, `prototype`, `grilling`, `task`) before the first run. A cleared map goes `/to-spec #<map>`, `/to-tickets`, `/implement`.
 
 ## Detours
@@ -41,13 +41,12 @@ Roadmap `docs/scope/scope.md` · design records `docs/specs/` (frozen) · ADRs `
 ## Gotchas
 
 - Most skills (23 of 38, among them `to-tickets`, `to-spec`, `implement`, `grill-with-docs`, `wayfinder`) carry `disable-model-invocation`: you type them as `/mattpocock-skills:<name>`, and an agent cannot call them for you. A session briefed to "run /to-tickets" does the work by hand instead, so type the skill yourself in the session where you want it to run.
-- `/code-review` collides with a built in command: type `/mattpocock-skills:code-review`.
 - `/implement` commits to the current branch (the worktree's), never closes the ticket, and ticks no criteria; review since `main` (`main...HEAD`), amend the review's fixes into the same commit, and put `Closes #N` in the commit and the pull request body (the squash merge closes the ticket).
 - `/to-spec` labels the spec `ready-for-agent`; an unattended agent would try to build all of it, so remove the label after `/to-tickets`.
 - If `/grill-with-docs` did not change `GLOSSARY.md`, ask which skills loaded; it sometimes skips `domain-modeling`.
-- `/setup-matt-pocock-skills` edits `CLAUDE.md` when it finds one; here it must edit `AGENTS.md`.
 - `gh issue create --parent` needs `gh` 2.94 or later; on an older `gh`, use the `gh api` fallback in `docs/agents/issue-tracker.md`.
 - The plugin does not update itself: `claude plugin marketplace update mattpocock`, then `claude plugin update mattpocock-skills@mattpocock`, then reload.
+- The superpowers plugin is off for this project (`.claude/settings.json`, `enabledPlugins`): its session start hook told every session to load a skill before replying, and its worktree skill competed with `docs/agents/worktrees.md`.
 
 ## Where we are (2026-10-26)
 
