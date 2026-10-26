@@ -30,7 +30,11 @@ jobs:
           pnpm openapi
           git diff --exit-code -- packages/contracts/openapi.json packages/contracts/src/generated
       - name: Start Postgres for the database tests
-        run: docker compose up -d --wait postgres
+        # compose.yaml takes its project name and ports from the checkout's .env (one slot per checkout,
+        # docs/agents/worktrees.md); the runner is a plain checkout, slot 0, which .env.example describes.
+        run: |
+          cp .env.example .env
+          docker compose up -d --wait postgres
       - run: pnpm test
         env:
           # The compose init script's local values (infra/postgres/init/01-vetora.sql); the tests use vetora_test.
