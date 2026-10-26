@@ -17,9 +17,9 @@
 #                   --force rewrites an apps/api/.env that already exists
 #   status          the slot, its ports and Compose project, and whether its containers run
 #   destroy         stop this checkout's containers and delete their volumes (its databases go with them)
-#   gc              the sweep: a worktree whose branch has landed on main (merged, or its pull request merged), with
-#                   nothing uncommitted and no live session holding it, is removed with its branch and its Compose
-#                   project (prototype/* branches are kept); locks whose session is gone are released; Compose
+#   gc              the sweep: a worktree whose branch landed on main (commits of its own, merged or its tip a merged
+#                   pull request's head), with nothing uncommitted and no live session holding it, goes with its branch
+#                   and Compose project (prototype/* branches stay); locks whose session is gone are released; Compose
 #                   projects whose worktree is gone are removed; stale worktree records are pruned
 #   session-start   Claude Code's SessionStart hook (.claude/settings.json): setup, --up inside a worktree when
 #                   Docker runs, the sweep, then one or two lines of context on stdout for the agent
@@ -239,13 +239,27 @@ project_of() { env_value "$1/.env" COMPOSE_PROJECT_NAME; }
 compose_down_project() { docker compose -p "$1" down -v --remove-orphans >/dev/null 2>&1 || true; }
 lock_pid() { printf '%s' "$1" | sed -n 's/.*pid \([0-9][0-9]*\).*/\1/p'; }
 
-# branch_landed <branch>: merged into main, or its pull request is merged (a squash merge leaves no ancestor).
+# has_own_commits <branch>: its reflog records a commit made on it (a commit, an amend, a merge commit, a cherry-pick
+# or a revert). Being created, fast-forwarded to main or reset makes none: such a branch holds no work of its own.
+# grep reads to the end (no -q), so pipefail never sees git stopped by a closed pipe.
+has_own_commits() {
+  git_root reflog show --format=%gs "refs/heads/$1" -- 2>/dev/null |
+    grep -E '^(commit|cherry-pick|revert)( \([a-z]+\))?: |: Merge made by ' >/dev/null
+}
+
+# branch_landed <branch>: it has commits of its own, and is merged into main or its tip is the head of a merged pull
+# request (a squash merge leaves no ancestor). A branch with none has nothing to land, though it is an ancestor of
+# main from the moment it is cut: the worktree of a session that has not committed yet. A merged pull request under
+# the branch's name with another head landed something else: the name reused, or commits made after the merge.
 branch_landed() {
-  local n
+  local tip n
+  has_own_commits "$1" || return 1
   if git_root merge-base --is-ancestor "refs/heads/$1" main 2>/dev/null; then return 0; fi
   if command -v gh >/dev/null 2>&1; then
-    n=$(cd "$ROOT" && gh pr list --head "$1" --state merged --limit 1 --json number --jq 'length' 2>/dev/null) || n=0
-    if [ "${n:-0}" = 1 ]; then return 0; fi
+    tip=$(git_root rev-parse "refs/heads/$1")
+    n=$(cd "$ROOT" && gh pr list --head "$1" --state merged --json headRefOid \
+      --jq "map(select(.headRefOid == \"$tip\")) | length" 2>/dev/null) || n=0
+    if [ "${n:-0}" -gt 0 ]; then return 0; fi
   fi
   return 1
 }
