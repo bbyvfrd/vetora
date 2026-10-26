@@ -26,6 +26,11 @@ import {
  * `add-staff` and `reset-password` (spec #18, "Commands"; stories 14 to 16) through the shipped entry points, as
  * `kamal app exec` runs them, with the password on standard input; what they made is then used through the API, the
  * way a staff member meets it (seam 2).
+ *
+ * A case that runs the commands has 30 s, the beforeAll's budget, as rehearsal.test.ts gives its command runs theirs:
+ * each run is a Node start that compiles the command through tsx and loads Better Auth, Drizzle and pg, about 0.6 s on
+ * an idle machine and 2 s on a loaded one, and a case runs up to four, which Vitest's 5 s default timed out beside a
+ * parallel `pnpm test`.
  */
 
 /** pino's numeric levels, as the log lines carry them. */
@@ -90,7 +95,7 @@ describe.skipIf(!databaseTestsEnabled())('the staff commands (spec #18, Commands
     expect(audit.rows).toEqual([{ action: 'insert', actor_id: null, source: 'migration:add-staff' }])
     const response = await signIn(practice.slug, 'dr.leyla', TEST_PASSWORD)
     expect(response.status).toBe(204)
-  })
+  }, 30_000)
 
   it('add-staff rerun with the same handle changes nothing and asks for no password: exit 0 and the same id', async () => {
     const first = (
@@ -103,7 +108,7 @@ describe.skipIf(!databaseTestsEnabled())('the staff commands (spec #18, Commands
     expect(again.code).toBe(0)
     expect(again.stdout.trim().split('\n').at(-1)).toBe(first)
     expect(await rolesOf(first)).toEqual(before)
-  })
+  }, 30_000)
 
   it('add-staff gives one login several roles, comma joined in the membership and an array in the mirror (story 22)', async () => {
     const added = await addStaff('aysel', 'receptionist,assistant')
@@ -114,7 +119,7 @@ describe.skipIf(!databaseTestsEnabled())('the staff commands (spec #18, Commands
       member: 'assistant,receptionist',
       staff: { roles: ['assistant', 'receptionist'] },
     })
-  })
+  }, 30_000)
 
   it('add-staff refuses an unknown practice code, a role outside the five, a password under 10 characters and a password given as an argument, with exit 1 and nothing written', async () => {
     const users = async () => (await migrator.query('select count(*)::int as n from control."user"')).rows[0]?.n
@@ -146,7 +151,7 @@ describe.skipIf(!databaseTestsEnabled())('the staff commands (spec #18, Commands
     }
     expect(badRole.lines.at(-1)).toMatchObject({ invalid: [{ option: '--roles' }] })
     expect(await users()).toBe(before)
-  })
+  }, 30_000)
 
   it('reset-password replaces the password and ends every session the person has open (story 16)', async () => {
     const first = sessionCookie(await signIn(practice.slug, 'dr.leyla', TEST_PASSWORD))
@@ -173,7 +178,7 @@ describe.skipIf(!databaseTestsEnabled())('the staff commands (spec #18, Commands
     }
     expect((await signIn(practice.slug, 'dr.leyla', TEST_PASSWORD)).status).toBe(401)
     expect((await signIn(practice.slug, 'dr.leyla', fresh)).status).toBe(204)
-  })
+  }, 30_000)
 
   it('reset-password refuses a handle with no login and a password under 10 characters, with exit 1, changing nothing', async () => {
     const nobody = await run(
@@ -186,7 +191,7 @@ describe.skipIf(!databaseTestsEnabled())('the staff commands (spec #18, Commands
     expect(nobody.code).toBe(1)
     expect(short.code).toBe(1)
     expect((await signIn(practice.slug, 'dr.leyla', 'a new and longer password')).status).toBe(204)
-  })
+  }, 30_000)
 
   it('no run printed a password, a handle or a name: the commands log ids, roles and counts (spec 0002, Security model)', () => {
     expect(new Set(runs.map((result) => result.code))).toEqual(new Set([0, 1]))
