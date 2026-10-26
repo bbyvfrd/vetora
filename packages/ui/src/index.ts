@@ -1,7 +1,8 @@
 /**
  * @vetora/ui: the vetora design system as a workspace package (ADR 0003), its sources copied from the design system
- * artifact at the version src/tokens/source.json names and compiled here. The exports are the artifact's
- * components/src/index.ts, name for name (Biome orders the lines); src/index.test.ts holds the list.
+ * artifact at the version src/tokens/source.json names and compiled here, and the repo's own since that copy
+ * (ADR 0005). The exports are the artifact's components/src/index.ts, name for name (Biome orders the lines), plus
+ * what the repo has added since the fork point, each in docs/design.md's ledger; src/index.test.ts holds both lists.
  */
 
 export type { AppointmentStatus } from './appointment.js'
@@ -76,6 +77,7 @@ export type {
 export { AppShell, AuthLayout, DetailList, FilterBar, FormActions, FormSection, PageBody } from './Layout.js'
 export type { MenuItem, MenuProps } from './Menu.js'
 export { Menu } from './Menu.js'
+export { formatMinorUnits } from './money.js'
 export type { NavAccount, NavItem, NavRailProps, NavSection } from './NavRail.js'
 export { NavRail } from './NavRail.js'
 export type { PageHeaderBack, PageHeaderProps } from './PageHeader.js'

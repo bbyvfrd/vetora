@@ -2,7 +2,7 @@
 
 ## Overview
 
-The web app for clinic staff: React 19 on Vite 8, rendered in the browser and served from the same origin as the API (`/api`). Routes are files under `src/routes/`, server state goes through TanStack Query, the API is called through the typed client from `@vetora/contracts`, and every piece of screen text comes from `@vetora/i18n`. The design system comes from `@vetora/ui` (ADR 0003): its stylesheet is imported once in `src/main.tsx` and the app has no stylesheet of its own; the frame of every screen is the design system's shell (ticket #12).
+The web app for clinic staff: React 19 on Vite 8, rendered in the browser and served from the same origin as the API (`/api`). Routes are files under `src/routes/`, server state goes through TanStack Query, the API is called through the typed client from `@vetora/contracts`, and every piece of screen text comes from `@vetora/i18n`. The design system comes from `@vetora/ui` (ADR 0003): its stylesheet is imported once in `src/main.tsx` and the app has no stylesheet of its own; the frame of every screen is the design system's shell (ticket #12), and its formatters are the display layer for every date, number, amount and count (`docs/design.md`, "Formatters"). A component fix is made in `packages/ui` and synced up to the artifact; a token, word or icon change is made in the artifact and re-copied (ADR 0005).
 
 ## Stack
 
@@ -43,7 +43,8 @@ pnpm --filter @vetora/clinic-web preview    # serves the built dist/
 
 - A route is a file under `src/routes/` using `createFileRoute`; the plugin regenerates `routeTree.gen.ts` during dev and build.
 - The API is reached only through `api` from `src/api/client.ts`, so every call is typed against the OpenAPI document; server state lives in TanStack Query (`useQuery` with array keys), not in component state.
-- No screen text in components: every string is a key in `packages/i18n` (`t('health.title')`) that exists in `az`, `ru`, and `en`; `document.documentElement.lang` follows the chosen language.
+- No screen text in components: every string is a key in `packages/i18n` (`t('health.title')`) that exists in `az`, `ru`, and `en`; `document.documentElement.lang` follows the chosen language. A word the design system glossary lacks is added there first, then to the three locale files (`docs/design.md`, "Words").
+- Values are shown through the design system's formatters from `@vetora/ui`, never raw `Intl` for `az` (`CODING_STANDARDS.md`, "Screen text"). A stored amount in minor units goes through `formatMinorUnits` with its currency (IN-4); `formatMoney` is never called with a stored amount, and `InvoiceTable` and `Receipt`, which take manat numbers today, are changed in `packages/ui` before the first invoice screen (`docs/design.md`, "Not yet"). `formatDate` and `formatTime` take a day as `YYYY-MM-DD` or a `Date` already in the practice's wall clock: a UTC instant from the API is converted first with `date-fns` and `@date-fns/tz`, installed with the first screen that shows an instant, and business dates are computed in the API and travel as dates (`docs/design.md`, "Formatters"). A count goes through `formatCount` with the noun's forms read from the translation files (`t(key, { returnObjects: true })`); lists of names sort with `compareText`.
 - Runtime values (Sentry DSN, environment, release) come from `/config.json`, never from `import.meta.env` at build time, so one image serves every environment.
 - No personal data in URLs: search parameters hold only filters that are not personal (status, dates, location); names and phones travel in request bodies (spec 0001, "API conventions").
 - Imports carry no extension (bundler resolution); `verbatimModuleSyntax` and `erasableSyntaxOnly` are on, so types are imported with `import type`, and enums, namespaces, and parameter properties are out.
@@ -58,9 +59,9 @@ pnpm --filter @vetora/clinic-web preview    # serves the built dist/
 - jsdom stays on 29 until the local Node reaches 24.15, jsdom 30's floor (`.nvmrc` says 24; the machine had 24.14.0 on 2026-10-24).
 - Source maps are hidden and must never reach the image or the browser: the Dockerfile deletes `*.map` after the build and nginx answers 404 for them.
 - Client side routing: nginx serves `index.html` for unknown paths; hashed assets are cached for a year, `index.html` and `/config.json` are not.
-- jsdom does not move focus to a fragment link's target, which is why `AppShell`'s skip link focuses `main` itself (`packages/ui/README.md`, the repo's changes); its `scrollTo` only reports "not implemented" (replaced in `src/test-setup.ts`), and it has no canvas, so the shell test's axe run leaves out `color-contrast` (seam 2's token test covers contrast) and `document-title` (the title is in `index.html`).
-- The language `Select` in the rail's foot shows the component's `focus-ring` on the navy surface (3.4:1, above the 3:1 bar) where the brand book names `on-inverse-muted` for controls on `surface-inverse`; it goes with the switch's temporary home there (feature 5 moves it to the profile) and belongs in `design.md`'s divergence list (#13).
-- Browsers lack Azerbaijani locale data for dates and numbers; the design system ships its own formatters, and the design system work decides how this app uses them. `Intl.PluralRules` does know `az` and `ru`, which is what i18next uses for plurals.
+- jsdom does not move focus to a fragment link's target, which is why `AppShell`'s skip link focuses `main` itself (`docs/design.md`, the ledger); its `scrollTo` only reports "not implemented" (replaced in `src/test-setup.ts`), and it has no canvas, so the shell test's axe run leaves out `color-contrast` (seam 2's token test covers contrast) and `document-title` (the title is in `index.html`).
+- The language `Select` in the rail's foot shows the component's `focus-ring` on the navy surface (3.4:1, above the 3:1 bar) where the brand book names `on-inverse-muted` for controls on `surface-inverse`; it goes with the switch's temporary home there (feature 5 moves it to the profile) and is recorded beside the ledger in `docs/design.md`.
+- Browsers lack Azerbaijani locale data for dates, numbers and sorting, so nothing here calls `Intl` for them: the design system's formatters carry their own month and weekday names, number rules and alphabet (`docs/design.md`, "Formatters"). Counted nouns do not go through i18next's `Intl.PluralRules` plurals either: a noun's forms are one object in the translation files, picked by `formatCount` (`packages/i18n/AGENTS.md`).
 
 ## Agent skills
 
@@ -70,6 +71,7 @@ pnpm --filter @vetora/clinic-web preview    # serves the built dist/
 ## Related specs
 
 - [0001 Stack and architecture](../../docs/specs/0001-stack-architecture/index.md): the clinic web app row, one origin, errors, translations
-- Spec #9 (feature 4, a GitHub issue) and ADR 0003: the design system consumed from `@vetora/ui`, the status page as the first screen on it
+- Spec #9 (feature 4, a GitHub issue) and ADR 0003: the design system consumed from `@vetora/ui`, the status page as the first screen on it; ADR 0005: component code is the repo's, design data the artifact's
+- [`docs/design.md`](../../docs/design.md): the design system as the code needs it: tokens, type, components, print, the formatters and the time zone boundary, how words flow, the ledger
 
 _Drafted from the repo on 2026-10-22, worth a quick human pass; edit freely._
