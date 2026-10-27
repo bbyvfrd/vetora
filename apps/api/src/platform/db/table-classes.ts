@@ -5,6 +5,7 @@ import {
   careRelationship,
   client,
   clientContact,
+  clinicalObservation,
   encounter,
   location,
   ownership,
@@ -77,6 +78,8 @@ export const tableClassRegistry: TableClassRegistry = {
       { class: 'set_once', setOnce: ['ended_at', 'ended_by'], movesLater: ['lapses_at'] },
     ],
     [getTableName(encounter), { class: 'frozen_by_status' }],
+    // A reading is never changed: a corrected weight is a new row (PT-2, AC-6; #23).
+    [getTableName(clinicalObservation), { class: 'append_only' }],
   ]),
   views: new Set(),
   functions: new Set(),

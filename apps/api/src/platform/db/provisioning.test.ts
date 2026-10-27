@@ -186,6 +186,7 @@ describe.skipIf(!databaseTestsEnabled())(
         'care_relationship',
         'client',
         'client_contact',
+        'clinical_observation',
         'encounter',
         'location',
         'ownership',

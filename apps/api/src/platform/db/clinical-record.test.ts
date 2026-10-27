@@ -15,12 +15,15 @@ import {
 
 /**
  * The visit and its care relationship (#22; spec 0002, "Data model sketch": Clinical Record, "State transitions",
- * AC-2, AC-14), seam 1 of spec #18: what the database itself guarantees, through the practice role as a request writes,
- * whatever the API does. The API seam (src/http/visits.test.ts) proves the handler's side: the relationship it creates
- * or extends, and what a person sees.
+ * AC-2, AC-14) and its vital signs (#23; AC-6's first half), seam 1 of spec #18: what the database itself guarantees,
+ * through the practice role as a request writes, whatever the API does. The API seam (src/http/visits.test.ts,
+ * src/http/observations.test.ts) proves the handler's side: the relationship it creates or extends, the readings it
+ * times and attributes, and what a person sees.
  */
 
 const CHECK_VIOLATION = '23514'
+const NOT_NULL_VIOLATION = '23502'
+const FOREIGN_KEY_VIOLATION = '23503'
 const UNIQUE_VIOLATION = '23505'
 
 describe.skipIf(!databaseTestsEnabled())('the care relationship and the visit (#22, seam 1)', () => {
@@ -341,5 +344,195 @@ describe.skipIf(!databaseTestsEnabled())('the care relationship and the visit (#
         [patientId, staff.vet],
       ),
     ).toBe(undefined)
+  })
+
+  describe('the vital signs: clinical_observation (#23; spec 0002, "Data model sketch": clinical_observation)', () => {
+    type Reading = {
+      kind?: string
+      value?: string
+      unit?: string | null
+      occurredAt?: string
+      measuredBy?: string | null
+    }
+
+    /** A reading on the visit as a request writes it, as `actor`, measured by them unless the case says otherwise. */
+    const record = (visitId: string, patientId: string, actor: string, reading: Reading = {}) =>
+      asPractice(
+        app,
+        practice,
+        (client) =>
+          client.query<{ id: string }>(
+            `insert into ${schema}.clinical_observation
+               (location_id, patient_id, encounter_id, kind, value, unit, occurred_at, measured_by)
+             values ($1, $2, $3, $4, $5, $6, coalesce($7::timestamptz, now()), $8) returning id`,
+            [
+              locationId,
+              patientId,
+              visitId,
+              reading.kind ?? 'weight',
+              reading.value ?? '4.2',
+              reading.unit === undefined ? 'kg' : reading.unit,
+              reading.occurredAt ?? null,
+              reading.measuredBy === undefined ? actor : reading.measuredBy,
+            ],
+          ),
+        { actor },
+      ).then((result) => result.rows[0]?.id as string)
+
+    const readings = async (visitId: string) =>
+      (
+        await migrator.query<Record<string, unknown>>(
+          `select kind, value::text as value, unit, measured_by, occurred_at <= now() as timed
+           from ${schema}.clinical_observation where encounter_id = $1 order by occurred_at, id`,
+          [visitId],
+        )
+      ).rows
+
+    it('stores each of the four kinds with value, unit, time and measurer, and IN-1 writes an audit row naming the actor', async () => {
+      const { visitId, patientId } = await draftVisit()
+
+      const ids = [
+        await record(visitId, patientId, staff.assistant, { kind: 'weight', value: '4.2', unit: 'kg' }),
+        await record(visitId, patientId, staff.assistant, { kind: 'temperature', value: '38.5', unit: '°C' }),
+        await record(visitId, patientId, staff.vet, { kind: 'pulse', value: '96', unit: '/min' }),
+        await record(visitId, patientId, staff.vet, { kind: 'respiratory_rate', value: '24', unit: '/min' }),
+      ]
+
+      expect(await readings(visitId)).toEqual([
+        { kind: 'weight', value: '4.200', unit: 'kg', measured_by: staff.assistant, timed: true },
+        { kind: 'temperature', value: '38.500', unit: '°C', measured_by: staff.assistant, timed: true },
+        { kind: 'pulse', value: '96.000', unit: '/min', measured_by: staff.vet, timed: true },
+        { kind: 'respiratory_rate', value: '24.000', unit: '/min', measured_by: staff.vet, timed: true },
+      ])
+      const audit = await migrator.query(
+        `select row_id, actor_id from ${schema}.audit_event
+         where table_name = 'clinical_observation' and action = 'insert' and row_id = any($1::uuid[]) order by row_id`,
+        [ids],
+      )
+      expect(audit.rows).toEqual(
+        [
+          { row_id: ids[0], actor_id: staff.assistant },
+          { row_id: ids[1], actor_id: staff.assistant },
+          { row_id: ids[2], actor_id: staff.vet },
+          { row_id: ids[3], actor_id: staff.vet },
+        ].sort((a, b) => (a.row_id as string).localeCompare(b.row_id as string)),
+      )
+    })
+
+    it('CR-3: a reading without a unit or a measurer is refused, and each kind keeps its unit (weight in kg)', async () => {
+      const { visitId, patientId } = await draftVisit()
+      const refused = (reading: Reading) => refusalOf(record(visitId, patientId, staff.vet, reading))
+
+      expect(await refused({ unit: null })).toMatchObject({ code: NOT_NULL_VIOLATION, column: 'unit' })
+      expect(await refused({ measuredBy: null })).toMatchObject({ code: NOT_NULL_VIOLATION, column: 'measured_by' })
+      for (const reading of [
+        { kind: 'weight', unit: 'g' },
+        { kind: 'weight', unit: '' },
+        { kind: 'temperature', value: '38.5', unit: '°F' },
+        { kind: 'pulse', value: '96', unit: 'bpm' },
+        { kind: 'respiratory_rate', value: '24', unit: '/h' },
+        { kind: 'other', value: '1', unit: ' ' },
+      ]) {
+        expect(await refused(reading), JSON.stringify(reading)).toMatchObject({
+          code: CHECK_VIOLATION,
+          constraint: 'clinical_observation_unit_check',
+        })
+      }
+      expect(await refused({ kind: 'mood', unit: 'kg' })).toMatchObject({
+        code: CHECK_VIOLATION,
+        constraint: 'clinical_observation_kind_check',
+      })
+      expect(await readings(visitId)).toEqual([])
+    })
+
+    it('IN-1: a reading without an actor is refused with vetora.no_actor, and nothing of it is kept', async () => {
+      const { visitId, patientId } = await draftVisit()
+
+      for (const actor of [null, '']) {
+        const refused = await refusalOf(
+          asPractice(
+            app,
+            practice,
+            (client) =>
+              client.query(
+                `insert into ${schema}.clinical_observation
+                   (location_id, patient_id, encounter_id, kind, value, unit, measured_by)
+                 values ($1, $2, $3, 'weight', 4.2, 'kg', $4)`,
+                [locationId, patientId, visitId, staff.vet],
+              ),
+            { actor },
+          ),
+        )
+        expect(ruleOf(refused), String(actor)).toBe('vetora.no_actor')
+      }
+      expect(await readings(visitId)).toEqual([])
+    })
+
+    it("a reading names its visit's patient: another patient with that visit is refused by the key on the pair", async () => {
+      const { visitId } = await draftVisit()
+      const other = await ownedPatient()
+
+      expect(await refusalOf(record(visitId, other.patientId, staff.vet))).toMatchObject({
+        code: FOREIGN_KEY_VIOLATION,
+        constraint: 'clinical_observation_encounter_patient_fkey',
+      })
+    })
+
+    it('AC-13: occurred_at is never in the future and back datable within the practice limit', async () => {
+      const { visitId, patientId } = await draftVisit()
+
+      expect(
+        await refusalOf(
+          record(visitId, patientId, staff.vet, { occurredAt: new Date(Date.now() + 3_600_000).toISOString() }),
+        ),
+      ).toMatchObject({ code: CHECK_VIOLATION, constraint: 'clinical_observation_occurred_at_check' })
+      const twoDaysAgo = new Date(Date.now() - 48 * 3_600_000).toISOString()
+      expect(ruleOf(await refusalOf(record(visitId, patientId, staff.vet, { occurredAt: twoDaysAgo })))).toBe(
+        'vetora.backdated_too_far',
+      )
+      // An hour ago is within the default 24 hours: weighed before the vet sat down to write.
+      const anHourAgo = new Date(Date.now() - 3_600_000).toISOString()
+      expect(await refusalOf(record(visitId, patientId, staff.vet, { occurredAt: anHourAgo }))).toBe(undefined)
+    })
+
+    it('PT-2, AC-6 first half: a reading cannot change or go through the practice role; a corrected weight is a second row and both remain', async () => {
+      const { visitId, patientId } = await draftVisit()
+      const first = await record(visitId, patientId, staff.assistant, { value: '4.2' })
+      const asAssistant = (sql: string) =>
+        refusalOf(asPractice(app, practice, (client) => client.query(sql, [first]), { actor: staff.assistant }))
+
+      expect(await asAssistant(`update ${schema}.clinical_observation set value = 4.3 where id = $1`)).toMatchObject(
+        PERMISSION_DENIED,
+      )
+      expect(await asAssistant(`delete from ${schema}.clinical_observation where id = $1`)).toMatchObject(
+        PERMISSION_DENIED,
+      )
+      await record(visitId, patientId, staff.assistant, { value: '4.3' })
+
+      expect((await readings(visitId)).map((reading) => reading.value)).toEqual(['4.200', '4.300'])
+    })
+
+    it('AC-2: a reading on a completed or a cancelled visit is refused with vetora.frozen_record, and the earlier ones stay', async () => {
+      const completed = await draftVisit()
+      await record(completed.visitId, completed.patientId, staff.assistant)
+      await finalise(completed.visitId, staff.vet, await relationship(completed.patientId, staff.vet))
+
+      expect(
+        ruleOf(await refusalOf(record(completed.visitId, completed.patientId, staff.assistant, { value: '4.4' }))),
+      ).toBe('vetora.frozen_record')
+      expect((await readings(completed.visitId)).map((reading) => reading.value)).toEqual(['4.200'])
+
+      const cancelled = await draftVisit()
+      await asPractice(
+        app,
+        practice,
+        (client) =>
+          client.query(`update ${schema}.encounter set status = 'discarded' where id = $1`, [cancelled.visitId]),
+        { actor: staff.vet },
+      )
+      expect(ruleOf(await refusalOf(record(cancelled.visitId, cancelled.patientId, staff.vet)))).toBe(
+        'vetora.frozen_record',
+      )
+    })
   })
 })

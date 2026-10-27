@@ -77,7 +77,15 @@
       "female": "qısırlaşdırılıb",
       "male": "qısırlaşdırılıb",
       "unknown": "qısırlaşdırılıb"
-    }
+    },
+    "vitals": "Həyati göstəricilər",
+    "vital": {
+      "weight": "Çəki",
+      "temperature": "Temperatur",
+      "pulse": "Nəbz",
+      "respiratoryRate": "Tənəffüs tezliyi"
+    },
+    "lastWeight": "Son çəki: {{value}}, {{date}}"
   },
   "confirm": {
     "visitCancel": {
@@ -133,7 +141,17 @@
     "microchip": "Mikroçipin 15 rəqəmini daxil edin",
     "microchipTaken": "Bu mikroçip başqa pasiyentdə qeyd olunub",
     "reasonForVisit": "Müraciət səbəbini daxil edin",
-    "dateExample": "12.10.2026"
+    "dateExample": "12.10.2026",
+    "weight": "Çəkini kiloqramla daxil edin, məsələn 4,2",
+    "temperature": "Temperaturu °C ilə daxil edin, məsələn 38,5",
+    "pulse": "Nəbzi dəqiqədəki vuruşla daxil edin, məsələn 90",
+    "respiratoryRate": "Tənəffüs tezliyini dəqiqədəki sayla daxil edin, məsələn 24"
+  },
+  "unit": {
+    "kg": "kq",
+    "g": "q",
+    "celsius": "°C",
+    "perMinute": "/dəq"
   },
   "newVisit": {
     "title": "Yeni qəbul",

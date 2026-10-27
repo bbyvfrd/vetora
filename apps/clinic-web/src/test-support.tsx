@@ -21,9 +21,10 @@ export type Answer = Response | 'offline'
 
 /**
  * The stubbed routes, keyed `METHOD /path`, or `METHOD /path/*` for every path under it (a create whose path carries
- * the new id); a route not listed answers 404.
+ * the new id); a route not listed answers 404. A route may hold its answer back (a promise) to show what the page
+ * does while a request is under way.
  */
-export type Routes = Record<string, (body: unknown) => Answer>
+export type Routes = Record<string, (body: unknown) => Answer | Promise<Answer>>
 
 /** The route that answers `key` (`METHOD /path`): the exact one, else the first `/*` one it falls under. */
 function routeOf(routes: Routes, key: string): Routes[string] | undefined {
@@ -43,7 +44,7 @@ export function stubApi(fetchMock: Mock<typeof fetch>, routes: Routes): Asked[] 
     const body = text ? (JSON.parse(text) as unknown) : undefined
     asked.push({ method: request.method, path, body })
     const route = routeOf(routes, `${request.method} ${path}`)
-    const answer = route ? route(body) : Response.json({ title: 'Not found', status: 404 }, { status: 404 })
+    const answer = route ? await route(body) : Response.json({ title: 'Not found', status: 404 }, { status: 404 })
     if (answer === 'offline') throw new TypeError('Failed to fetch')
     return answer
   })
