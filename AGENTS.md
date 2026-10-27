@@ -47,7 +47,7 @@ pnpm openapi                             # after a route change; commit openapi.
 - The main folder stays on `main` and lands work; every task that touches code runs in its own worktree under `.claude/worktrees/` on its own branch, with its own slot of ports and database cluster (`pnpm local:setup`, which the SessionStart hook runs). `docs/agents/worktrees.md` is the procedure: start, work under the worktree Bash guard, keep up with `main`, land; a worktree whose branch has landed is swept away with its branch and containers by the next session start or end (`pnpm local:gc`).
 - One commit per ticket with a conventional prefix (`feat:`, `fix:`, `docs:`, `chore:`, `test:`) and `Closes #N` in the message, so a review can find its spec; docs only work may commit to `main` in the main folder when no other session writes there.
 - `/mattpocock-skills:code-review` diffs `main...HEAD` in the worktree: commit the ticket, review, fold the review's fixes into that commit with `--amend`.
-- A branch lands through a pull request merged by squash (ADR 0006). Agents never push; you push and merge.
+- A branch lands through a pull request merged by squash (ADR 0006). Agents push (ADR 0009): a ticket's branch once it is green and reviewed, and a docs only commit on `main`; never with force, so a fix after the push is a new commit (the squash makes it one). You open the pull request and merge unless you ask an agent to.
 
 ## Agent skills
 
