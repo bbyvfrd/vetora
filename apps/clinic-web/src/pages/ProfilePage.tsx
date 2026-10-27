@@ -39,7 +39,7 @@ export function ProfilePage() {
   })
 
   async function signOutHere() {
-    await signOut()
+    await signOut(me.id)
     await navigate({ to: '/sign-in' })
     queryClient.clear()
   }

@@ -1,6 +1,7 @@
 import { queryOptions } from '@tanstack/react-query'
 import type { Me } from '@vetora/contracts'
 import { api } from './api/client'
+import { forgetDraftsOf } from './drafts'
 
 /**
  * Who is signed in, and signing in and out (spec #18, "Web app"): `/api/me` is the app's first call after sign in and
@@ -74,8 +75,13 @@ export async function signIn(clinicCode: string, username: string, password: str
   return 'signed-in'
 }
 
-/** End the session; the page goes to the sign in page whatever the answer, since the session is no use either way. */
-export async function signOut(): Promise<void> {
+/**
+ * End the session; the page goes to the sign in page whatever the answer, since the session is no use either way.
+ * Every draft note this person kept on this computer goes with it (#24): the next person at the desk never sees them.
+ * A session that ends on its own keeps them, for the same person's next sign in.
+ */
+export async function signOut(personId: string): Promise<void> {
+  await forgetDraftsOf(personId)
   try {
     await api.POST('/api/auth/sign-out')
   } catch {
