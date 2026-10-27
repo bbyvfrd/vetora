@@ -8,6 +8,14 @@ import { healthRoute } from './http/health.js'
 import { getMe, languageRoute, meRoute, putLanguage } from './http/me.js'
 import { requestLogger } from './http/middleware.js'
 import {
+  getLastWeight,
+  getVisitObservations,
+  lastWeightRoute,
+  putObservation,
+  recordObservationRoute,
+  visitObservationsRoute,
+} from './http/observations.js'
+import {
   breedRoute,
   getSpecies,
   lookUpClients,
@@ -90,6 +98,9 @@ app.openapi(noteRoute, putNote)
 app.openapi(completeRoute, postComplete)
 app.openapi(cancelRoute, postCancel)
 app.openapi(visitsTodayRoute, getVisitsToday)
+app.openapi(recordObservationRoute, putObservation)
+app.openapi(visitObservationsRoute, getVisitObservations)
+app.openapi(lastWeightRoute, getLastWeight)
 
 app.doc31('/api/openapi.json', openApiInfo)
 

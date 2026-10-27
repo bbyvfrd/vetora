@@ -43,6 +43,10 @@ export type SpeciesList = z.infer<typeof SpeciesList>
 export const BreedPath = PracticePath.extend({ breedId: z.uuidv7() })
 export type BreedPath = z.infer<typeof BreedPath>
 
+/** The path of a patient's own routes (#23: the last weight). */
+export const PatientPath = PracticePath.extend({ patientId: z.uuid() })
+export type PatientPath = z.infer<typeof PatientPath>
+
 /** PUT /api/p/{practiceId}/breeds/{breedId} request: a breed added inline, with one name in the language given. */
 export const BreedCreate = z.object({
   speciesId: z.uuid(),

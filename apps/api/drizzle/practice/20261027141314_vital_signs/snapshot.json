@@ -1,0 +1,787 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "27036789-18c6-4711-ac50-b71ab7f45d8e",
+  "prevIds": [
+    "fa2387ce-dea5-4e7f-b4b8-2b793e3af94b"
+  ],
+  "footprints": [
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "clinical_observation"
+      ],
+      "writes": [
+        "s|tbl|public.clinical_observation",
+        "n|tbl|public.clinical_observation",
+        "e|tbl|public.clinical_observation",
+        "n|rel|public.clinical_observation",
+        "n|type|public.clinical_observation",
+        "n|rel|public.clinical_observation_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "clinical_observation",
+        "clinical_observation_patient_kind_idx"
+      ],
+      "writes": [
+        "s|idx|public.clinical_observation_patient_kind_idx",
+        "n|idx|public.clinical_observation_patient_kind_idx",
+        "e|idx|public.clinical_observation_patient_kind_idx",
+        "n|rel|public.clinical_observation_patient_kind_idx"
+      ],
+      "reads": [
+        "n|tbl|public.clinical_observation",
+        "n|sch|public",
+        "n|col|public.clinical_observation.patient_id",
+        "n|col|public.clinical_observation.kind",
+        "n|col|public.clinical_observation.occurred_at"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "clinical_observation",
+        "clinical_observation_encounter_idx"
+      ],
+      "writes": [
+        "s|idx|public.clinical_observation_encounter_idx",
+        "n|idx|public.clinical_observation_encounter_idx",
+        "e|idx|public.clinical_observation_encounter_idx",
+        "n|rel|public.clinical_observation_encounter_idx"
+      ],
+      "reads": [
+        "n|tbl|public.clinical_observation",
+        "n|sch|public",
+        "n|col|public.clinical_observation.encounter_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "clinical_observation",
+        "clinical_observation_location_idx"
+      ],
+      "writes": [
+        "s|idx|public.clinical_observation_location_idx",
+        "n|idx|public.clinical_observation_location_idx",
+        "e|idx|public.clinical_observation_location_idx",
+        "n|rel|public.clinical_observation_location_idx"
+      ],
+      "reads": [
+        "n|tbl|public.clinical_observation",
+        "n|sch|public",
+        "n|col|public.clinical_observation.location_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "clinical_observation",
+        "clinical_observation_measured_by_idx"
+      ],
+      "writes": [
+        "s|idx|public.clinical_observation_measured_by_idx",
+        "n|idx|public.clinical_observation_measured_by_idx",
+        "e|idx|public.clinical_observation_measured_by_idx",
+        "n|rel|public.clinical_observation_measured_by_idx"
+      ],
+      "reads": [
+        "n|tbl|public.clinical_observation",
+        "n|sch|public",
+        "n|col|public.clinical_observation.measured_by"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "encounter",
+        "encounter_id_patient_idx"
+      ],
+      "writes": [
+        "s|idx|public.encounter_id_patient_idx",
+        "n|idx|public.encounter_id_patient_idx",
+        "e|idx|public.encounter_id_patient_idx",
+        "n|rel|public.encounter_id_patient_idx"
+      ],
+      "reads": [
+        "n|tbl|public.encounter",
+        "n|sch|public",
+        "n|col|public.encounter.id",
+        "n|col|public.encounter.patient_id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "clinical_observation"
+      ],
+      "writes": [
+        "s|fk|public.clinical_observation.clinical_observation_location_id_location_id_fkey",
+        "n|fk|public.clinical_observation.clinical_observation_location_id_location_id_fkey",
+        "e|fk|public.clinical_observation.clinical_observation_location_id_location_id_fkey",
+        "n|con|public.clinical_observation.clinical_observation_location_id_location_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.clinical_observation",
+        "n|sch|public",
+        "n|tbl|public.location",
+        "n|sch|public",
+        "n|col|public.clinical_observation.location_id",
+        "n|col|public.location.id",
+        "e|uniqueness|public.location.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "clinical_observation"
+      ],
+      "writes": [
+        "s|fk|public.clinical_observation.clinical_observation_measured_by_staff_member_id_fkey",
+        "n|fk|public.clinical_observation.clinical_observation_measured_by_staff_member_id_fkey",
+        "e|fk|public.clinical_observation.clinical_observation_measured_by_staff_member_id_fkey",
+        "n|con|public.clinical_observation.clinical_observation_measured_by_staff_member_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.clinical_observation",
+        "n|sch|public",
+        "n|tbl|public.staff_member",
+        "n|sch|public",
+        "n|col|public.clinical_observation.measured_by",
+        "n|col|public.staff_member.id",
+        "e|uniqueness|public.staff_member.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "clinical_observation"
+      ],
+      "writes": [
+        "s|fk|public.clinical_observation.clinical_observation_created_by_staff_member_id_fkey",
+        "n|fk|public.clinical_observation.clinical_observation_created_by_staff_member_id_fkey",
+        "e|fk|public.clinical_observation.clinical_observation_created_by_staff_member_id_fkey",
+        "n|con|public.clinical_observation.clinical_observation_created_by_staff_member_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.clinical_observation",
+        "n|sch|public",
+        "n|tbl|public.staff_member",
+        "n|sch|public",
+        "n|col|public.clinical_observation.created_by",
+        "n|col|public.staff_member.id",
+        "e|uniqueness|public.staff_member.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "clinical_observation"
+      ],
+      "writes": [
+        "s|fk|public.clinical_observation.clinical_observation_updated_by_staff_member_id_fkey",
+        "n|fk|public.clinical_observation.clinical_observation_updated_by_staff_member_id_fkey",
+        "e|fk|public.clinical_observation.clinical_observation_updated_by_staff_member_id_fkey",
+        "n|con|public.clinical_observation.clinical_observation_updated_by_staff_member_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.clinical_observation",
+        "n|sch|public",
+        "n|tbl|public.staff_member",
+        "n|sch|public",
+        "n|col|public.clinical_observation.updated_by",
+        "n|col|public.staff_member.id",
+        "e|uniqueness|public.staff_member.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "clinical_observation"
+      ],
+      "writes": [
+        "s|fk|public.clinical_observation.clinical_observation_encounter_patient_fkey",
+        "n|fk|public.clinical_observation.clinical_observation_encounter_patient_fkey",
+        "e|fk|public.clinical_observation.clinical_observation_encounter_patient_fkey",
+        "n|con|public.clinical_observation.clinical_observation_encounter_patient_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.clinical_observation",
+        "n|sch|public",
+        "n|tbl|public.encounter",
+        "n|sch|public",
+        "n|col|public.clinical_observation.encounter_id",
+        "n|col|public.clinical_observation.patient_id",
+        "n|col|public.encounter.id",
+        "n|col|public.encounter.patient_id",
+        "e|uniqueness|public.encounter.id.patient_id"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "clinical_observation",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clinical_observation",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "uuidv7()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clinical_observation",
+        "name": "location_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clinical_observation",
+        "name": "patient_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clinical_observation",
+        "name": "encounter_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clinical_observation",
+        "name": "kind",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clinical_observation",
+        "name": "value",
+        "type": "numeric(10,3)",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clinical_observation",
+        "name": "unit",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clinical_observation",
+        "name": "occurred_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clinical_observation",
+        "name": "measured_by",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clinical_observation",
+        "name": "note",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clinical_observation",
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clinical_observation",
+        "name": "created_by",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clinical_observation",
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clinical_observation",
+        "name": "updated_by",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clinical_observation",
+        "name": "version",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "1",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clinical_observation",
+        "name": "clinical_observation_patient_kind_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "patient_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          },
+          {
+            "value": "kind",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          },
+          {
+            "value": "occurred_at",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clinical_observation",
+        "name": "clinical_observation_encounter_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "encounter_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clinical_observation",
+        "name": "clinical_observation_location_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "location_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clinical_observation",
+        "name": "clinical_observation_measured_by_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "measured_by",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "encounter_id_patient_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          },
+          {
+            "value": "patient_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": true,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clinical_observation",
+        "name": "clinical_observation_location_id_location_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "location_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "location",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clinical_observation",
+        "name": "clinical_observation_measured_by_staff_member_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "measured_by"
+        ],
+        "schemaTo": "public",
+        "tableTo": "staff_member",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clinical_observation",
+        "name": "clinical_observation_created_by_staff_member_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "created_by"
+        ],
+        "schemaTo": "public",
+        "tableTo": "staff_member",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clinical_observation",
+        "name": "clinical_observation_updated_by_staff_member_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "updated_by"
+        ],
+        "schemaTo": "public",
+        "tableTo": "staff_member",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clinical_observation",
+        "name": "clinical_observation_encounter_patient_fkey",
+        "nameExplicit": true,
+        "columns": [
+          "encounter_id",
+          "patient_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "encounter",
+        "columnsTo": [
+          "id",
+          "patient_id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clinical_observation",
+        "name": "clinical_observation_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clinical_observation",
+        "name": "clinical_observation_kind_check",
+        "value": "\"kind\" in ('weight', 'temperature', 'pulse', 'respiratory_rate', 'body_condition', 'other')",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clinical_observation",
+        "name": "clinical_observation_unit_check",
+        "value": "case \"kind\" when 'weight' then \"unit\" = 'kg' when 'temperature' then \"unit\" = '°C' when 'pulse' then \"unit\" = '/min' when 'respiratory_rate' then \"unit\" = '/min' else \"unit\" ~ '\\S' end",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clinical_observation",
+        "name": "clinical_observation_occurred_at_check",
+        "value": "\"occurred_at\" <= now()",
+        "entityType": "checks"
+      }
+    }
+  ]
+}

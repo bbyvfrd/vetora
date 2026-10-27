@@ -1,6 +1,6 @@
 import { type Action, can, LOCATION_HEADER, parseRoles, type StaffRole } from '@vetora/contracts'
 import { and, eq } from 'drizzle-orm'
-import type { MiddlewareHandler } from 'hono'
+import type { Context, MiddlewareHandler } from 'hono'
 import { auth } from '../platform/auth/auth.js'
 import { member } from '../platform/db/control-schema.js'
 import { ruleOf } from '../platform/db/errors.js'
@@ -18,11 +18,11 @@ import type { Env } from './env.js'
  * and data topology"), the route's own middleware, so each route declares the action it performs where it is
  * declared. In order, each answering before anything of the practice is read: the session (401), the membership and
  * its roles from control.member (403), the registry row through its cache (403 when the practice is not active, 503
- * when its schema is behind this code), the location header (400 when missing), the route's action against the
- * permission matrix (403). Then one transaction in the practice as the actor: the location is checked against the
- * practice's active locations first (400), and the request's validation and handler run inside it with
- * `{practice, location, actor, db, log}` in the request context. An answer of 400 or more rolls the transaction back;
- * a rule the database refuses at a statement or at COMMIT answers 409 naming its `vetora.*` code (ruleProblem()).
+ * when its schema is behind this code), the location header (400 when missing), the route's action, fixed or read from
+ * the request, against the permission matrix (403). Then one transaction in the practice as the actor: the location is
+ * checked against the practice's active locations first (400), and the request's validation and handler run inside it
+ * with `{practice, location, actor, db, log}` in the request context. An answer of 400 or more rolls the transaction
+ * back; a rule the database refuses at a statement or at COMMIT answers 409 naming its `vetora.*` code (ruleProblem()).
  */
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -55,8 +55,14 @@ function actorOf(userId: string, roles: readonly StaffRole[]) {
   return { id: userId, roles }
 }
 
+/**
+ * The action a route whose body decides it performs (#23: a weight reading or another vital sign), read from the
+ * request once the person is known to be a member; the middleware checks it as it checks a fixed one.
+ */
+export type ActionOf = (c: Context<Env>) => Promise<Action>
+
 /** The request context of a practice route that performs `action` (spec #18, "Contracts": the permission matrix). */
-export function practiceRoute(action: Action): MiddlewareHandler<Env> {
+export function practiceRoute(action: Action | ActionOf): MiddlewareHandler<Env> {
   return async (c, next) => {
     const session = await auth().api.getSession({ headers: c.req.raw.headers })
     if (!session) return problem(c, 401, 'Not signed in')
@@ -69,7 +75,9 @@ export function practiceRoute(action: Action): MiddlewareHandler<Env> {
     const locationId = c.req.header(LOCATION_HEADER) ?? ''
     if (!UUID.test(locationId)) return problem(c, 400, 'A location is required')
     const actor = actorOf(session.user.id, roles)
-    if (!can(actor.roles, action)) return problem(c, 403, 'Not permitted for these roles')
+    if (!can(actor.roles, typeof action === 'string' ? action : await action(c))) {
+      return problem(c, 403, 'Not permitted for these roles')
+    }
 
     const requestId = c.get('requestId')
     try {

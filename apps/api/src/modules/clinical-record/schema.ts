@@ -1,5 +1,16 @@
 import { sql } from 'drizzle-orm'
-import { type AnyPgColumn, check, index, pgTable, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core'
+import {
+  type AnyPgColumn,
+  check,
+  foreignKey,
+  index,
+  numeric,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from 'drizzle-orm/pg-core'
 import { sqlList } from '../../platform/db/domains.js'
 import { location, staffMember, standardColumns } from '../../platform/db/platform-tables.js'
 
@@ -107,5 +118,68 @@ export const encounter = pgTable(
     index('encounter_care_relationship_idx').on(table.careRelationshipId),
     index('encounter_reported_by_idx').on(table.reportedByClientId),
     index('encounter_finalised_by_idx').on(table.finalisedBy),
+    /** The target of clinical_observation's key on its visit and patient together: a reading names its visit's patient. */
+    uniqueIndex('encounter_id_patient_idx').on(table.id, table.patientId),
+  ],
+)
+
+/** What a reading measures (spec 0002's sketch); the visit page records the first four (#23). */
+export const OBSERVATION_KINDS = [
+  'weight',
+  'temperature',
+  'pulse',
+  'respiratory_rate',
+  'body_condition',
+  'other',
+] as const
+
+/**
+ * A measured finding (docs/domain.md §7.3: ClinicalObservation; the vital signs of a visit), append only: a reading is
+ * never changed, a correction is a new row and the newest is the one in force (PT-2, AC-6). Value, unit, time and
+ * measurer are all required (CR-3), and each vital sign keeps its one unit: weight in kg, temperature in °C, pulse and
+ * respiratory rate per minute. `occurred_at` is never in the future (the CHECK) and back datable within the practice's
+ * limit (assert_backdate_limit(), AC-13); a reading on a finalised or discarded visit is refused by lock_parent() on
+ * its encounter (CR-1, AC-2). Location scoped (IN-5). `encounter_id` is null for a weight taken with no visit (feature
+ * 11); `patient_id` is the Patient module's table, a plain uuid here with its key in the migration.
+ * `admission_id` arrives with slice 8 as a nullable forward column.
+ */
+export const clinicalObservation = pgTable(
+  'clinical_observation',
+  {
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
+    locationId: uuid('location_id')
+      .notNull()
+      .references(() => location.id),
+    patientId: uuid('patient_id').notNull(),
+    /** Keyed with `patient_id` to the visit's own pair, so a reading never names another patient's visit. */
+    encounterId: uuid('encounter_id'),
+    kind: text('kind', { enum: OBSERVATION_KINDS }).notNull(),
+    value: numeric('value', { precision: 10, scale: 3, mode: 'number' }).notNull(),
+    unit: text('unit').notNull(),
+    /** When it was measured: the database clock unless the measurer says earlier, within the back dating limit. */
+    occurredAt: timestamp('occurred_at', { withTimezone: true }).notNull().defaultNow(),
+    measuredBy: uuid('measured_by')
+      .notNull()
+      .references(() => staffMember.id),
+    note: text('note'),
+    ...standardColumns(),
+  },
+  (table) => [
+    check('clinical_observation_kind_check', sql`${table.kind} in (${sqlList(OBSERVATION_KINDS)})`),
+    check(
+      'clinical_observation_unit_check',
+      sql`case ${table.kind} when 'weight' then ${table.unit} = 'kg' when 'temperature' then ${table.unit} = '°C' when 'pulse' then ${table.unit} = '/min' when 'respiratory_rate' then ${table.unit} = '/min' else ${table.unit} ~ '\\S' end`,
+    ),
+    check('clinical_observation_occurred_at_check', sql`${table.occurredAt} <= now()`),
+    foreignKey({
+      name: 'clinical_observation_encounter_patient_fkey',
+      columns: [table.encounterId, table.patientId],
+      foreignColumns: [encounter.id, encounter.patientId],
+    }),
+    /** The patient's last weight, and each kind's readings over time. */
+    index('clinical_observation_patient_kind_idx').on(table.patientId, table.kind, table.occurredAt),
+    index('clinical_observation_encounter_idx').on(table.encounterId),
+    index('clinical_observation_location_idx').on(table.locationId),
+    index('clinical_observation_measured_by_idx').on(table.measuredBy),
   ],
 )

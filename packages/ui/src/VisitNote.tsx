@@ -19,6 +19,10 @@ export interface VitalField {
   high?: number
   /** The last recorded value, written out: "3,9 kg on 03.06.2026". */
   previous?: string
+  /** What to enter, shown under the field when the value cannot be saved: "Enter the temperature in °C, such as 38.5". */
+  error?: string
+  /** Shows the value without letting it change: a person who may not record this sign reads it. */
+  readOnly?: boolean
 }
 
 export interface NoteSection {
@@ -51,6 +55,8 @@ export interface VisitNoteProps {
   vitalsLabel?: string
   vitals?: VitalField[]
   onVitalChange?: (id: string, value: string) => void
+  /** Called when a vital sign loses the focus: the moment to save the value typed in it. */
+  onVitalBlur?: (id: string) => void
   /** The text sections, in the order the vet works through them. */
   sections: NoteSection[]
   /** Text of each section, by id. */
@@ -60,6 +66,11 @@ export interface VisitNoteProps {
   onSectionBlur?: (id: string) => void
   /** Shows the note as text. For a signed note, and for past visits. */
   readOnly?: boolean
+  /**
+   * Shows the sections as text while the vital signs stay fields: for a person who records a vital sign but does not
+   * write the note, such as a receptionist weighing the patient.
+   */
+  readOnlySections?: boolean
   /** Whether what is typed has reached the server. */
   saveState?: 'saved' | 'saving' | 'unsaved' | 'error'
   /** The save state in words: "Saved at 14:32", "Saving", "Not saved. Check the connection". */
@@ -74,10 +85,12 @@ function Vital({
   field,
   labels,
   onChange,
+  onBlur,
 }: {
   field: VitalField
   labels: VisitNoteLabels
   onChange?: (id: string, value: string) => void
+  onBlur?: (id: string) => void
 }) {
   const auto = React.useId()
   const n = parseNumber(field.value)
@@ -89,23 +102,27 @@ function Vital({
         : field.low !== undefined && n < field.low
           ? 'low'
           : null
-  const described = flag || field.previous ? `${auto}-note` : undefined
+  const noted = flag || field.previous ? `${auto}-note` : undefined
+  const described = [noted, field.error ? `${auto}-msg` : undefined].filter(Boolean).join(' ') || undefined
   return (
-    <FieldShell fieldId={auto} label={field.label}>
-      <div className="vt-input vt-input-md">
+    <FieldShell fieldId={auto} label={field.label} error={field.error}>
+      <div className={cx('vt-input', 'vt-input-md', field.error && 'is-invalid')}>
         <input
           id={auto}
           type="text"
           inputMode="decimal"
           autoComplete="off"
           value={field.value}
+          readOnly={field.readOnly}
+          aria-invalid={field.error ? true : undefined}
           aria-describedby={described}
           onChange={(e) => onChange?.(field.id, e.target.value)}
+          onBlur={() => onBlur?.(field.id)}
         />
         <span className="vt-input-suffix">{field.unit}</span>
       </div>
-      {described ? (
-        <p id={described} className="vt-vital-note">
+      {noted ? (
+        <p id={noted} className="vt-vital-note">
           {flag ? (
             <span className="vt-vital-flag">
               <Icon name={flag === 'high' ? 'arrow_upward' : 'arrow_downward'} size="sm" />
@@ -128,11 +145,13 @@ export function VisitNote({
   vitalsLabel,
   vitals,
   onVitalChange,
+  onVitalBlur,
   sections,
   values,
   onChange,
   onSectionBlur,
   readOnly = false,
+  readOnlySections = false,
   saveState,
   saveLabel,
   labels,
@@ -180,7 +199,7 @@ export function VisitNote({
                             label={labels[flag]}
                           />
                         ) : null}
-                        {v.value ? `${v.value} ${v.unit}` : labels.empty}
+                        {v.value ? `${v.value} ${v.unit}` : labels.empty}
                       </span>
                     </span>
                   )
@@ -188,12 +207,7 @@ export function VisitNote({
               </dd>
             </div>
           ) : null}
-          {sections.map((s) => (
-            <div key={s.id}>
-              <dt>{s.label}</dt>
-              <dd className={cx(!values[s.id] && 'is-empty')}>{values[s.id] || labels.empty}</dd>
-            </div>
-          ))}
+          <SectionsRead sections={sections} values={values} labels={labels} />
         </dl>
       </Card>
     )
@@ -212,29 +226,57 @@ export function VisitNote({
           <legend className="vt-label">{vitalsLabel}</legend>
           <div className="vt-vitals-grid">
             {vitals.map((v) => (
-              <Vital key={v.id} field={v} labels={labels} onChange={onVitalChange} />
+              <Vital key={v.id} field={v} labels={labels} onChange={onVitalChange} onBlur={onVitalBlur} />
             ))}
           </div>
         </fieldset>
       ) : null}
-      <div className="vt-note-sections">
-        {sections.map((s) => (
-          <TextArea
-            key={s.id}
-            label={s.label}
-            placeholder={s.placeholder}
-            hint={s.hint}
-            error={s.error}
-            required={s.required}
-            rows={s.rows || 2}
-            autoGrow
-            maxRows={20}
-            value={values[s.id] || ''}
-            onChange={(e) => onChange?.(s.id, e.target.value)}
-            onBlur={() => onSectionBlur?.(s.id)}
-          />
-        ))}
-      </div>
+      {readOnlySections ? (
+        <dl className="vt-note-read">
+          <SectionsRead sections={sections} values={values} labels={labels} />
+        </dl>
+      ) : (
+        <div className="vt-note-sections">
+          {sections.map((s) => (
+            <TextArea
+              key={s.id}
+              label={s.label}
+              placeholder={s.placeholder}
+              hint={s.hint}
+              error={s.error}
+              required={s.required}
+              rows={s.rows || 2}
+              autoGrow
+              maxRows={20}
+              value={values[s.id] || ''}
+              onChange={(e) => onChange?.(s.id, e.target.value)}
+              onBlur={() => onSectionBlur?.(s.id)}
+            />
+          ))}
+        </div>
+      )}
     </Card>
+  )
+}
+
+/** The sections as text, each heading over its words or `labels.empty`, inside the caller's `dl`. */
+function SectionsRead({
+  sections,
+  values,
+  labels,
+}: {
+  sections: NoteSection[]
+  values: Record<string, string>
+  labels: VisitNoteLabels
+}) {
+  return (
+    <>
+      {sections.map((s) => (
+        <div key={s.id}>
+          <dt>{s.label}</dt>
+          <dd className={cx(!values[s.id] && 'is-empty')}>{values[s.id] || labels.empty}</dd>
+        </div>
+      ))}
+    </>
   )
 }

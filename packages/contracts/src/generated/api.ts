@@ -1476,6 +1476,301 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/p/{practiceId}/visits/{visitId}/observations/{observationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Record a vital sign
+         * @description Records one reading on a visit, for its patient, at the request's location, timed now and measured by the actor; a weight by a receptionist, an assistant or a vet, the other vital signs by an assistant or a vet. The reading id is a UUID v7 the client generates: the same request again changes nothing. A corrected value is a new reading; the earlier one stays.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    "vetora-location": string;
+                };
+                path: {
+                    practiceId: string;
+                    visitId: string;
+                    observationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        kind: "weight" | "temperature" | "pulse" | "respiratory_rate";
+                        value: number;
+                        unit: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Recorded */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            kind: "weight" | "temperature" | "pulse" | "respiratory_rate" | "body_condition" | "other";
+                            value: number;
+                            unit: string;
+                            /** Format: date-time */
+                            occurredAt: string;
+                            measuredBy: {
+                                /** Format: uuid */
+                                id: string;
+                                displayName: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Validation failed, or no location header or one not of this practice (problem details) */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No session (problem details) */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not a member, a practice not active, or an action the roles may not perform (problem details) */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No such visit, or a cancelled one (problem details) */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description The visit is completed (problem details naming vetora.frozen_record), or the reading id is another visit's reading */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description The practice is being updated (problem details) */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/p/{practiceId}/visits/{visitId}/observations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * A visit's vital signs
+         * @description Every reading of the visit, oldest first, each with who measured it.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    "vetora-location": string;
+                };
+                path: {
+                    practiceId: string;
+                    visitId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The visit's readings */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            observations: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                kind: "weight" | "temperature" | "pulse" | "respiratory_rate" | "body_condition" | "other";
+                                value: number;
+                                unit: string;
+                                /** Format: date-time */
+                                occurredAt: string;
+                                measuredBy: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    displayName: string;
+                                };
+                            }[];
+                        };
+                    };
+                };
+                /** @description Validation failed, or no location header or one not of this practice (problem details) */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No session (problem details) */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not a member, a practice not active, or an action the roles may not perform (problem details) */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No such visit, or a cancelled one (problem details) */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description The practice is being updated (problem details) */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/p/{practiceId}/patients/{patientId}/last-weight": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * A patient's last weight
+         * @description The newest weight reading across the patient's visits, with when it was taken; a cancelled visit's readings do not count, nor those of the visit named in `excludingVisit`. Null when the patient has never been weighed.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    excludingVisit?: string;
+                };
+                header: {
+                    "vetora-location": string;
+                };
+                path: {
+                    practiceId: string;
+                    patientId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The last weight */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            lastWeight: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                kind: "weight" | "temperature" | "pulse" | "respiratory_rate" | "body_condition" | "other";
+                                value: number;
+                                unit: string;
+                                /** Format: date-time */
+                                occurredAt: string;
+                                measuredBy: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    displayName: string;
+                                };
+                            } | null;
+                        };
+                    };
+                };
+                /** @description Validation failed, or no location header or one not of this practice (problem details) */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No session (problem details) */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not a member, a practice not active, or an action the roles may not perform (problem details) */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description The practice is being updated (problem details) */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
