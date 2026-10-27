@@ -43,7 +43,8 @@ import { practiceRoute, refusals } from './practice-context.js'
  * answers 409 naming its rule, through the request context.
  */
 
-const invoiceContent = { content: { 'application/json': { schema: Invoice } } } as const
+/** An answer carrying the invoice as it now stands; Take payment's too (payments.ts). */
+export const invoiceContent = { content: { 'application/json': { schema: Invoice } } } as const
 
 const changeRefusals = {
   404: { description: 'No such invoice, a discarded one, or no such line on it (problem details)' },
@@ -185,7 +186,7 @@ const asJson = (view: InvoiceView) => ({
 })
 
 /** The answer with an invoice: its version as the entity tag, so the next change can send it back. */
-function answer(c: Context<Env>, view: InvoiceView) {
+export function answer(c: Context<Env>, view: InvoiceView) {
   c.header('etag', versionTag(view.version))
   return c.json(asJson(view), 200)
 }

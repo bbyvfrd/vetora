@@ -45,6 +45,7 @@ const visit: Visit = {
     lastName: 'Məmmədova',
     patronymic: null,
     phone: null,
+    balance: null,
   },
   note: { reasonForVisit: '', anamnesis: '', examination: '', diagnosis: '', treatment: '', recommendations: '' },
 }
@@ -82,6 +83,7 @@ const words = {
     quantity: 'Miqdar',
     remove: 'Çıxar',
     total: 'Cəmi',
+    paid: 'Ödənilib',
     balanceDue: 'Borc',
     search: ['müa', 'peyv'],
     names: ['Müayinə', 'Peyvənd'],
@@ -104,6 +106,7 @@ const words = {
     quantity: 'Количество',
     remove: 'Убрать',
     total: 'Итого',
+    paid: 'Оплачено',
     balanceDue: 'Долг',
     search: ['осм', 'вакц'],
     names: ['Осмотр', 'Вакцинация'],
@@ -126,6 +129,7 @@ const words = {
     quantity: 'Quantity',
     remove: 'Remove',
     total: 'Total',
+    paid: 'Paid',
     balanceDue: 'Balance due',
     search: ['cons', 'vacc'],
     names: ['Consultation', 'Vaccination'],
@@ -321,6 +325,7 @@ describe('the invoice card on the visit page (#25, seam 3)', () => {
       expect(within(region).getByText(expected.unpaid)).toBeInTheDocument()
       expect(totalsOf(region)).toEqual([
         [expected.total, expected.money(expected.cell('37.00'))],
+        [expected.paid, expected.money(expected.cell('0.00'))],
         [expected.balanceDue, expected.money(expected.cell('37.00'))],
       ])
       // Issued, the invoice is read only: no search, no quantity field, no remove, no Issue invoice.

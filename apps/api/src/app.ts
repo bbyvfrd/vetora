@@ -31,6 +31,7 @@ import {
   recordObservationRoute,
   visitObservationsRoute,
 } from './http/observations.js'
+import { putPayment, takePaymentRoute } from './http/payments.js'
 import {
   breedRoute,
   getSpecies,
@@ -124,6 +125,7 @@ app.openapi(addLineRoute, putLine)
 app.openapi(quantityRoute, putQuantity)
 app.openapi(removeLineRoute, postRemoveLine)
 app.openapi(issueRoute, postIssue)
+app.openapi(takePaymentRoute, putPayment)
 
 app.doc31('/api/openapi.json', openApiInfo)
 

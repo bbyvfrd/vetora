@@ -17,7 +17,7 @@ import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
 import { servicesQuery, visitInvoiceQuery } from '../api/invoices'
 import { practiceParams } from '../api/practice'
-import { visitsTodayQuery } from '../api/visits'
+import { visitQuery, visitsTodayQuery } from '../api/visits'
 import { uuidv7 } from '../ids'
 import { nameIn } from '../names'
 
@@ -28,12 +28,20 @@ import { nameIn } from '../names'
  * Issue invoice as the card's one button. The first service chosen creates the draft with its line; choosing a service
  * already on it raises that line's quantity (the example's rule). Every amount comes from the API in minor units and
  * is shown through the design system's money wrapper (IN-4); the table does no arithmetic and neither does the card.
- * Issued, the card is read only and shows Total and Balance due. Changes go one at a time, each against the version
- * the last one answered, so quick clicks never refuse each other; a change a colleague's beat says so and offers the
- * invoice as it now stands.
+ * Issued, the card is read only and shows Total, Paid and Balance due, and under its title whether it is unpaid,
+ * partly paid or paid (#26; Take payment is the visit page's, `TakePaymentDialog.tsx`). Changes go one at a time, each
+ * against the version the last one answered, so quick clicks never refuse each other; a change a colleague's beat says
+ * so and offers the invoice as it now stands.
  */
 
 type Change = () => Promise<{ data?: Invoice; response: Response }>
+
+/** An invoice's state as its card names it: a draft, or once issued what its payments cover (story 69). */
+function stateOf(invoice: Invoice): 'draft' | 'unpaid' | 'partlyPaid' | 'paid' {
+  if (invoice.status === 'draft') return 'draft'
+  if (invoice.remainderMinor <= 0) return 'paid'
+  return invoice.paidMinor > 0 ? 'partlyPaid' : 'unpaid'
+}
 
 export function InvoiceCard({ me, visit }: { me: Me; visit: Visit }) {
   const { t, i18n } = useTranslation()
@@ -148,6 +156,8 @@ export function InvoiceCard({ me, visit }: { me: Me; visit: Visit }) {
     if (!issued) return
     toast({ title: t('toast.invoice.issued'), status: 'success' })
     void refreshList()
+    // The owner now owes the total: the header's Balance due.
+    void queryClient.invalidateQueries({ queryKey: visitQuery(me, visit.id).queryKey })
   }
 
   /** After a 412: the invoice as it now stands, and the problem gone. */
@@ -188,7 +198,10 @@ export function InvoiceCard({ me, visit }: { me: Me; visit: Visit }) {
     ? [
         { id: 'total', label: t('invoice.total'), amount: current.totalMinor, strong: true },
         ...(issued
-          ? [{ id: 'balance', label: t('invoice.balanceDue'), amount: current.remainderMinor, strong: true }]
+          ? [
+              { id: 'paid', label: t('invoice.paid'), amount: current.paidMinor },
+              { id: 'balance', label: t('invoice.balanceDue'), amount: current.remainderMinor, strong: true },
+            ]
           : []),
       ]
     : []
@@ -203,7 +216,7 @@ export function InvoiceCard({ me, visit }: { me: Me; visit: Visit }) {
       description: [formatMinorUnits(service.priceMinor, service.currency), ...others].join(' · '),
     }
   })
-  const subtitle = current ? t(issued ? 'invoice.status.unpaid' : 'invoice.status.draft') : undefined
+  const subtitle = current ? t(`invoice.status.${stateOf(current)}`) : undefined
 
   return (
     <Card

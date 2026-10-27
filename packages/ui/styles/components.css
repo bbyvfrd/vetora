@@ -552,6 +552,7 @@ body { margin: 0; font: 400 14px/20px var(--font-sans); background: var(--surfac
 .vt-patient-facts a:hover { text-decoration: underline; }
 .vt-patient-facts a:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
 .vt-patient-phone { margin-left: var(--space-2); }
+.vt-patient-balance { margin-left: var(--space-2); }
 .vt-patient-sm { color: var(--text); }
 .vt-patient-sm .vt-patient-row { gap: var(--space-3); }
 .vt-patient-sm .vt-patient-avatar { width: var(--avatar-sm); height: var(--avatar-sm); }

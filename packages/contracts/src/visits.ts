@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { Registered } from './clients.js'
-import { InvoiceState } from './invoices.js'
+import { ClientBalance, InvoiceState } from './invoices.js'
 import { BreedNames, Names, Sex } from './patients.js'
 import { PracticeHeaders, PracticePath, VersionTag } from './practice.js'
 
@@ -86,6 +86,8 @@ export const Visit = z.object({
   owner: ClientName.extend({
     /** The primary phone as it was typed. */
     phone: z.string().nullable(),
+    /** What the client owes across visits, read from their ledger (#26); null when nothing was ever charged. */
+    balance: ClientBalance.nullable(),
   }),
   note: VisitNote,
 })
@@ -107,7 +109,7 @@ export const VisitsToday = z.object({
       patient: z.object({ id: z.uuid(), name: z.string() }),
       client: ClientName,
       veterinarian: StaffName,
-      /** The visit's invoice: none yet, a draft, or issued and unpaid (spec #18, "Read models"; #25). */
+      /** The visit's invoice: none yet, a draft, or issued and unpaid, partly paid or paid (spec #18, "Read models"). */
       invoice: InvoiceState,
     }),
   ),

@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm'
 import {
   bigint,
   check,
+  date,
   index,
   integer,
   numeric,
@@ -12,7 +13,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core'
 import { currencyCode, minorUnits, sqlList } from '../../platform/db/domains.js'
-import { location, standardColumns } from '../../platform/db/platform-tables.js'
+import { location, staffMember, standardColumns } from '../../platform/db/platform-tables.js'
 
 /**
  * The Billing & Payments tables (spec 0002, "Data model sketch": Billing and Payments): `invoice_number_seq`,
@@ -20,8 +21,8 @@ import { location, standardColumns } from '../../platform/db/platform-tables.js'
  * `payment` and `payment_allocation` (#26), `fiscal_receipt`, `cash_day_close` (slice 3), `estimate`, `estimate_line`,
  * `estimate_approval` (slice 8). What drizzle-kit does not model is written by hand in the migration: the keys to the
  * Client, Patient, Clinical Record and Inventory modules' tables, the view, the numbering function, the freeze of an
- * issued invoice and its lines, and the deferred check at issue (BL-6). Billing never reads clinical internals (BL-2):
- * an invoice stores the visit, patient and client ids it is given.
+ * issued invoice and its lines, and the deferred checks at issue and at payment (BL-6). Billing never reads clinical
+ * internals (BL-2): an invoice stores the visit, patient and client ids it is given.
  */
 
 /** The one counter row's constant id (the nil UUID), as practice_settings keeps its one row. */
@@ -165,7 +166,7 @@ export const invoiceLine = pgTable(
   ],
 )
 
-/** What moves a client's balance (spec 0002's sketch); feature 5 writes charges here and payments with #26. */
+/** What moves a client's balance (spec 0002's sketch); feature 5 writes charges (#25) and payments (#26). */
 export const LEDGER_ENTRY_KINDS = [
   'charge',
   'charge_reversal',
@@ -179,9 +180,11 @@ export const LEDGER_ENTRY_KINDS = [
 /**
  * The client ledger (docs/domain.md §7.3: LedgerEntry; BL-6), append only: a debt is the sum of these rows
  * (`client_balance`), never a stored balance, and a correction is a new row. Signed: a charge is positive, a payment
- * negative. A charge, its reversal and a write off name their invoice (a check); a payment and a refund name theirs
- * once `payment_id` arrives with #26, and `import_batch_id` with slice 7. `client_id` is the Client module's table, a
- * plain uuid here with its key in the migration; an entry without a client (a counter sale) is in no balance.
+ * negative. A charge, its reversal and a write off name their invoice, and a payment or a refund its payment and
+ * nothing else does (checks); one entry at most names a payment (a unique index), and the deferred `assert_payment()`
+ * refuses a commit that leaves a payment without it (#26). `import_batch_id` arrives with slice 7. `client_id` is the
+ * Client module's table, a plain uuid here with its key in the migration; an entry without a client (a counter sale)
+ * is in no balance.
  */
 export const ledgerEntry = pgTable(
   'ledger_entry',
@@ -192,6 +195,7 @@ export const ledgerEntry = pgTable(
     amountMinor: minorUnits('amount_minor').notNull(),
     currency: currencyCode('currency').notNull().default(sql`'AZN'`),
     invoiceId: uuid('invoice_id').references(() => invoice.id),
+    paymentId: uuid('payment_id').references(() => payment.id),
     note: text('note'),
     /**
      * When the debt moved: the database clock for a charge at issue. Never in the future (the CHECK); no back dating
@@ -207,8 +211,84 @@ export const ledgerEntry = pgTable(
       'ledger_entry_invoice_check',
       sql`${table.kind} not in ('charge', 'charge_reversal', 'write_off') or ${table.invoiceId} is not null`,
     ),
+    check(
+      'ledger_entry_payment_check',
+      sql`(${table.kind} in ('payment', 'refund')) = (${table.paymentId} is not null)`,
+    ),
     check('ledger_entry_occurred_at_check', sql`${table.occurredAt} <= now()`),
     index('ledger_entry_client_idx').on(table.clientId),
     index('ledger_entry_invoice_idx').on(table.invoiceId),
+    uniqueIndex('ledger_entry_payment_idx').on(table.paymentId),
+  ],
+)
+
+/** How a payment was made (spec 0002's sketch): cash or card in feature 5; a bank transfer arrives with feature 8. */
+export const PAYMENT_METHODS = ['cash', 'card', 'transfer'] as const
+
+/**
+ * Money taken from a client (docs/domain.md §7.3: Payment; BL-5), append only and location scoped (IN-5): never
+ * changed, a refund being a negative payment of its own (feature 8). `occurred_at` is the database clock when it was
+ * taken, never in the future (the CHECK) and within the back dating window (assert_backdate_limit()); `business_date`
+ * is that instant's day in the practice's time zone, written by the handler (spec 0002, "Value sourcing": Record a
+ * payment), the day the cash day close (slice 3, with its lock trigger) will count it in. Its ledger entry moves the
+ * client's balance: the deferred `assert_payment()` refuses a commit without exactly one, of the payment's client and
+ * currency and its amount negated. `client_id` is the Client module's table, a plain uuid here with its key in the
+ * migration; a counter sale's payment has none. `note` waits for the work that writes one.
+ */
+export const payment = pgTable(
+  'payment',
+  {
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
+    locationId: uuid('location_id')
+      .notNull()
+      .references(() => location.id),
+    clientId: uuid('client_id'),
+    method: text('method', { enum: PAYMENT_METHODS }).notNull(),
+    /** Positive; a refund (feature 8) is negative. */
+    amountMinor: minorUnits('amount_minor').notNull(),
+    currency: currencyCode('currency').notNull().default(sql`'AZN'`),
+    occurredAt: timestamp('occurred_at', { withTimezone: true }).notNull().defaultNow(),
+    businessDate: date('business_date').notNull(),
+    receivedBy: uuid('received_by')
+      .notNull()
+      .references(() => staffMember.id),
+    ...standardColumns(),
+  },
+  (table) => [
+    check('payment_method_check', sql`${table.method} in (${sqlList(PAYMENT_METHODS)})`),
+    check('payment_amount_check', sql`${table.amountMinor} <> 0`),
+    check('payment_occurred_at_check', sql`${table.occurredAt} <= now()`),
+    /** A location's day, which the day close sums (slice 3). */
+    index('payment_location_day_idx').on(table.locationId, table.businessDate),
+    index('payment_client_idx').on(table.clientId),
+    index('payment_received_by_idx').on(table.receivedBy),
+  ],
+)
+
+/**
+ * What a payment paid (docs/domain.md §7.3: PaymentAllocation), append only: in feature 5 one allocation of the whole
+ * payment to the invoice it was taken for. The deferred `assert_allocation()` keeps, at commit, each invoice's
+ * allocations between zero and its total and each payment's within its amount, and refuses an allocation to an
+ * invoice that is not issued or of another client or currency; it locks the invoice and the payment first, so two
+ * payments committing at once are counted one after the other (the handler also locks the invoice before it writes).
+ * A negative allocation reverses one (`reverses_allocation_id` arrives with void and refund, feature 8).
+ */
+export const paymentAllocation = pgTable(
+  'payment_allocation',
+  {
+    id: uuid('id').primaryKey().default(sql`uuidv7()`),
+    paymentId: uuid('payment_id')
+      .notNull()
+      .references(() => payment.id),
+    invoiceId: uuid('invoice_id')
+      .notNull()
+      .references(() => invoice.id),
+    amountMinor: minorUnits('amount_minor').notNull(),
+    ...standardColumns(),
+  },
+  (table) => [
+    check('payment_allocation_amount_check', sql`${table.amountMinor} <> 0`),
+    index('payment_allocation_payment_idx').on(table.paymentId),
+    index('payment_allocation_invoice_idx').on(table.invoiceId),
   ],
 )

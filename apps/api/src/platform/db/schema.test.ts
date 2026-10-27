@@ -301,6 +301,8 @@ describe.skipIf(!databaseTestsEnabled())('the Drizzle declarations match the mig
       'column "location.version" is in the schema but not declared',
       'column "ownership.version" is in the schema but not declared',
       'column "patient.version" is in the schema but not declared',
+      'column "payment.version" is in the schema but not declared',
+      'column "payment_allocation.version" is in the schema but not declared',
       'column "practice_settings.version" is in the schema but not declared',
       'column "service.version" is in the schema but not declared',
       'column "species.version" is in the schema but not declared',

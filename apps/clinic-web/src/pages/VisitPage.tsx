@@ -1,4 +1,4 @@
-import { queryOptions, useMutation, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import {
   actionOfReading,
@@ -18,6 +18,7 @@ import {
   Dialog,
   formatAge,
   formatDate,
+  formatMinorUnits,
   formatNumber,
   formatPhone,
   type NoteSection,
@@ -34,15 +35,17 @@ import {
 import { type MouseEvent, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
+import { visitInvoiceQuery } from '../api/invoices'
 import { lastWeightQuery, observationsQuery } from '../api/observations'
 import { practiceParams } from '../api/practice'
-import { visitsTodayQuery } from '../api/visits'
+import { visitQuery, visitsTodayQuery } from '../api/visits'
 import { forgetDraft, keepDraft, keptDraft } from '../drafts'
 import { uuidv7 } from '../ids'
 import { fullName, nameIn } from '../names'
 import { meQuery } from '../session'
 import { practiceToday, wallClock } from '../time'
 import { InvoiceCard } from './InvoiceCard'
+import { TakePaymentDialog } from './TakePaymentDialog'
 
 /**
  * The visit page (#22; spec #18, "Web app" and "Visit and money behaviour"; stories 36, 38, 43 to 46, 50 to 55), as the
@@ -53,6 +56,9 @@ import { InvoiceCard } from './InvoiceCard'
  * Above the sections, the vital signs (#23; stories 39 to 42): each reading saved when its field is left, a new reading
  * for each new value, the last weight and its date under the weight; a receptionist records the weight and reads the
  * rest. Under the note, the invoice card (#25, `InvoiceCard.tsx`); Cancel visit is refused once its invoice is issued.
+ * While anything on the invoice is unpaid, Take payment opens its dialog (#26, `TakePaymentDialog.tsx`; stories 62 to
+ * 68), the header's primary action once the visit is completed and a secondary one before; the owner's Balance due
+ * across visits stands beside their name and phone when they owe something.
  *
  * The draft note survives a dropped connection (#24; stories 10, 46 to 49): what is typed is kept on this computer
  * (`src/drafts.ts`) and saved to the server against the version it was read at, on the rhythm `useNote` describes. A
@@ -88,18 +94,6 @@ const VITAL_WORDS = {
 
 /** Between a number and its unit, so the two never part at a line end (formats.md, Units). */
 const NBSP = ' '
-
-const visitQuery = (me: Me, visitId: string) =>
-  queryOptions({
-    queryKey: ['visit', me.practice.id, visitId] as const,
-    queryFn: async (): Promise<Visit> => {
-      const { data, response } = await api.GET('/api/p/{practiceId}/visits/{visitId}', {
-        params: { ...practiceParams(me), path: { practiceId: me.practice.id, visitId } },
-      })
-      if (!data) throw new Error(`visit answered ${response.status}`)
-      return data
-    },
-  })
 
 export function VisitPage({ visitId }: { visitId: string }) {
   const { t } = useTranslation()
@@ -557,6 +551,11 @@ function VisitWork({ me, visit, observations, kept, back }: VisitWorkProps) {
   // Each refused Complete visit asks for the focus again, even when the message already shows.
   const [focusAsked, setFocusAsked] = useState(0)
   const [asking, setAsking] = useState(false)
+  const [paying, setPaying] = useState(false)
+  // The card's query: Take payment is offered while its invoice has lines and something is still owed (story 67).
+  const invoice = useQuery(visitInvoiceQuery(me, visit.id)).data
+  const owed = invoice && invoice.lines.length > 0 && invoice.remainderMinor > 0 ? invoice : undefined
+  const takes = owed !== undefined && can(me.practice.roles, 'invoiceAndTakePayment')
 
   useEffect(() => {
     if (focusAsked > 0) noteRef.current?.querySelector<HTMLTextAreaElement>('textarea[aria-invalid="true"]')?.focus()
@@ -679,6 +678,17 @@ function VisitWork({ me, visit, observations, kept, back }: VisitWorkProps) {
   } as const
   const saveState = combinedSaveState(note.saveState, vitals.saveState)
   const line = saveState ? saveLine[saveState] : undefined
+  // Take payment: the primary action once the visit is completed, a secondary one before (spec #18, "Web app").
+  const takePayment = takes ? (
+    <Button variant={draft ? 'secondary' : 'primary'} icon="payments" onClick={() => setPaying(true)}>
+      {t('payment.take')}
+    </Button>
+  ) : null
+  // The owner's Balance due across visits, read from their ledger (BL-6), when they owe something.
+  const balance =
+    owner.balance && owner.balance.amountMinor > 0
+      ? t('balance.due', { amount: formatMinorUnits(owner.balance.amountMinor, owner.balance.currency) })
+      : undefined
 
   return (
     <>
@@ -689,12 +699,14 @@ function VisitWork({ me, visit, observations, kept, back }: VisitWorkProps) {
           label: t('visit.owner'),
           name: fullName(owner),
           phone: owner.phone ? formatPhone(owner.phone) : undefined,
+          balance,
         }}
         back={back}
         actions={
           conducts ? (
             <>
               <Button onClick={() => setAsking(true)}>{t('visit.cancel')}</Button>
+              {takePayment}
               <Button
                 variant="primary"
                 icon="check"
@@ -706,7 +718,9 @@ function VisitWork({ me, visit, observations, kept, back }: VisitWorkProps) {
                 {t('visit.complete')}
               </Button>
             </>
-          ) : undefined
+          ) : (
+            (takePayment ?? undefined)
+          )
         }
       />
       <PageBody>
@@ -775,6 +789,10 @@ function VisitWork({ me, visit, observations, kept, back }: VisitWorkProps) {
         </div>
         <InvoiceCard me={me} visit={visit} />
       </PageBody>
+      {/* Open while the invoice is there, so a payment someone else took first is refused in the dialog, with why. */}
+      {paying && invoice ? (
+        <TakePaymentDialog me={me} visitId={visit.id} invoice={invoice} onClose={() => setPaying(false)} />
+      ) : null}
       <Dialog
         open={asking}
         size="sm"

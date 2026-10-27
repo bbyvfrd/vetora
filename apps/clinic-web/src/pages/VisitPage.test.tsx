@@ -61,6 +61,7 @@ const draft: Visit = {
     lastName: 'Məmmədova',
     patronymic: null,
     phone: '050 123 45 67',
+    balance: null,
   },
   note: emptyNote,
 }

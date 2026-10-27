@@ -4,7 +4,7 @@ import {
   orderRoles as contractOrderRoles,
   parseRoles as contractParseRoles,
 } from '@vetora/contracts'
-import { sql } from 'drizzle-orm'
+import { type SQL, sql } from 'drizzle-orm'
 import {
   type AnyPgColumn,
   boolean,
@@ -94,8 +94,15 @@ export const practiceSettings = pgTable(
  * transaction.
  * @public
  */
-export const practiceToday = () =>
-  sql<string>`(now() at time zone (select ${practiceSettings.timeZone} from ${practiceSettings}))::date`
+export const practiceToday = () => practiceDayOf(sql`now()`)
+
+/**
+ * The day an instant falls on where the practice is, `YYYY-MM-DD`: a payment's business date from its `occurred_at`
+ * (spec 0002, "Value sourcing": Record a payment). Read inside a practice transaction.
+ * @public
+ */
+export const practiceDayOf = (instant: SQL) =>
+  sql<string>`(${instant} at time zone (select ${practiceSettings.timeZone} from ${practiceSettings}))::date`
 
 /**
  * IN-5: a practice has a location from day one; provisioning seeds the default one.

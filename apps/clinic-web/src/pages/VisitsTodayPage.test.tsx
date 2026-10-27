@@ -18,12 +18,41 @@ const visitsPath = `/api/p/${me.practice.id}/visits`
 const leyla = { id: me.id, displayName: 'Leyla Həsənova' }
 
 /**
- * Three visits, newest first: a draft at 09:40 with no invoice yet, a draft at 09:05 with a draft invoice (#25), and
- * one completed at 00:30 in Baku (20:30 UTC the day before) with its invoice issued and unpaid.
+ * Five visits, newest first: two completed at 10:30 and 10:00 whose invoices are paid and partly paid (#26), a draft
+ * at 09:40 with no invoice yet, a draft at 09:05 with a draft invoice (#25), and one completed at 00:30 in Baku (20:30
+ * UTC the day before) with its invoice issued and unpaid.
  */
 const today: VisitsToday = {
   day: '2026-10-27',
   visits: [
+    {
+      id: '019a3f00-0000-7000-8000-0000000000f5',
+      status: 'finalised',
+      startedAt: '2026-10-27T06:30:00.000Z',
+      patient: { id: '019a3f00-0000-7000-8000-0000000000e5', name: 'Mestan' },
+      client: {
+        id: '019a3f00-0000-7000-8000-00000000c1e3',
+        firstName: 'Nərmin',
+        lastName: 'Qasımova',
+        patronymic: null,
+      },
+      veterinarian: leyla,
+      invoice: 'paid',
+    },
+    {
+      id: '019a3f00-0000-7000-8000-0000000000f4',
+      status: 'finalised',
+      startedAt: '2026-10-27T06:00:00.000Z',
+      patient: { id: '019a3f00-0000-7000-8000-0000000000e4', name: 'Toplan' },
+      client: {
+        id: '019a3f00-0000-7000-8000-00000000c1e3',
+        firstName: 'Nərmin',
+        lastName: 'Qasımova',
+        patronymic: null,
+      },
+      veterinarian: leyla,
+      invoice: 'partly_paid',
+    },
     {
       id: '019a3f00-0000-7000-8000-0000000000f3',
       status: 'draft',
@@ -66,6 +95,8 @@ const words = {
     draft: 'Qaralama',
     completed: 'Tamamlanıb',
     unpaid: 'Ödənilməyib',
+    partlyPaid: 'Qismən ödənilib',
+    paid: 'Ödənilib',
     empty: 'Bu gün qəbul yoxdur',
     failed: 'Səhifəni yükləmək mümkün olmadı',
     retry: 'Yenidən cəhd et',
@@ -76,6 +107,8 @@ const words = {
     draft: 'Черновик',
     completed: 'Завершён',
     unpaid: 'Не оплачен',
+    partlyPaid: 'Оплачен частично',
+    paid: 'Оплачен',
     empty: 'Сегодня приёмов нет',
     failed: 'Не удалось загрузить страницу',
     retry: 'Повторить',
@@ -86,6 +119,8 @@ const words = {
     draft: 'Draft',
     completed: 'Completed',
     unpaid: 'Unpaid',
+    partlyPaid: 'Partly paid',
+    paid: 'Paid',
     empty: 'No visits today',
     failed: 'This page could not be loaded',
     retry: 'Try again',
@@ -107,7 +142,7 @@ describe("Visits today: the day's visits at the location (#22, seam 3)", () => {
   })
 
   it.each(languages)(
-    "in %s: lists each visit with its time in the practice clock, patient, client, vet, state and its invoice's state (none, draft, unpaid), newest first; axe finds no violation",
+    "in %s: lists each visit with its time in the practice clock, patient, client, vet, state and its invoice's state (none, draft, unpaid, partly paid, paid), newest first; axe finds no violation",
     async (language) => {
       stubVisits(() => Response.json(today), meOf({ language }))
       setLanguage(language)
@@ -129,6 +164,8 @@ describe("Visits today: the day's visits at the location (#22, seam 3)", () => {
             .map((cell) => cell.textContent),
         )
       expect(rows).toEqual([
+        ['10:30', 'Mestan', 'Qasımova Nərmin', 'Leyla Həsənova', expected.completed, expected.paid],
+        ['10:00', 'Toplan', 'Qasımova Nərmin', 'Leyla Həsənova', expected.completed, expected.partlyPaid],
         ['09:40', 'Pambıq', 'Əliyev Rəşad', 'Leyla Həsənova', expected.draft, ''],
         ['09:05', 'Bəbir', 'Əliyev Rəşad', 'Leyla Həsənova', expected.draft, expected.draft],
         ['00:30', 'Şəkər', 'Məmmədova Aysel', 'Leyla Həsənova', expected.completed, expected.unpaid],

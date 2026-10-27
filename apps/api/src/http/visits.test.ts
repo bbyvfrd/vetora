@@ -218,6 +218,8 @@ describe.skipIf(!databaseTestsEnabled())('the visit and its note (#22, seam 2)',
         lastName: 'Məmmədova',
         patronymic: 'Rəşad qızı',
         phone: '+994 50 123 45 67',
+        // Nothing charged yet: the ledger has no row of the client's (#26).
+        balance: null,
       },
       note: {
         reasonForVisit: '',

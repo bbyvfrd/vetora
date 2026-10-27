@@ -2,7 +2,7 @@ import { and, asc, eq, inArray, isNull, ne, sql } from 'drizzle-orm'
 import type { CurrencyCode } from '../../platform/db/domains.js'
 import { practiceContext } from '../../platform/request-context.js'
 import { type PricedService, serviceForLine } from '../inventory/index.js'
-import { invoice, invoiceLine, ledgerEntry } from './schema.js'
+import { invoice, invoiceLine, ledgerEntry, paymentAllocation } from './schema.js'
 
 /**
  * A visit's invoice (spec #18, "Visit and money behaviour": the invoice; #25): the draft created with its first line
@@ -76,8 +76,7 @@ export async function readInvoice(id: string): Promise<InvoiceView | undefined> 
     .where(and(eq(invoiceLine.invoiceId, id), isNull(invoiceLine.removedAt)))
     .orderBy(asc(invoiceLine.sort), asc(invoiceLine.id))
   const totalMinor = lines.reduce((sum, line) => sum + line.totalMinor, 0n)
-  // Payments and their allocations arrive with #26: nothing is paid yet.
-  const paidMinor = 0n
+  const paidMinor = await allocatedTo(id)
   return {
     id: row.id,
     status: row.status,
@@ -102,8 +101,18 @@ export async function readInvoice(id: string): Promise<InvoiceView | undefined> 
   }
 }
 
+/** What payments paid of an invoice: its allocations added up (#26). */
+async function allocatedTo(invoiceId: string): Promise<bigint> {
+  const { db } = practiceContext()
+  const [row] = await db
+    .select({ minor: sql<string>`coalesce(sum(${paymentAllocation.amountMinor}), 0)` })
+    .from(paymentAllocation)
+    .where(eq(paymentAllocation.invoiceId, invoiceId))
+  return BigInt(row?.minor ?? '0')
+}
+
 /** The invoice just written; the key holds it, so its absence is a fault. */
-async function written(id: string): Promise<InvoiceView> {
+export async function written(id: string): Promise<InvoiceView> {
   const view = await readInvoice(id)
   if (!view) throw new Error('an invoice just written is not there')
   return view
@@ -283,9 +292,15 @@ export async function removeLine(invoiceId: string, version: number, lineId: str
  * deferred check's at commit (vetora.incomplete_invoice), which also gives the number back.
  */
 export async function issueInvoice(id: string, version: number): Promise<InvoiceChange> {
-  const { db } = practiceContext()
   const refused = await lockForChange(id, version)
   if (refused) return refused
+  await issueLocked(id)
+  return { status: 'changed', invoice: await written(id) }
+}
+
+/** Issue a draft invoice the caller has locked: its number and moment, then the client's charge (Issue invoice, and Take payment on a draft). */
+export async function issueLocked(id: string): Promise<void> {
+  const { db } = practiceContext()
   const [issued] = await db
     .update(invoice)
     .set({ status: 'issued', number: sql`next_invoice_number()`, issuedAt: sql`now()` })
@@ -303,7 +318,6 @@ export async function issueInvoice(id: string, version: number): Promise<Invoice
     currency: issued.currency,
     invoiceId: id,
   })
-  return { status: 'changed', invoice: await written(id) }
 }
 
 /** The visit's live invoice, draft or issued; null when it has none. */
@@ -316,22 +330,39 @@ export async function visitInvoice(visitId: string): Promise<InvoiceView | null>
   return row ? ((await readInvoice(row.id)) ?? null) : null
 }
 
+/** An invoice as Visits today shows it (story 69): a draft, or issued and unpaid, partly paid or paid. */
+export type InvoiceState = 'draft' | 'unpaid' | 'partly_paid' | 'paid'
+
 /**
- * The invoice state of each visit (spec #18, "Read models": Visits today): a draft, or issued and unpaid; a visit
- * missing from the map has none. Part paid and paid arrive with payments (#26).
+ * The invoice state of each visit (spec #18, "Read models": Visits today): a draft, or once issued what its payments'
+ * allocations (#26) cover of its live lines' total; a visit missing from the map has none. An issued invoice whose
+ * total is zero owes nothing, so it reads as paid.
  */
-export async function invoiceStates(visitIds: readonly string[]): Promise<Map<string, 'draft' | 'unpaid'>> {
+export async function invoiceStates(visitIds: readonly string[]): Promise<Map<string, InvoiceState>> {
   if (visitIds.length === 0) return new Map()
   const { db } = practiceContext()
   const rows = await db
-    .select({ visitId: invoice.encounterId, status: invoice.status })
+    .select({
+      visitId: invoice.encounterId,
+      status: invoice.status,
+      total: sql<string>`(select coalesce(sum(${invoiceLine.totalMinor}), 0) from ${invoiceLine}
+        where ${invoiceLine.invoiceId} = ${invoice.id} and ${invoiceLine.removedAt} is null)`,
+      paid: sql<string>`(select coalesce(sum(${paymentAllocation.amountMinor}), 0) from ${paymentAllocation}
+        where ${paymentAllocation.invoiceId} = ${invoice.id})`,
+    })
     .from(invoice)
     .where(and(inArray(invoice.encounterId, [...visitIds]), inArray(invoice.status, LIVE)))
   return new Map(
-    rows.flatMap(({ visitId, status }) =>
-      visitId ? [[visitId, status === 'draft' ? 'draft' : 'unpaid'] as const] : [],
+    rows.flatMap(({ visitId, status, total, paid }) =>
+      visitId ? [[visitId, status === 'draft' ? 'draft' : paymentState(BigInt(total), BigInt(paid))] as const] : [],
     ),
   )
+}
+
+/** An issued invoice's state from its total and what was paid of it. */
+function paymentState(totalMinor: bigint, paidMinor: bigint): InvoiceState {
+  if (paidMinor >= totalMinor) return 'paid'
+  return paidMinor === 0n ? 'unpaid' : 'partly_paid'
 }
 
 /**
