@@ -69,6 +69,7 @@
     "saving": "Saving",
     "saved": "Saved",
     "notSaved": "Not saved",
+    "offline": "No connection. Text kept on this computer",
     "high": "High",
     "low": "Low",
     "age": "Age",
@@ -120,6 +121,17 @@
     "save": {
       "title": "The changes could not be saved",
       "body": "Everything you typed is still here. Try again."
+    },
+    "noteConflict": {
+      "title": "Someone else changed this note while you were editing",
+      "body": "Load the latest version to see their changes. Everything you typed is kept on this computer.",
+      "button": "Load latest version"
+    }
+  },
+  "notice": {
+    "noteKept": {
+      "title": "Text kept on this computer",
+      "body": "This text is not in the note yet. Restore it to save it in place of the note, or discard it."
     }
   },
   "field": {
@@ -178,6 +190,8 @@
     "add": "Add",
     "clear": "Clear",
     "close": "Close",
+    "discard": "Discard",
+    "restore": "Restore",
     "select": "Select"
   },
   "toast": {

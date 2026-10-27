@@ -69,6 +69,7 @@
     "saving": "Yadda saxlanılır",
     "saved": "Yadda saxlanıldı",
     "notSaved": "Yadda saxlanılmayıb",
+    "offline": "Bağlantı yoxdur. Mətn bu kompüterdə qalıb",
     "high": "Yüksək",
     "low": "Aşağı",
     "age": "Yaş",
@@ -120,6 +121,17 @@
     "save": {
       "title": "Dəyişiklikləri yadda saxlamaq mümkün olmadı",
       "body": "Yazdıqlarınız yerindədir. Yenidən cəhd edin."
+    },
+    "noteConflict": {
+      "title": "Siz redaktə edərkən başqa əməkdaş qeydi dəyişib",
+      "body": "Dəyişiklikləri görmək üçün son versiyanı yükləyin. Yazdıqlarınız bu kompüterdə saxlanılıb.",
+      "button": "Son versiyanı yüklə"
+    }
+  },
+  "notice": {
+    "noteKept": {
+      "title": "Bu kompüterdə qalan mətn",
+      "body": "Bu mətn hələ qeydə yazılmayıb. Onu qeydin yerinə yazmaq üçün bərpa edin və ya yadda saxlamayın."
     }
   },
   "field": {
@@ -178,6 +190,8 @@
     "add": "Əlavə et",
     "clear": "Təmizlə",
     "close": "Bağla",
+    "discard": "Yadda saxlama",
+    "restore": "Bərpa et",
     "select": "Seç"
   },
   "toast": {
