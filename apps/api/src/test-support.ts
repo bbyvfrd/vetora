@@ -156,7 +156,13 @@ export type CommandRun = {
 }
 
 /** The shipped commands, as `kamal app exec` runs them (`node apps/api/dist/<command>.js` in the image). */
-export type Command = 'migrate' | 'provision-practice' | 'add-staff' | 'reset-password' | 'unlock-login'
+export type Command =
+  | 'migrate'
+  | 'provision-practice'
+  | 'add-staff'
+  | 'reset-password'
+  | 'unlock-login'
+  | 'load-services'
 
 /**
  * One command as a subprocess, in an environment of its own: the variables given and PATH, never this process's

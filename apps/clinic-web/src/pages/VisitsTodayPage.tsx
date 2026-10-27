@@ -12,7 +12,7 @@ import { wallClock } from '../time'
  * Visits today, the signed in home (spec #18, "Web app"; story 28), a list page whose primary action is New visit
  * (#21), shown to the roles that may register a client and a pet: the day's visits at the person's location, newest
  * first, each with its patient, client, vet, the time it started in the practice's clock and whether it is a draft or
- * completed, a row opening the visit (#22). Asked again every 30 seconds until the schedule's live updates arrive
+ * completed and its invoice's state, a draft or unpaid (#25), a row opening the visit (#22). Asked again every 30 seconds until the schedule's live updates arrive
  * (slice 5). A groomer reads none of it (story 72) and sees the empty page.
  */
 
@@ -50,6 +50,17 @@ export function VisitsTodayPage() {
           </Badge>
         ) : (
           <Badge>{t('visit.status.draft')}</Badge>
+        ),
+    },
+    {
+      key: 'invoice',
+      header: t('visitsToday.invoice'),
+      // An empty cell until the visit has an invoice: nothing to say yet, and no word for it in the glossary.
+      render: (row: Row) =>
+        row.invoice === 'none' ? null : row.invoice === 'unpaid' ? (
+          <Badge status="warning">{t('invoice.status.unpaid')}</Badge>
+        ) : (
+          <Badge>{t('invoice.status.draft')}</Badge>
         ),
     },
   ]

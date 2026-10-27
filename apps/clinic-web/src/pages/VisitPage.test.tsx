@@ -197,6 +197,9 @@ function stubVisit(
       }),
     [`GET /api/p/${me.practice.id}/patients/${draft.patient.id}/last-weight`]: () =>
       Response.json({ lastWeight: lastWeight() }),
+    // The invoice card (#25) with no invoice yet; VisitPage.invoice.test.tsx is its own.
+    [`GET ${visitPath}/invoice`]: () => Response.json({ invoice: null }),
+    [`GET /api/p/${me.practice.id}/services`]: () => Response.json({ services: [] }),
   })
 }
 

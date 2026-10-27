@@ -42,6 +42,7 @@ import { uuidv7 } from '../ids'
 import { fullName, nameIn } from '../names'
 import { meQuery } from '../session'
 import { practiceToday, wallClock } from '../time'
+import { InvoiceCard } from './InvoiceCard'
 
 /**
  * The visit page (#22; spec #18, "Web app" and "Visit and money behaviour"; stories 36, 38, 43 to 46, 50 to 55), as the
@@ -51,7 +52,7 @@ import { practiceToday, wallClock } from '../time'
  * without it the field says so and takes the focus, and nothing typed is lost. Once completed the note is read only.
  * Above the sections, the vital signs (#23; stories 39 to 42): each reading saved when its field is left, a new reading
  * for each new value, the last weight and its date under the weight; a receptionist records the weight and reads the
- * rest. The invoice arrives with #25.
+ * rest. Under the note, the invoice card (#25, `InvoiceCard.tsx`); Cancel visit is refused once its invoice is issued.
  *
  * The draft note survives a dropped connection (#24; stories 10, 46 to 49): what is typed is kept on this computer
  * (`src/drafts.ts`) and saved to the server against the version it was read at, on the rhythm `useNote` describes. A
@@ -594,13 +595,17 @@ function VisitWork({ me, visit, observations, kept, back }: VisitWorkProps) {
   })
 
   const cancel = useMutation({
-    mutationFn: async () => {
-      const { data, response } = await api.POST('/api/p/{practiceId}/visits/{visitId}/cancel', {
+    mutationFn: async (): Promise<'cancelled' | 'invoiced'> => {
+      const { data, error, response } = await api.POST('/api/p/{practiceId}/visits/{visitId}/cancel', {
         params: note.changeParams(),
       })
-      if (!data) throw new Error(`cancel answered ${response.status}`)
+      if (data) return 'cancelled'
+      // A 409 naming no rule of the record: the visit's invoice is issued (#25), and the visit stays as it was.
+      if (response.status === 409 && !(error as { code?: string } | undefined)?.code) return 'invoiced'
+      throw new Error(`cancel answered ${response.status}`)
     },
-    onSuccess: () => {
+    onSuccess: (outcome) => {
+      if (outcome === 'invoiced') return
       note.close()
       toast({ title: t('toast.visit.cancelled'), status: 'success' })
       void refreshLists()
@@ -713,6 +718,10 @@ function VisitWork({ me, visit, observations, kept, back }: VisitWorkProps) {
           <Banner status="danger" title={t('error.save.title')}>
             {t('error.save.body')}
           </Banner>
+        ) : cancel.data === 'invoiced' ? (
+          <Banner status="danger" title={t('error.visitInvoiced.title')}>
+            {t('error.visitInvoiced.body')}
+          </Banner>
         ) : null}
         {note.phase === 'conflict' ? (
           <Banner
@@ -764,6 +773,7 @@ function VisitWork({ me, visit, observations, kept, back }: VisitWorkProps) {
             labels={labels}
           />
         </div>
+        <InvoiceCard me={me} visit={visit} />
       </PageBody>
       <Dialog
         open={asking}

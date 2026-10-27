@@ -46,7 +46,8 @@
     "patient": "Pasiyent",
     "client": "Müştəri",
     "vet": "Həkim",
-    "status": "Status"
+    "status": "Status",
+    "invoice": "Hesab-faktura"
   },
   "visit": {
     "start": "Qəbulu başlat",
@@ -88,6 +89,25 @@
     },
     "lastWeight": "Son çəki: {{value}}, {{date}}"
   },
+  "invoice": {
+    "title": "Hesab-faktura",
+    "numbered": "Hesab-faktura № {{number}}",
+    "status": {
+      "draft": "Qaralama",
+      "unpaid": "Ödənilməyib"
+    },
+    "addService": "Xidmət əlavə et",
+    "issue": "Hesab-fakturanı rəsmiləşdir",
+    "column": {
+      "service": "Xidmət",
+      "quantity": "Miqdar",
+      "price": "Qiymət, ₼",
+      "amount": "Məbləğ, ₼"
+    },
+    "remove": "Çıxar",
+    "total": "Cəmi",
+    "balanceDue": "Borc"
+  },
   "confirm": {
     "visitCancel": {
       "title": "Qəbul ləğv edilsin?",
@@ -102,6 +122,9 @@
     },
     "search": {
       "title": "Nəticə tapılmadı"
+    },
+    "invoiceLines": {
+      "title": "Hələ xidmət əlavə edilməyib"
     }
   },
   "error": {
@@ -129,6 +152,15 @@
     "save": {
       "title": "Dəyişiklikləri yadda saxlamaq mümkün olmadı",
       "body": "Yazdıqlarınız yerindədir. Yenidən cəhd edin."
+    },
+    "conflict": {
+      "title": "Siz redaktə edərkən başqa əməkdaş dəyişiklik edib",
+      "body": "Son versiyanı görmək üçün səhifəni yeniləyin. Sizin dəyişiklikləriniz yadda saxlanılmayıb.",
+      "button": "Yenilə"
+    },
+    "visitInvoiced": {
+      "title": "Qəbulu ləğv etmək mümkün olmadı",
+      "body": "Qəbulun hesab-fakturası artıq rəsmiləşdirilib. Əvəzində qəbulu tamamlayın."
     },
     "noteConflict": {
       "title": "Siz redaktə edərkən başqa əməkdaş qeydi dəyişib",
@@ -219,6 +251,9 @@
     "visit": {
       "completed": "Qəbul tamamlandı",
       "cancelled": "Qəbul ləğv edildi"
+    },
+    "invoice": {
+      "issued": "Hesab-faktura rəsmiləşdirildi"
     }
   },
   "warning": {

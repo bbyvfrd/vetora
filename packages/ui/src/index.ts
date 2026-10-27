@@ -77,7 +77,7 @@ export type {
 export { AppShell, AuthLayout, DetailList, FilterBar, FormActions, FormSection, PageBody } from './Layout.js'
 export type { MenuItem, MenuProps } from './Menu.js'
 export { Menu } from './Menu.js'
-export { formatMinorUnits } from './money.js'
+export { formatMinorUnits, formatMinorUnitsPlain } from './money.js'
 export type { NavAccount, NavItem, NavRailProps, NavSection } from './NavRail.js'
 export { NavRail } from './NavRail.js'
 export type { PageHeaderBack, PageHeaderProps } from './PageHeader.js'

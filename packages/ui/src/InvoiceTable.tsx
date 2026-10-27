@@ -1,6 +1,7 @@
 import * as React from 'react'
-import { formatMoney, formatNumber, parseNumber } from './format.js'
+import { formatNumber, parseNumber } from './format.js'
 import { Icon } from './Icon.js'
+import { formatMinorUnits, formatMinorUnitsPlain } from './money.js'
 import { cx } from './util.js'
 
 export interface InvoiceLine {
@@ -12,19 +13,20 @@ export interface InvoiceLine {
   quantity: number
   /** Unit of the quantity, from the glossary: "əd.", "ml". */
   unit?: string
-  /** Price of one unit. */
-  price: number
+  /** Price of one unit, in whole minor units of the table's `currency` (IN-4): 2500 is 25,00 ₼. */
+  price: number | bigint
   /** Discount on this line, in percent. */
   discount?: number
-  /** What the line comes to. Worked out by the application, not by the table. */
-  amount: number
+  /** What the line comes to, in minor units. Worked out by the application, not by the table. */
+  amount: number | bigint
 }
 
 export interface InvoiceTotal {
   id: string
   /** "Subtotal", "Discount", "VAT 18%", "Total", "Paid", "Balance due". */
   label: string
-  amount: number
+  /** In whole minor units of the table's `currency`. */
+  amount: number | bigint
   /** Draws the row large and bold: the total, and the balance due. */
   strong?: boolean
 }
@@ -47,6 +49,8 @@ export interface InvoiceTableProps {
   lines: InvoiceLine[]
   /** The rows under the lines, in order. Worked out by the application. */
   totals: InvoiceTotal[]
+  /** The currency every amount is in, as a code: "AZN". Amounts are shown through the money wrapper (`money.ts`). */
+  currency: string
   labels: InvoiceLabels
   /** Language tag for number formatting. Defaults to the page's `lang`. */
   locale?: string
@@ -115,6 +119,7 @@ export function InvoiceTable({
   caption,
   lines,
   totals,
+  currency,
   labels,
   locale,
   onQuantityChange,
@@ -122,7 +127,7 @@ export function InvoiceTable({
   emptyText,
   className,
 }: InvoiceTableProps) {
-  const money = (v: number) => formatNumber(v, { decimals: 2, locale })
+  const money = (v: number | bigint) => formatMinorUnitsPlain(v, currency, locale)
   const columns = 4 + (labels.discount ? 1 : 0) + (onRemove ? 1 : 0)
   return (
     <div className={cx('vt-table-wrap', className)}>
@@ -198,7 +203,7 @@ export function InvoiceTable({
               <th scope="row" colSpan={columns - 1 - (onRemove ? 1 : 0)}>
                 {t.label}
               </th>
-              <td className="is-numeric">{formatMoney(t.amount, locale)}</td>
+              <td className="is-numeric">{formatMinorUnits(t.amount, currency, locale)}</td>
               {onRemove ? <td /> : null}
             </tr>
           ))}

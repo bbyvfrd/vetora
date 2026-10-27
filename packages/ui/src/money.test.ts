@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatMinorUnits } from './money.js'
+import { formatMinorUnits, formatMinorUnitsPlain } from './money.js'
 
 const NBSP = ' '
 
@@ -56,5 +56,21 @@ describe('formatMinorUnits(), minor units with a currency to the design system�
   it('refuses a currency the design system has no format for, rather than inventing one', () => {
     expect(() => formatMinorUnits(100, 'USD', 'en')).toThrow(RangeError)
     expect(() => formatMinorUnits(100, 'toString', 'en')).toThrow(RangeError)
+  })
+})
+
+describe('formatMinorUnitsPlain(), the bare number a table cell under "Qiymət, ₼" shows (IN-4)', () => {
+  it('writes 125000 qəpik as 1 250,00 in Azerbaijani and Russian and as 1,250.00 in English, without the currency', () => {
+    expect(formatMinorUnitsPlain(125000, 'AZN', 'az')).toBe(`1${NBSP}250,00`)
+    expect(formatMinorUnitsPlain(125000n, 'AZN', 'ru')).toBe(`1${NBSP}250,00`)
+    expect(formatMinorUnitsPlain(125000, 'AZN', 'en')).toBe('1,250.00')
+    expect(formatMinorUnitsPlain(0, 'AZN', 'en')).toBe('0.00')
+    expect(formatMinorUnitsPlain(-5, 'AZN', 'az')).toBe('−0,05')
+  })
+
+  it('refuses what formatMinorUnits refuses', () => {
+    expect(() => formatMinorUnitsPlain(12.5, 'AZN', 'az')).toThrow(RangeError)
+    expect(() => formatMinorUnitsPlain(100, 'USD', 'en')).toThrow(RangeError)
+    expect(() => formatMinorUnitsPlain(2n ** 53n, 'AZN', 'en')).toThrow(RangeError)
   })
 })

@@ -14,6 +14,7 @@ import {
   versionTag,
 } from '@vetora/contracts'
 import type { Context } from 'hono'
+import { invoiceStates } from '../modules/billing/index.js'
 import { clientCard, clientNames } from '../modules/client/index.js'
 import {
   type ChangeOutcome,
@@ -121,11 +122,16 @@ export const cancelRoute = createRoute({
   path: '/api/p/{practiceId}/visits/{visitId}/cancel',
   middleware: [practiceRoute('conductEncounter')],
   summary: 'Cancel a draft visit',
-  description: 'Discards a draft visit opened by mistake, against the version in If-Match; a completed one is refused.',
+  description:
+    'Discards a draft visit opened by mistake, against the version in If-Match, with its draft invoice; a completed one is refused, and so is one whose invoice is issued.',
   request: { params: VisitPath, headers: VisitChangeHeaders },
   responses: {
     200: { description: 'Cancelled', content: { 'application/json': { schema: VisitVersion } } },
     ...changeRefusals,
+    409: {
+      description:
+        "Refused by a rule of the record (problem details naming the rule: a completed visit), or the visit's invoice is issued",
+    },
     ...refusals,
   },
 })
@@ -136,7 +142,7 @@ export const visitsTodayRoute = createRoute({
   middleware: [practiceRoute('readRecords')],
   summary: 'Visits today',
   description:
-    "The visits started today at the request's location, the day in the practice's time zone, newest first; cancelled ones are left out.",
+    "The visits started today at the request's location, the day in the practice's time zone, newest first, each with its invoice's state; cancelled ones are left out.",
   request: { params: PracticePath, headers: PracticeHeaders },
   responses: {
     200: { description: "The day's visits", content: { 'application/json': { schema: VisitsToday } } },
@@ -199,14 +205,19 @@ export const postComplete: RouteHandler<typeof completeRoute, Env> = async (c) =
 
 export const postCancel: RouteHandler<typeof cancelRoute, Env> = async (c) => {
   const { visitId } = c.req.valid('param')
-  return changed(c, await cancelEncounter(visitId, versionOfTag(c.req.valid('header')['if-match'])))
+  const outcome = await cancelEncounter(visitId, versionOfTag(c.req.valid('header')['if-match']))
+  // The answer rolls the request back, the visit with it (practice-routes.md, "The answer decides the transaction").
+  if (outcome.status === 'invoiced') return problem(c, 409, "The visit's invoice is issued")
+  return changed(c, outcome)
 }
 
 export const getVisitsToday: RouteHandler<typeof visitsTodayRoute, Env> = async (c) => {
   const { day, visits } = await visitsToday()
-  const [patients, clients] = await Promise.all([
+  const ids = visits.map((visit) => visit.id)
+  const [patients, clients, invoices] = await Promise.all([
     patientNames(visits.map((visit) => visit.patientId)),
     clientNames(visits.map((visit) => visit.clientId)),
+    invoiceStates(ids),
   ])
   return c.json(
     {
@@ -216,7 +227,13 @@ export const getVisitsToday: RouteHandler<typeof visitsTodayRoute, Env> = async 
         const name = patients.get(patientId)
         // The keys hold both rows, which are never deleted (IN-6).
         if (!client || name === undefined) throw new Error('a visit names a patient or a client that is not there')
-        return { ...visit, startedAt: startedAt.toISOString(), patient: { id: patientId, name }, client }
+        return {
+          ...visit,
+          startedAt: startedAt.toISOString(),
+          patient: { id: patientId, name },
+          client,
+          invoice: invoices.get(visit.id) ?? 'none',
+        }
       }),
     },
     200,

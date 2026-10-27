@@ -1,7 +1,8 @@
 import { z } from 'zod'
 import { Registered } from './clients.js'
+import { InvoiceState } from './invoices.js'
 import { BreedNames, Names, Sex } from './patients.js'
-import { PracticeHeaders, PracticePath } from './practice.js'
+import { PracticeHeaders, PracticePath, VersionTag } from './practice.js'
 
 /**
  * A visit and its note (spec #18, "Visit and money behaviour": Start visit, the draft note's versioned save, Complete
@@ -14,15 +15,6 @@ import { PracticeHeaders, PracticePath } from './practice.js'
 /** The path of a visit: its id, a UUID v7 the client generates when it starts the visit. */
 export const VisitPath = PracticePath.extend({ visitId: z.uuidv7() })
 export type VisitPath = z.infer<typeof VisitPath>
-
-/** A version as the entity tag `If-Match` carries: the number in quotes, `"3"`. */
-export const VersionTag = z.string().regex(/^"[1-9]\d*"$/, 'The version in quotes, such as "3"')
-
-/** The `If-Match` value for a version. */
-export const versionTag = (version: number): string => `"${version}"`
-
-/** The version an `If-Match` value carries (validated by VersionTag). */
-export const versionOfTag = (tag: string): number => Number(tag.slice(1, -1))
 
 /** The headers of a change to a visit: the practice's, and the version the change was made against. */
 export const VisitChangeHeaders = PracticeHeaders.extend({
@@ -115,6 +107,8 @@ export const VisitsToday = z.object({
       patient: z.object({ id: z.uuid(), name: z.string() }),
       client: ClientName,
       veterinarian: StaffName,
+      /** The visit's invoice: none yet, a draft, or issued and unpaid (spec #18, "Read models"; #25). */
+      invoice: InvoiceState,
     }),
   ),
 })

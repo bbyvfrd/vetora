@@ -432,6 +432,7 @@ describe.skipIf(!databaseTestsEnabled())('the visit and its note (#22, seam 2)',
       patient: { id: visits.late.patientId, name: 'Şəkər' },
       client: { id: visits.late.clientId, firstName: 'Aysel', lastName: 'Məmmədova', patronymic: 'Rəşad qızı' },
       veterinarian: { id: vet.userId, displayName: 'Leyla Həsənova' },
+      invoice: 'none',
     })
     const atYasamal = (await (await practice.request(desk, '/visits', { location: yasamal })).json()) as {
       visits: { id: string }[]

@@ -77,8 +77,11 @@ const artifactValues = [
   'compareText',
 ]
 
-/** Added in the repo since the fork point (ADR 0005): the money wrapper of ticket #13, minor units to an amount (IN-4). */
-const repoValues = ['formatMinorUnits']
+/**
+ * Added in the repo since the fork point (ADR 0005): the money wrapper of ticket #13, minor units to an amount (IN-4),
+ * and its bare form for a table cell (#25).
+ */
+const repoValues = ['formatMinorUnits', 'formatMinorUnitsPlain']
 
 const artifactTypes = [
   'IconProps',

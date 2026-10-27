@@ -20,11 +20,11 @@ Each file's own comments say what it owns and why; this index finds the file.
 |---|---|
 | `src/index.ts` | Startup: Sentry first (`instrument.ts`), the config, the server, a clean stop |
 | `src/app.ts` | The `OpenAPIHono` app: middleware, every route, the 404 and 500 handlers |
-| `src/http/` | Routes and middleware: `auth.ts` the three Better Auth routes (the allowlist), `me.ts` `/api/me`, `practice-context.ts` every practice route's request context, `registration.ts` #21's routes, `visits.ts` #22's, `observations.ts` #23's (the vital signs) |
+| `src/http/` | Routes and middleware: `auth.ts` the three Better Auth routes (the allowlist), `me.ts` `/api/me`, `practice-context.ts` every practice route's request context, `registration.ts` #21's routes, `visits.ts` #22's, `observations.ts` #23's (vital signs), `invoices.ts` #25's |
 | `src/openapi.ts` | Writes `packages/contracts/openapi.json` (`pnpm openapi` at the root) |
-| `src/migrate.ts`, `provision-practice.ts`, `add-staff.ts`, `reset-password.ts`, `unlock-login.ts` | The operator commands: arguments and exit codes over their engines |
+| `src/migrate.ts`, `provision-practice.ts`, `add-staff.ts`, `reset-password.ts`, `unlock-login.ts`, `load-services.ts` | The operator commands: arguments and exit codes over their engines |
 | `src/check-migrations.ts`, `src/platform/db/migration-order.ts` | The order half of `db:check` and its check (ADR 0002) |
-| `src/modules/` | One folder per bounded context (`README.md`); `identity-access/` holds the staff service, `client/` and `patient/` registration, `clinical-record/` the visit and its vital signs |
+| `src/modules/` | One folder per bounded context (`README.md`); `identity-access/` holds the staff service, `client/` and `patient/` registration, `clinical-record/` the visit and its vital signs, `inventory/` prices, `billing/` invoices |
 | `src/platform/request-context.ts`, `practice-registry.ts` | `practiceContext()`, what a practice route's code reads; the registry cache (`docs/practice-routes.md`) |
 | `src/platform/config.ts` | The validated environment: `loadConfig()`, `loadMigratorConfig()`, `configVariables` |
 | `src/platform/auth/` | Better Auth: the instance (`auth.ts`), logins and passwords, the naming rules, the sign in lock, what `auth:check` loads |

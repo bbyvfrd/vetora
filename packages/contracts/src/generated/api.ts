@@ -1292,7 +1292,7 @@ export interface paths {
         put?: never;
         /**
          * Cancel a draft visit
-         * @description Discards a draft visit opened by mistake, against the version in If-Match; a completed one is refused.
+         * @description Discards a draft visit opened by mistake, against the version in If-Match, with its draft invoice; a completed one is refused, and so is one whose invoice is issued.
          */
         post: {
             parameters: {
@@ -1348,7 +1348,7 @@ export interface paths {
                     };
                     content?: never;
                 };
-                /** @description Refused by a rule of the record: completed, or not complete (problem details naming the rule) */
+                /** @description Refused by a rule of the record (problem details naming the rule: a completed visit), or the visit's invoice is issued */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -1386,7 +1386,7 @@ export interface paths {
         };
         /**
          * Visits today
-         * @description The visits started today at the request's location, the day in the practice's time zone, newest first; cancelled ones are left out.
+         * @description The visits started today at the request's location, the day in the practice's time zone, newest first, each with its invoice's state; cancelled ones are left out.
          */
         get: {
             parameters: {
@@ -1434,6 +1434,8 @@ export interface paths {
                                     id: string;
                                     displayName: string;
                                 };
+                                /** @enum {string} */
+                                invoice: "none" | "draft" | "unpaid";
                             }[];
                         };
                     };
@@ -1765,6 +1767,867 @@ export interface paths {
         };
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/p/{practiceId}/services": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The price list
+         * @description The active services, each with its names in the three languages, its category and its price now.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    "vetora-location": string;
+                };
+                path: {
+                    practiceId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The price list */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            services: {
+                                /** Format: uuid */
+                                id: string;
+                                names: {
+                                    az: string | null;
+                                    ru: string | null;
+                                    en: string | null;
+                                };
+                                /** @enum {string} */
+                                category: "consultation" | "procedure" | "lab" | "grooming" | "boarding" | "other";
+                                priceMinor: number;
+                                /** @enum {string} */
+                                currency: "AZN";
+                            }[];
+                        };
+                    };
+                };
+                /** @description Validation failed, or no location header or one not of this practice (problem details) */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No session (problem details) */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not a member, a practice not active, or an action the roles may not perform (problem details) */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description The practice is being updated (problem details) */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/p/{practiceId}/visits/{visitId}/invoice": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * A visit's invoice
+         * @description The visit's invoice, draft or issued, with its lines, Total, Paid and the remainder; null before its first line.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    "vetora-location": string;
+                };
+                path: {
+                    practiceId: string;
+                    visitId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The visit's invoice */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            invoice: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "draft" | "issued";
+                                version: number;
+                                number: string | null;
+                                /** Format: date-time */
+                                issuedAt: string | null;
+                                /** Format: uuid */
+                                visitId: string | null;
+                                /** Format: uuid */
+                                patientId: string | null;
+                                /** Format: uuid */
+                                clientId: string | null;
+                                /** @enum {string} */
+                                currency: "AZN";
+                                lines: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    /** Format: uuid */
+                                    serviceId: string | null;
+                                    description: {
+                                        az: string | null;
+                                        ru: string | null;
+                                        en: string | null;
+                                    };
+                                    quantity: number;
+                                    unitPriceMinor: number;
+                                    totalMinor: number;
+                                }[];
+                                totalMinor: number;
+                                paidMinor: number;
+                                remainderMinor: number;
+                            } | null;
+                        };
+                    };
+                };
+                /** @description Validation failed, or no location header or one not of this practice (problem details) */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No session (problem details) */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not a member, a practice not active, or an action the roles may not perform (problem details) */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description The practice is being updated (problem details) */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/p/{practiceId}/invoices/{invoiceId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Create a visit's draft invoice
+         * @description Creates the visit's draft invoice with its first line, at the request's location: the service's names and price snapshotted, the visit, patient and client stored as given once the API has checked they are the visit's. The invoice id is a UUID v7 the client generates: the same request again changes nothing.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    "vetora-location": string;
+                };
+                path: {
+                    practiceId: string;
+                    invoiceId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        visitId: string;
+                        /** Format: uuid */
+                        patientId: string;
+                        /** Format: uuid */
+                        clientId: string;
+                        line: {
+                            /** Format: uuid */
+                            serviceId: string;
+                            quantity: number;
+                            /** Format: uuid */
+                            id: string;
+                        };
+                    };
+                };
+            };
+            responses: {
+                /** @description Created */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "draft" | "issued";
+                            version: number;
+                            number: string | null;
+                            /** Format: date-time */
+                            issuedAt: string | null;
+                            /** Format: uuid */
+                            visitId: string | null;
+                            /** Format: uuid */
+                            patientId: string | null;
+                            /** Format: uuid */
+                            clientId: string | null;
+                            /** @enum {string} */
+                            currency: "AZN";
+                            lines: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                serviceId: string | null;
+                                description: {
+                                    az: string | null;
+                                    ru: string | null;
+                                    en: string | null;
+                                };
+                                quantity: number;
+                                unitPriceMinor: number;
+                                totalMinor: number;
+                            }[];
+                            totalMinor: number;
+                            paidMinor: number;
+                            remainderMinor: number;
+                        };
+                    };
+                };
+                /** @description Validation failed, or no location header or one not of this practice (problem details) */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No session (problem details) */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not a member, a practice not active, or an action the roles may not perform (problem details) */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No such visit, or a cancelled one; or no such active service (problem details) */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description The patient or client is not the visit's, the visit already has an invoice, or an id is another invoice's or line's (problem details) */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description The practice is being updated (problem details) */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/p/{practiceId}/invoices/{invoiceId}/lines/{lineId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Add a service to a draft invoice
+         * @description Adds a line for a service of the price list against the invoice's version in If-Match, its names and price snapshotted. The line id is a UUID v7 the client generates: the same line again changes nothing.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    "vetora-location": string;
+                    "if-match": string;
+                };
+                path: {
+                    practiceId: string;
+                    invoiceId: string;
+                    lineId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        serviceId: string;
+                        quantity: number;
+                    };
+                };
+            };
+            responses: {
+                /** @description Added */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "draft" | "issued";
+                            version: number;
+                            number: string | null;
+                            /** Format: date-time */
+                            issuedAt: string | null;
+                            /** Format: uuid */
+                            visitId: string | null;
+                            /** Format: uuid */
+                            patientId: string | null;
+                            /** Format: uuid */
+                            clientId: string | null;
+                            /** @enum {string} */
+                            currency: "AZN";
+                            lines: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                serviceId: string | null;
+                                description: {
+                                    az: string | null;
+                                    ru: string | null;
+                                    en: string | null;
+                                };
+                                quantity: number;
+                                unitPriceMinor: number;
+                                totalMinor: number;
+                            }[];
+                            totalMinor: number;
+                            paidMinor: number;
+                            remainderMinor: number;
+                        };
+                    };
+                };
+                /** @description Validation failed, or no location header or one not of this practice (problem details) */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No session (problem details) */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not a member, a practice not active, or an action the roles may not perform (problem details) */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No such invoice, a discarded one, or no such line on it (problem details) */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Refused by a rule of the record: issued, or issued without a line (problem details naming the rule) */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Another change came first: the version is stale (problem details) */
+                412: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description The practice is being updated (problem details) */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/p/{practiceId}/invoices/{invoiceId}/lines/{lineId}/quantity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Change a draft line's quantity
+         * @description Sets the line's quantity against the invoice's version in If-Match; its total follows from its unit price.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    "vetora-location": string;
+                    "if-match": string;
+                };
+                path: {
+                    practiceId: string;
+                    invoiceId: string;
+                    lineId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        quantity: number;
+                    };
+                };
+            };
+            responses: {
+                /** @description Changed */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "draft" | "issued";
+                            version: number;
+                            number: string | null;
+                            /** Format: date-time */
+                            issuedAt: string | null;
+                            /** Format: uuid */
+                            visitId: string | null;
+                            /** Format: uuid */
+                            patientId: string | null;
+                            /** Format: uuid */
+                            clientId: string | null;
+                            /** @enum {string} */
+                            currency: "AZN";
+                            lines: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                serviceId: string | null;
+                                description: {
+                                    az: string | null;
+                                    ru: string | null;
+                                    en: string | null;
+                                };
+                                quantity: number;
+                                unitPriceMinor: number;
+                                totalMinor: number;
+                            }[];
+                            totalMinor: number;
+                            paidMinor: number;
+                            remainderMinor: number;
+                        };
+                    };
+                };
+                /** @description Validation failed, or no location header or one not of this practice (problem details) */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No session (problem details) */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not a member, a practice not active, or an action the roles may not perform (problem details) */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No such invoice, a discarded one, or no such line on it (problem details) */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Refused by a rule of the record: issued, or issued without a line (problem details naming the rule) */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Another change came first: the version is stale (problem details) */
+                412: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description The practice is being updated (problem details) */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/p/{practiceId}/invoices/{invoiceId}/lines/{lineId}/remove": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Remove a line from a draft invoice
+         * @description Removes a mistaken line against the invoice's version in If-Match; it is left out of every total.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    "vetora-location": string;
+                    "if-match": string;
+                };
+                path: {
+                    practiceId: string;
+                    invoiceId: string;
+                    lineId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Removed */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "draft" | "issued";
+                            version: number;
+                            number: string | null;
+                            /** Format: date-time */
+                            issuedAt: string | null;
+                            /** Format: uuid */
+                            visitId: string | null;
+                            /** Format: uuid */
+                            patientId: string | null;
+                            /** Format: uuid */
+                            clientId: string | null;
+                            /** @enum {string} */
+                            currency: "AZN";
+                            lines: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                serviceId: string | null;
+                                description: {
+                                    az: string | null;
+                                    ru: string | null;
+                                    en: string | null;
+                                };
+                                quantity: number;
+                                unitPriceMinor: number;
+                                totalMinor: number;
+                            }[];
+                            totalMinor: number;
+                            paidMinor: number;
+                            remainderMinor: number;
+                        };
+                    };
+                };
+                /** @description Validation failed, or no location header or one not of this practice (problem details) */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No session (problem details) */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not a member, a practice not active, or an action the roles may not perform (problem details) */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No such invoice, a discarded one, or no such line on it (problem details) */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Refused by a rule of the record: issued, or issued without a line (problem details naming the rule) */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Another change came first: the version is stale (problem details) */
+                412: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description The practice is being updated (problem details) */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/p/{practiceId}/invoices/{invoiceId}/issue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Issue an invoice
+         * @description Issues the invoice against its version in If-Match, in one transaction: the next number, gapless per practice, and the client's charge equal to its lines' total, which becomes their Balance due. An invoice with no line is refused.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    "vetora-location": string;
+                    "if-match": string;
+                };
+                path: {
+                    practiceId: string;
+                    invoiceId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Issued */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "draft" | "issued";
+                            version: number;
+                            number: string | null;
+                            /** Format: date-time */
+                            issuedAt: string | null;
+                            /** Format: uuid */
+                            visitId: string | null;
+                            /** Format: uuid */
+                            patientId: string | null;
+                            /** Format: uuid */
+                            clientId: string | null;
+                            /** @enum {string} */
+                            currency: "AZN";
+                            lines: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                serviceId: string | null;
+                                description: {
+                                    az: string | null;
+                                    ru: string | null;
+                                    en: string | null;
+                                };
+                                quantity: number;
+                                unitPriceMinor: number;
+                                totalMinor: number;
+                            }[];
+                            totalMinor: number;
+                            paidMinor: number;
+                            remainderMinor: number;
+                        };
+                    };
+                };
+                /** @description Validation failed, or no location header or one not of this practice (problem details) */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No session (problem details) */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not a member, a practice not active, or an action the roles may not perform (problem details) */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No such invoice, a discarded one, or no such line on it (problem details) */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Refused by a rule of the record: issued, or issued without a line (problem details naming the rule) */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Another change came first: the version is stale (problem details) */
+                412: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description The practice is being updated (problem details) */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;
