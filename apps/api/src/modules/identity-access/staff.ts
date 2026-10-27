@@ -1,14 +1,16 @@
 import { z } from 'zod'
 import { ensureLogin, resetPassword } from '../../platform/auth/logins.js'
 import { HANDLE, PRACTICE_CODE, usernameOf } from '../../platform/auth/names.js'
+import { clearSignInLock } from '../../platform/auth/sign-in-lock.js'
 import { type CommandSession, quoteIdentifier, withCommandSession } from '../../platform/db/command-session.js'
 import type { LangCode } from '../../platform/db/domains.js'
 import { joinRoles, orderRoles, parseRoles, STAFF_ROLES, type StaffRole } from '../../platform/db/platform-tables.js'
 import { uuidv7 } from '../../platform/ids.js'
 
 /**
- * The staff service (spec #18, "Identity and access"; stories 14 and 22): the one way a staff member gets a login and
- * the roles of their practice, used by `add-staff` today and by feature 15's staff screen later. A login is created
+ * The staff service (spec #18, "Identity and access"; stories 14, 16, 17 and 22): the one way a staff member gets a
+ * login and the roles of their practice, used by `add-staff`, `reset-password` and `unlock-login` today and by feature
+ * 15's staff screen later. A login is created
  * through Better Auth's createUser, then the membership (`control.member`, the roles comma joined, the source of truth)
  * and the practice's `staff_member` row (the roles as an array, the mirror every write's actor names) are written in
  * one transaction, so the API's checks and the database's triggers never disagree. A rerun with a handle already there
@@ -127,4 +129,18 @@ export type ResetInput = z.output<typeof resetInput>
 /** Replace a staff member's password and end every session they have open (story 16). */
 export function resetStaffPassword(input: ResetInput, password: () => Promise<string>) {
   return resetPassword(usernameOf(input.handle, input.practiceCode), password)
+}
+
+/** The arguments of an unlock, validated: the same two as a reset's. */
+export const unlockInput = resetInput
+
+export type UnlockInput = ResetInput
+
+/**
+ * Free a username the sign in lock holds, at once (story 17; feature 15 puts it behind the manager's button): whether
+ * a login has the username or not, as the lock itself never tells.
+ */
+export async function unlockLogin(input: UnlockInput): Promise<{ status: 'unlocked' | 'not-locked' }> {
+  const cleared = await clearSignInLock(usernameOf(input.handle, input.practiceCode))
+  return { status: cleared ? 'unlocked' : 'not-locked' }
 }

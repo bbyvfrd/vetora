@@ -50,7 +50,11 @@
   "error": {
     "signin": {
       "title": "Klinika kodu, istifadəçi adı və ya şifrə düzgün deyil",
-      "body": "Hər üçünü yoxlayın və yenidən cəhd edin."
+      "body": "Hər üçünü yoxlayın və yenidən cəhd edin. Beş cəhddən sonra istifadəçi adı 15 dəqiqəlik bloklanır."
+    },
+    "locked": {
+      "title": "Bu istifadəçi adı 15 dəqiqəlik bloklanıb",
+      "body": "Sonra yenidən cəhd edin və ya bloku açmaq üçün klinikanın rəhbərinə müraciət edin."
     },
     "session": {
       "title": "Sessiyanın vaxtı bitdi",

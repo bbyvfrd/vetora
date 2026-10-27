@@ -28,6 +28,8 @@ proxy:
   path_prefix: /api
   strip_path_prefix: false
   app_port: 3000
+  # X-Forwarded-For written afresh with the client's address alone, which Better Auth's rate limiter keys sign ins by
+  # (apps/api/docs/auth.md); true would append it to whatever the client sent, and the limiter would lose the address.
   forward_headers: false
   healthcheck:
     path: /up

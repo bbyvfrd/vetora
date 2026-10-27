@@ -69,7 +69,7 @@ export interface paths {
         put?: never;
         /**
          * Sign in
-         * @description Signs a staff member in with `handle@practice-code` and a password and sets the session cookie, which ends 12 hours later. Every refusal of the credentials answers the same 401, whichever part was wrong (story 4).
+         * @description Signs a staff member in with `handle@practice-code` and a password and sets the session cookie, which ends 12 hours later. Every refusal of the credentials answers the same 401, whichever part was wrong (story 4). Five failures for one username within 15 minutes lock it for 15 minutes, whether or not a login has it (story 5).
          */
         post: {
             parameters: {
@@ -108,7 +108,7 @@ export interface paths {
                     };
                     content?: never;
                 };
-                /** @description Too many attempts from this client for now (problem details) */
+                /** @description The username is locked (title "Login locked"), or this client sent too many sign ins for now (problem details) */
                 429: {
                     headers: {
                         [name: string]: unknown;

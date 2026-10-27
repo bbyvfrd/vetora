@@ -28,14 +28,33 @@ export type CallOptions = {
   body?: unknown
   /** The `name=value` pair of a session cookie. */
   cookie?: string
+  /** The client's address, as kamal-proxy writes it into `x-forwarded-for`; without, Better Auth counts 127.0.0.1. */
+  ip?: string
 }
 
 /** A request to the app as the web app sends it: same origin, JSON, the session cookie when given. */
-export async function call(path: string, { method = 'GET', body, cookie }: CallOptions = {}): Promise<Response> {
+export async function call(path: string, { method = 'GET', body, cookie, ip }: CallOptions = {}): Promise<Response> {
   const headers: Record<string, string> = { origin: testOrigin() }
   if (body !== undefined) headers['content-type'] = 'application/json'
   if (cookie) headers.cookie = cookie
+  if (ip) headers['x-forwarded-for'] = ip
   return app.request(path, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) })
+}
+
+/**
+ * What a refused request answers, minus the parts that differ per request (its id): the status, the problem's type and
+ * title, the content type, and the cookies it sets. An empty body (a 204 where a refusal was expected) reads as none.
+ */
+export async function refusal(response: Response) {
+  const text = await response.text()
+  const body = (text ? JSON.parse(text) : {}) as Record<string, unknown>
+  return {
+    status: response.status,
+    type: body.type,
+    title: body.title,
+    contentType: response.headers.get('content-type'),
+    cookies: response.headers.getSetCookie(),
+  }
 }
 
 /** The session cookie a response sets, as the `name=value` pair a browser sends back; throws when there is none. */
@@ -46,11 +65,17 @@ export function sessionCookie(response: Response): string {
   return pair
 }
 
-/** Sign in as the sign in page does, joining the clinic code and the username. */
-export function signIn(practiceCode: string, handle: string, password: string): Promise<Response> {
+/** Sign in as the sign in page does, joining the clinic code and the username; from `ip` when given. */
+export function signIn(
+  practiceCode: string,
+  handle: string,
+  password: string,
+  { ip }: Pick<CallOptions, 'ip'> = {},
+): Promise<Response> {
   return call('/api/auth/sign-in/username', {
     method: 'POST',
     body: { username: `${handle}@${practiceCode}`, password },
+    ip,
   })
 }
 
@@ -105,7 +130,7 @@ export type CommandRun = {
 }
 
 /** The shipped commands, as `kamal app exec` runs them (`node apps/api/dist/<command>.js` in the image). */
-export type Command = 'migrate' | 'provision-practice' | 'add-staff' | 'reset-password'
+export type Command = 'migrate' | 'provision-practice' | 'add-staff' | 'reset-password' | 'unlock-login'
 
 /**
  * One command as a subprocess, in an environment of its own: the variables given and PATH, never this process's

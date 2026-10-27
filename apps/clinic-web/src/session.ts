@@ -49,8 +49,11 @@ function rememberClinicCode(code: string): void {
   }
 }
 
-/** How a sign in ended: in, refused (one answer whichever part was wrong, story 4), or no connection. */
-export type SignInResult = 'signed-in' | 'refused' | 'offline'
+/**
+ * How a sign in ended: in, refused (one answer whichever part was wrong, story 4), locked (five failures within 15
+ * minutes lock the username, story 5; the API's 429), or no connection.
+ */
+export type SignInResult = 'signed-in' | 'refused' | 'locked' | 'offline'
 
 /** The form a login's two names take on the wire: lower case, without stray spaces, joined as `handle@code`. */
 const normalised = (value: string) => value.trim().toLowerCase()
@@ -62,6 +65,7 @@ export async function signIn(clinicCode: string, username: string, password: str
     const { response } = await api.POST('/api/auth/sign-in/username', {
       body: { username: `${normalised(username)}@${code}`, password },
     })
+    if (response.status === 429) return 'locked'
     if (response.status !== 204) return 'refused'
   } catch {
     return 'offline'

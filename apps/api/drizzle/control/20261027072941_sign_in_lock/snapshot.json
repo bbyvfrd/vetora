@@ -1,0 +1,118 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "ab08058e-68fe-4d3b-80fd-4681fe81ba10",
+  "prevIds": [
+    "f8ffd914-b8e4-4e8b-a08f-bfc4c96fc35c"
+  ],
+  "footprints": [
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "control",
+        "sign_in_lock"
+      ],
+      "writes": [
+        "s|tbl|control.sign_in_lock",
+        "n|tbl|control.sign_in_lock",
+        "e|tbl|control.sign_in_lock",
+        "n|rel|control.sign_in_lock",
+        "n|type|control.sign_in_lock",
+        "n|rel|control.sign_in_lock_pkey"
+      ],
+      "reads": [
+        "n|sch|control"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "name": "sign_in_lock",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "sign_in_lock",
+        "name": "username",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "sign_in_lock",
+        "name": "failures",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "sign_in_lock",
+        "name": "first_failed_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "sign_in_lock",
+        "name": "locked_until",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "control",
+        "table": "sign_in_lock",
+        "name": "sign_in_lock_pkey",
+        "columns": [
+          "username"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    }
+  ]
+}
