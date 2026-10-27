@@ -348,6 +348,768 @@
           }
         }
       }
+    },
+    "/api/p/{practiceId}/species": {
+      "get": {
+        "summary": "The species and their breeds",
+        "description": "Every species in its order with its three names, each with its active breeds.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "practiceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "vetora-location",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The species",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "species": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "code": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "object",
+                            "properties": {
+                              "az": {
+                                "type": "string"
+                              },
+                              "ru": {
+                                "type": "string"
+                              },
+                              "en": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "az",
+                              "ru",
+                              "en"
+                            ]
+                          },
+                          "clinicallySupported": {
+                            "type": "boolean"
+                          },
+                          "breeds": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "format": "uuid"
+                                },
+                                "name": {
+                                  "type": "object",
+                                  "properties": {
+                                    "az": {
+                                      "type": [
+                                        "string",
+                                        "null"
+                                      ]
+                                    },
+                                    "ru": {
+                                      "type": [
+                                        "string",
+                                        "null"
+                                      ]
+                                    },
+                                    "en": {
+                                      "type": [
+                                        "string",
+                                        "null"
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "az",
+                                    "ru",
+                                    "en"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "name"
+                              ]
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "code",
+                          "name",
+                          "clinicallySupported",
+                          "breeds"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "species"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed, or no location header or one not of this practice (problem details)"
+          },
+          "401": {
+            "description": "No session (problem details)"
+          },
+          "403": {
+            "description": "Not a member, a practice not active, or an action the roles may not perform (problem details)"
+          },
+          "503": {
+            "description": "The practice is being updated (problem details)"
+          }
+        }
+      }
+    },
+    "/api/p/{practiceId}/breeds/{breedId}": {
+      "put": {
+        "summary": "Add a breed",
+        "description": "Adds a breed to a species with one name in the language given. The id is a UUID v7 the client generates: the same request again answers the breed and changes nothing.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "practiceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "breedId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "vetora-location",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "speciesId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "language": {
+                    "type": "string",
+                    "enum": [
+                      "az",
+                      "ru",
+                      "en"
+                    ]
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  }
+                },
+                "required": [
+                  "speciesId",
+                  "language",
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The breed was already there",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "speciesId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "name": {
+                      "type": "object",
+                      "properties": {
+                        "az": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "ru": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "en": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "az",
+                        "ru",
+                        "en"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "speciesId",
+                    "name"
+                  ]
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "The breed was added",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "speciesId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "name": {
+                      "type": "object",
+                      "properties": {
+                        "az": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "ru": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "en": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "az",
+                        "ru",
+                        "en"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "speciesId",
+                    "name"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed, or no location header or one not of this practice (problem details)"
+          },
+          "401": {
+            "description": "No session (problem details)"
+          },
+          "403": {
+            "description": "Not a member, a practice not active, or an action the roles may not perform (problem details)"
+          },
+          "404": {
+            "description": "No such species (problem details)"
+          },
+          "409": {
+            "description": "The species has a breed of this name (problem details)"
+          },
+          "503": {
+            "description": "The practice is being updated (problem details)"
+          }
+        }
+      }
+    },
+    "/api/p/{practiceId}/clients/lookup": {
+      "post": {
+        "summary": "Find clients by phone",
+        "description": "Every client holding the phone number, written in any common way, each with the patients they own today. A POST, so the number never reaches a URL.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "practiceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "vetora-location",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "phone": {
+                    "type": "string",
+                    "maxLength": 40
+                  }
+                },
+                "required": [
+                  "phone"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The clients on the number",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "phone": {
+                      "type": "string"
+                    },
+                    "clients": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "firstName": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "lastName": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "patronymic": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "preferredLanguage": {
+                            "type": "string",
+                            "enum": [
+                              "az",
+                              "ru",
+                              "en"
+                            ]
+                          },
+                          "patients": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "format": "uuid"
+                                },
+                                "name": {
+                                  "type": "string"
+                                },
+                                "speciesId": {
+                                  "type": "string",
+                                  "format": "uuid"
+                                },
+                                "breedId": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ],
+                                  "format": "uuid"
+                                },
+                                "sex": {
+                                  "type": "string",
+                                  "enum": [
+                                    "male",
+                                    "female",
+                                    "unknown"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "name",
+                                "speciesId",
+                                "breedId",
+                                "sex"
+                              ]
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "firstName",
+                          "lastName",
+                          "patronymic",
+                          "preferredLanguage",
+                          "patients"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "phone",
+                    "clients"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed, or no location header or one not of this practice (problem details)"
+          },
+          "401": {
+            "description": "No session (problem details)"
+          },
+          "403": {
+            "description": "Not a member, a practice not active, or an action the roles may not perform (problem details)"
+          },
+          "503": {
+            "description": "The practice is being updated (problem details)"
+          }
+        }
+      }
+    },
+    "/api/p/{practiceId}/registrations": {
+      "put": {
+        "summary": "Register a client and a patient",
+        "description": "Writes what is new of the client and the patient in one transaction, a new patient's owner row from the practice's today with it. The new ones carry UUID v7 ids the client generates: the same request again changes nothing.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "practiceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "vetora-location",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "client": {
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "existing"
+                            ]
+                          },
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          }
+                        },
+                        "required": [
+                          "type",
+                          "id"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "new"
+                            ]
+                          },
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "firstName": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 100
+                          },
+                          "lastName": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 100
+                          },
+                          "patronymic": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "maxLength": 100
+                          },
+                          "phone": {
+                            "type": "string",
+                            "maxLength": 40
+                          },
+                          "preferredLanguage": {
+                            "type": "string",
+                            "enum": [
+                              "az",
+                              "ru",
+                              "en"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "type",
+                          "id",
+                          "firstName",
+                          "lastName",
+                          "phone",
+                          "preferredLanguage"
+                        ]
+                      }
+                    ]
+                  },
+                  "patient": {
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "existing"
+                            ]
+                          },
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          }
+                        },
+                        "required": [
+                          "type",
+                          "id"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "new"
+                            ]
+                          },
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "name": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 100
+                          },
+                          "speciesId": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "breedId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "uuid"
+                          },
+                          "sex": {
+                            "type": "string",
+                            "enum": [
+                              "male",
+                              "female",
+                              "unknown"
+                            ]
+                          },
+                          "birthDate": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "date"
+                          },
+                          "birthDateIsEstimate": {
+                            "type": "boolean",
+                            "default": false
+                          },
+                          "isNeutered": {
+                            "type": "boolean",
+                            "default": false
+                          },
+                          "colour": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "maxLength": 100
+                          },
+                          "microchipNumber": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "pattern": "^\\d{15}$"
+                          }
+                        },
+                        "required": [
+                          "type",
+                          "id",
+                          "name",
+                          "speciesId",
+                          "sex"
+                        ]
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "client",
+                  "patient"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Registered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "clientId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "patientId": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  },
+                  "required": [
+                    "clientId",
+                    "patientId"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed, or no location header or one not of this practice (problem details)"
+          },
+          "401": {
+            "description": "No session (problem details)"
+          },
+          "403": {
+            "description": "Not a member, a practice not active, or an action the roles may not perform (problem details)"
+          },
+          "404": {
+            "description": "No such client, species or breed (problem details)"
+          },
+          "409": {
+            "description": "The microchip is another patient's, or the patient is not this client's (problem details)"
+          },
+          "503": {
+            "description": "The practice is being updated (problem details)"
+          }
+        }
+      }
     }
   },
   "webhooks": {}

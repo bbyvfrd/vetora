@@ -318,8 +318,19 @@ describe.skipIf(!databaseTestsEnabled())(
       const granted = run.lines
         .filter((line) => line.msg === 'grants applied')
         .map((line) => Object.keys(line.tables as Record<string, unknown>).sort())
-      const platformTables = ['audit_event', 'location', 'practice_settings', 'staff_member']
-      expect(granted).toEqual([platformTables, platformTables])
+      const practiceTables = [
+        'audit_event',
+        'breed',
+        'client',
+        'client_contact',
+        'location',
+        'ownership',
+        'patient',
+        'practice_settings',
+        'species',
+        'staff_member',
+      ]
+      expect(granted).toEqual([practiceTables, practiceTables])
       expect(run.lines.at(-1)).toMatchObject({ msg: 'migrate done', applied: 0, practices: 2 })
     }, 15_000)
 

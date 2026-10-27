@@ -1,7 +1,7 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute, Outlet, redirect, useLocation, useNavigate, useRouter } from '@tanstack/react-router'
 import type { StaffRole } from '@vetora/contracts'
-import { AppShell, Banner, NavRail, PageBody } from '@vetora/ui'
+import { AppShell, Banner, NavRail, PageBody, Toaster } from '@vetora/ui'
 import { type MouseEvent, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import logo from '../assets/vetora-logo-horizontal-reversed.svg'
@@ -90,6 +90,8 @@ function AppLayout() {
       }
     >
       <Outlet />
+      {/* The one toaster of the signed in pages: a confirmation outlives the page that saved (New visit's Save). */}
+      <Toaster label={t('notifications.label')} closeLabel={t('action.close')} />
     </AppShell>
   )
 }

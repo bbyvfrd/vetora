@@ -288,8 +288,14 @@ describe.skipIf(!databaseTestsEnabled())('the Drizzle declarations match the mig
         live,
       ),
     ).toEqual([
+      'column "breed.version" is in the schema but not declared',
+      'column "client.version" is in the schema but not declared',
+      'column "client_contact.version" is in the schema but not declared',
       'column "location.version" is in the schema but not declared',
+      'column "ownership.version" is in the schema but not declared',
+      'column "patient.version" is in the schema but not declared',
       'column "practice_settings.version" is in the schema but not declared',
+      'column "species.version" is in the schema but not declared',
       'column "staff_member.version" is in the schema but not declared',
     ])
   })
