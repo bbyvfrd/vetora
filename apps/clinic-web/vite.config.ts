@@ -26,8 +26,13 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, repoRoot, 'VETORA_')
   const webPort = Number(env.VETORA_WEB_PORT ?? 5173)
   const apiPort = Number(env.VETORA_API_PORT ?? 3000)
+  // The browser gets each route's component as a chunk of its own. Under Vitest that chunk was imported at a test's
+  // first visit to the route, module by module through the main Vitest process a full `pnpm test` shares with every
+  // project, inside Testing Library's one second findBy wait: on a loaded machine the first case of a file found
+  // nothing rendered. The tests load the routes whole, with the file.
+  const splitRoutes = !process.env.VITEST
   return {
-    plugins: [tanstackRouter({ target: 'react', autoCodeSplitting: true }), react(), ...sentryUpload],
+    plugins: [tanstackRouter({ target: 'react', autoCodeSplitting: splitRoutes }), react(), ...sentryUpload],
     server: {
       port: webPort,
       strictPort: true,
