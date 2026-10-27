@@ -2130,6 +2130,417 @@
           }
         }
       }
+    },
+    "/api/p/{practiceId}/visits/{visitId}/observations/{observationId}": {
+      "put": {
+        "summary": "Record a vital sign",
+        "description": "Records one reading on a visit, for its patient, at the request's location, timed now and measured by the actor; a weight by a receptionist, an assistant or a vet, the other vital signs by an assistant or a vet. The reading id is a UUID v7 the client generates: the same request again changes nothing. A corrected value is a new reading; the earlier one stays.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "practiceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "visitId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "observationId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "vetora-location",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "weight",
+                      "temperature",
+                      "pulse",
+                      "respiratory_rate"
+                    ]
+                  },
+                  "value": {
+                    "type": "number"
+                  },
+                  "unit": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "value",
+                  "unit"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Recorded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "weight",
+                        "temperature",
+                        "pulse",
+                        "respiratory_rate",
+                        "body_condition",
+                        "other"
+                      ]
+                    },
+                    "value": {
+                      "type": "number"
+                    },
+                    "unit": {
+                      "type": "string"
+                    },
+                    "occurredAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "measuredBy": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "displayName": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "displayName"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "kind",
+                    "value",
+                    "unit",
+                    "occurredAt",
+                    "measuredBy"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed, or no location header or one not of this practice (problem details)"
+          },
+          "401": {
+            "description": "No session (problem details)"
+          },
+          "403": {
+            "description": "Not a member, a practice not active, or an action the roles may not perform (problem details)"
+          },
+          "404": {
+            "description": "No such visit, or a cancelled one (problem details)"
+          },
+          "409": {
+            "description": "The visit is completed (problem details naming vetora.frozen_record), or the reading id is another visit's reading"
+          },
+          "503": {
+            "description": "The practice is being updated (problem details)"
+          }
+        }
+      }
+    },
+    "/api/p/{practiceId}/visits/{visitId}/observations": {
+      "get": {
+        "summary": "A visit's vital signs",
+        "description": "Every reading of the visit, oldest first, each with who measured it.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "practiceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "visitId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "vetora-location",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The visit's readings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "observations": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "weight",
+                              "temperature",
+                              "pulse",
+                              "respiratory_rate",
+                              "body_condition",
+                              "other"
+                            ]
+                          },
+                          "value": {
+                            "type": "number"
+                          },
+                          "unit": {
+                            "type": "string"
+                          },
+                          "occurredAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "measuredBy": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "displayName": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "displayName"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "kind",
+                          "value",
+                          "unit",
+                          "occurredAt",
+                          "measuredBy"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "observations"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed, or no location header or one not of this practice (problem details)"
+          },
+          "401": {
+            "description": "No session (problem details)"
+          },
+          "403": {
+            "description": "Not a member, a practice not active, or an action the roles may not perform (problem details)"
+          },
+          "404": {
+            "description": "No such visit, or a cancelled one (problem details)"
+          },
+          "503": {
+            "description": "The practice is being updated (problem details)"
+          }
+        }
+      }
+    },
+    "/api/p/{practiceId}/patients/{patientId}/last-weight": {
+      "get": {
+        "summary": "A patient's last weight",
+        "description": "The newest weight reading across the patient's visits, with when it was taken; a cancelled visit's readings do not count, nor those of the visit named in `excludingVisit`. Null when the patient has never been weighed.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "practiceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "patientId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "excludingVisit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "vetora-location",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The last weight",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "lastWeight": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "weight",
+                            "temperature",
+                            "pulse",
+                            "respiratory_rate",
+                            "body_condition",
+                            "other"
+                          ]
+                        },
+                        "value": {
+                          "type": "number"
+                        },
+                        "unit": {
+                          "type": "string"
+                        },
+                        "occurredAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "measuredBy": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "displayName": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "displayName"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "kind",
+                        "value",
+                        "unit",
+                        "occurredAt",
+                        "measuredBy"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "lastWeight"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed, or no location header or one not of this practice (problem details)"
+          },
+          "401": {
+            "description": "No session (problem details)"
+          },
+          "403": {
+            "description": "Not a member, a practice not active, or an action the roles may not perform (problem details)"
+          },
+          "503": {
+            "description": "The practice is being updated (problem details)"
+          }
+        }
+      }
     }
   },
   "webhooks": {}

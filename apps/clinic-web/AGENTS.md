@@ -29,6 +29,7 @@ Each file's own comments say what it owns and why; this index finds the file.
 | `src/api/client.ts` | `api`, the typed client on the page's own origin |
 | `src/api/practice.ts`, `src/ids.ts` | `practiceParams(me)`, the practice id and location header every practice request sends; `uuidv7()`, a create's ids |
 | `src/api/visits.ts` | `visitsTodayQuery(me)`, the list two pages share (Visits today shows it, a visit's change marks it stale) |
+| `src/api/observations.ts` | `observationsQuery(me, visitId)` and `lastWeightQuery(me, patientId)`, the vital signs the visit page reads; a reading recorded there marks them stale |
 | `src/drafts.ts` | The draft note's copy on this computer (IndexedDB, keyed by person and visit, deleted at sign out); `useNote` in `src/pages/VisitPage.tsx` owns the save rhythm over it |
 | `src/time.ts`, `src/names.ts` | The time zone boundary: `wallClock()` and `practiceToday()` in `me.practice.timeZone`; `fullName()` and `nameIn()` |
 | `src/i18n.ts`, `src/i18next.d.ts` | i18next and the per browser language; the typed translation keys |

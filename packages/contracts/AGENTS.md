@@ -16,6 +16,7 @@
 | `src/phone.ts` | `normalisePhone()`, the one function that reads a typed phone number to E.164 with Azerbaijan as the default region (libphonenumber-js, this package's only dependency besides zod), and the `Phone` schema it backs |
 | `src/patients.ts`, `src/clients.ts` | #21's routes: `SpeciesList`, `BreedCreate` and `Breed`; `PhoneLookup` and `PhoneLookupResult`; `Registration` (an existing or a `NewClient`, an existing or a `NewPatient`) and `Registered`. The web app's New visit form validates with the same schemas |
 | `src/visits.ts` | #22's routes: `VisitPath`, `Visit`, `VisitNote` (the six sections), `VisitStarted`, `VisitVersion`, `VisitsToday`; `VisitChangeHeaders` with `If-Match`, and `versionTag()` and `versionOfTag()`, a version to and from its entity tag (`"3"`) |
+| `src/observations.ts` | #23's routes: `NewObservation`, `Observation`, `Observations`, `LastWeight` with `LastWeightQuery` (`excludingVisit`, which the visit page names), `ObservationPath` (`PatientPath` is in `patients.ts`); `OBSERVATION_KINDS` (the table's six) and `VITAL_KINDS` (the visit page's four); `VITAL_SIGNS`, each vital sign's unit and plausible range, defined once for the API to refuse and the web app to check; `actionOfReading()`, the matrix action a kind needs (weight `recordWeight`, the rest `recordVitalSignsAndNote`) |
 | `openapi.json` | The API's published document, written by `pnpm openapi`; committed, and CI diffs it |
 | `src/generated/api.ts` | Generated from `openapi.json` by openapi-typescript; committed, never edited by hand |
 

@@ -25,6 +25,13 @@ const colleague = meOf({ id: '019a3f00-0000-7000-8000-00000000c011', displayName
 const visitId = '019a3f00-0000-7000-8000-0000000000f1'
 const otherVisitId = '019a3f00-0000-7000-8000-0000000000f2'
 const visitPath = `/api/p/${me.practice.id}/visits/${visitId}`
+const patientId = '019a3f00-0000-7000-8000-0000000000e1'
+
+/** The visit's vital signs (#23), which the page reads beside the note: none recorded, no weight before. */
+const noReadings = {
+  [`GET ${visitPath}/observations`]: () => Response.json({ observations: [] }),
+  [`GET /api/p/${me.practice.id}/patients/${patientId}/last-weight`]: () => Response.json({ lastWeight: null }),
+}
 
 const emptyNote: VisitNote = {
   reasonForVisit: '',
@@ -44,7 +51,7 @@ const draftOf = (note: VisitNote = emptyNote, version = 1): Visit => ({
   finalisedAt: null,
   veterinarian: { id: me.id, displayName: 'Leyla Həsənova' },
   patient: {
-    id: '019a3f00-0000-7000-8000-0000000000e1',
+    id: patientId,
     name: 'Şəkər',
     species: { az: 'Pişik', ru: 'Кошка', en: 'Cat' },
     breed: null,
@@ -141,6 +148,7 @@ function stubServer(initial: { note?: VisitNote; version?: number; who?: typeof 
     },
     [`GET /api/p/${me.practice.id}/visits`]: signedIn(() => Response.json({ day: '2026-10-27', visits: [] })),
     [`GET ${visitPath}`]: signedIn(() => Response.json(draftOf(server.note, server.version))),
+    ...noReadings,
   })
   // The note's save is answered here, since it reads the If-Match header, which a route is not handed.
   const routed = fetchMock.getMockImplementation()
@@ -310,6 +318,7 @@ describe('the draft note survives a dropped connection (#24, seam 3)', () => {
     stubApi(fetchMock, {
       'GET /api/me': () => Response.json(me),
       [`GET ${visitPath}`]: () => Response.json(draftOf()),
+      ...noReadings,
       [`PUT ${visitPath}/note`]: () => problemAnswer(503, 'Service unavailable'),
     })
     const { words } = await openVisit()
@@ -409,8 +418,8 @@ describe('the draft note survives a dropped connection (#24, seam 3)', () => {
       expect(within(offer).getByText(words.keptBody)).toBeInTheDocument()
       expect(within(offer).getByText('Limping')).toBeInTheDocument()
       expect(within(offer).getByText('Two days')).toBeInTheDocument()
-      // The note waits for the choice.
-      expect(screen.queryAllByRole('textbox')).toEqual([])
+      // The note's sections wait for the choice; the vital signs, readings of their own, stay fields.
+      for (const label of words.sections) expect(screen.queryByRole('textbox', { name: label })).toBeNull()
       expect(violationsOf(await axe(document.body, axeOptions))).toEqual([])
 
       await userEvent.setup().click(within(offer).getByRole('button', { name: words.restore }))

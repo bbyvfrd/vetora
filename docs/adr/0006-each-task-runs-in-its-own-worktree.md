@@ -1,6 +1,7 @@
 ---
 status: accepted
 date: 2026-10-26
+amended: who pushes, by ADR 0009 on 2026-10-27
 ---
 
 # Each task runs in its own worktree, and main is landed by squash merge

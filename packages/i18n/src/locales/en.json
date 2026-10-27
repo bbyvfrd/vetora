@@ -78,7 +78,15 @@
       "female": "neutered",
       "male": "neutered",
       "unknown": "neutered"
-    }
+    },
+    "vitals": "Vital signs",
+    "vital": {
+      "weight": "Weight",
+      "temperature": "Temperature",
+      "pulse": "Pulse",
+      "respiratoryRate": "Respiratory rate"
+    },
+    "lastWeight": "Last weight: {{value}}, {{date}}"
   },
   "confirm": {
     "visitCancel": {
@@ -145,7 +153,17 @@
     "microchip": "Enter the 15 digits of the microchip",
     "microchipTaken": "This microchip is recorded for another patient",
     "reasonForVisit": "Enter the reason for visit",
-    "dateExample": "12/10/2026"
+    "dateExample": "12/10/2026",
+    "weight": "Enter the weight in kilograms, such as 4.2",
+    "temperature": "Enter the temperature in °C, such as 38.5",
+    "pulse": "Enter the pulse in beats per minute, such as 90",
+    "respiratoryRate": "Enter the respiratory rate per minute, such as 24"
+  },
+  "unit": {
+    "kg": "kg",
+    "g": "g",
+    "celsius": "°C",
+    "perMinute": "/min"
   },
   "newVisit": {
     "title": "New visit",

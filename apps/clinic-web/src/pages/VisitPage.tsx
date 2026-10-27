@@ -1,28 +1,44 @@
 import { queryOptions, useMutation, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
-import { can, type Me, type VisitNote as Note, type Visit, versionTag } from '@vetora/contracts'
+import {
+  actionOfReading,
+  can,
+  type Me,
+  NewObservation,
+  type VisitNote as Note,
+  type Observation,
+  VITAL_SIGNS,
+  type Visit,
+  type VitalKind,
+  versionTag,
+} from '@vetora/contracts'
 import {
   Banner,
   Button,
   Dialog,
   formatAge,
   formatDate,
+  formatNumber,
   formatPhone,
   type NoteSection,
   PageBody,
   PageHeader,
   type PatientFact,
   PatientHeader,
+  parseNumber,
   Skeleton,
   toast,
   VisitNote,
+  type VitalField,
 } from '@vetora/ui'
 import { type MouseEvent, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
+import { lastWeightQuery, observationsQuery } from '../api/observations'
 import { practiceParams } from '../api/practice'
 import { visitsTodayQuery } from '../api/visits'
 import { forgetDraft, keepDraft, keptDraft } from '../drafts'
+import { uuidv7 } from '../ids'
 import { fullName, nameIn } from '../names'
 import { meQuery } from '../session'
 import { practiceToday, wallClock } from '../time'
@@ -33,7 +49,9 @@ import { practiceToday, wallClock } from '../time'
  * their phone) with Complete visit as its primary action and Cancel visit beside it while the visit is a draft and the
  * person a vet, then the note's six sections in the order the vet works. Complete visit needs the reason for visit:
  * without it the field says so and takes the focus, and nothing typed is lost. Once completed the note is read only.
- * The vital signs arrive with #23, the invoice with #25.
+ * Above the sections, the vital signs (#23; stories 39 to 42): each reading saved when its field is left, a new reading
+ * for each new value, the last weight and its date under the weight; a receptionist records the weight and reads the
+ * rest. The invoice arrives with #25.
  *
  * The draft note survives a dropped connection (#24; stories 10, 46 to 49): what is typed is kept on this computer
  * (`src/drafts.ts`) and saved to the server against the version it was read at, on the rhythm `useNote` describes. A
@@ -52,6 +70,24 @@ const saveEvery = 30_000
 /** How long typing pauses before the text is kept on this computer. */
 const keepAfter = 1_000
 
+/** The vital signs in the design system's order (its VisitPage example; the artifact decides it, ADR 0005). */
+const VITALS = ['temperature', 'pulse', 'respiratory_rate', 'weight'] as const satisfies readonly VitalKind[]
+
+/**
+ * Each vital sign's words: its label (the glossary), its unit as the glossary's Units write it in the interface
+ * language (the stored one is the contracts' `VITAL_SIGNS`), and what its field says when the value cannot be a
+ * reading (messages.md, Field errors).
+ */
+const VITAL_WORDS = {
+  temperature: { label: 'visit.vital.temperature', unit: 'unit.celsius', error: 'field.temperature' },
+  pulse: { label: 'visit.vital.pulse', unit: 'unit.perMinute', error: 'field.pulse' },
+  respiratory_rate: { label: 'visit.vital.respiratoryRate', unit: 'unit.perMinute', error: 'field.respiratoryRate' },
+  weight: { label: 'visit.vital.weight', unit: 'unit.kg', error: 'field.weight' },
+} as const satisfies Record<VitalKind, { label: string; unit: string; error: string }>
+
+/** Between a number and its unit, so the two never part at a line end (formats.md, Units). */
+const NBSP = ' '
+
 const visitQuery = (me: Me, visitId: string) =>
   queryOptions({
     queryKey: ['visit', me.practice.id, visitId] as const,
@@ -69,6 +105,7 @@ export function VisitPage({ visitId }: { visitId: string }) {
   const navigate = useNavigate()
   const { data: me } = useSuspenseQuery(meQuery)
   const visit = useQuery(visitQuery(me, visitId))
+  const observations = useQuery(observationsQuery(me, visitId))
   const kept = useKeptNote(me.id, visit.data)
   const back = {
     label: t('visitsToday.title'),
@@ -79,17 +116,23 @@ export function VisitPage({ visitId }: { visitId: string }) {
     },
   }
 
-  if (!visit.data || kept === undefined) {
+  if (!visit.data || !observations.data || kept === undefined) {
     return (
       <>
         <PageHeader title={t('visit.note')} back={back} />
         <PageBody>
-          <section aria-label={t('visit.note')} aria-busy={visit.isPending || undefined}>
-            {visit.isError ? (
+          <section aria-label={t('visit.note')} aria-busy={visit.isPending || observations.isPending || undefined}>
+            {visit.isError || observations.isError ? (
               <Banner
                 status="danger"
                 title={t('error.load.title')}
-                action={{ label: t('error.load.button'), onClick: () => void visit.refetch() }}
+                action={{
+                  label: t('error.load.button'),
+                  onClick: () => {
+                    if (visit.isError) void visit.refetch()
+                    if (observations.isError) void observations.refetch()
+                  },
+                }}
               >
                 {t('error.load.body')}
               </Banner>
@@ -102,7 +145,16 @@ export function VisitPage({ visitId }: { visitId: string }) {
     )
   }
   // A new note for each status the visit reaches: a completed one starts read only from the server's text.
-  return <VisitWork key={`${visit.data.id}:${visit.data.status}`} me={me} visit={visit.data} kept={kept} back={back} />
+  return (
+    <VisitWork
+      key={`${visit.data.id}:${visit.data.status}`}
+      me={me}
+      visit={visit.data}
+      observations={observations.data}
+      kept={kept}
+      back={back}
+    />
+  )
 }
 
 const sameNote = (a: Note, b: Note) => SECTIONS.every((id) => a[id] === b[id])
@@ -385,14 +437,108 @@ function useNote(me: Me, visit: Visit, initiallyKept: Note | null) {
   }
 }
 
+type VitalValues = Record<VitalKind, string>
+
+/** The value typed as a reading of its kind, or null when it is no number, outside the plausible range or too fine. */
+function readingOf(kind: VitalKind, text: string): number | null {
+  const value = parseNumber(text)
+  if (value === null) return null
+  return NewObservation.safeParse({ kind, value, unit: VITAL_SIGNS[kind].unit }).success ? value : null
+}
+
+/**
+ * The vital signs on the page and their saving (#23): each field as typed, starting from the visit's newest reading of
+ * its kind; which ones say what to enter; and the readings sent one at a time, in the order the fields were left, so
+ * the newest reading is the last value typed. Leaving a field with a new plausible value records a new reading (PT-2:
+ * a correction is a new row); a reading that failed is sent again with the same id when the same value is left again.
+ */
+function useVitalSigns(me: Me, visit: Visit, observations: Observation[]) {
+  const queryClient = useQueryClient()
+  const newest = (kind: VitalKind) => observations.findLast((reading) => reading.kind === kind)
+  const typed = useRef(
+    Object.fromEntries(
+      VITALS.map((kind) => {
+        const reading = newest(kind)
+        return [kind, reading ? formatNumber(reading.value) : '']
+      }),
+    ) as VitalValues,
+  )
+  const [values, setValues] = useState(typed.current)
+  const [invalid, setInvalid] = useState<Partial<Record<VitalKind, boolean>>>({})
+  const [saveState, setSaveState] = useState<SaveState>()
+  /** Each kind's newest reading as it will stand once the readings queued are sent: what a new value is compared with. */
+  const latest = useRef<Partial<Record<VitalKind, number>>>(
+    Object.fromEntries(VITALS.map((kind) => [kind, newest(kind)?.value])),
+  )
+  /** A reading queued or refused and not yet on the server, by kind: its value and the id a retry reuses. */
+  const unsaved = useRef<Partial<Record<VitalKind, { value: number; id: string }>>>({})
+  const queue = useRef<Promise<unknown>>(Promise.resolve())
+
+  const change = (kind: VitalKind, text: string) => {
+    typed.current = { ...typed.current, [kind]: text }
+    setValues(typed.current)
+    setInvalid((marked) => ({ ...marked, [kind]: false }))
+  }
+
+  async function send(kind: VitalKind, value: number, id: string) {
+    setSaveState('saving')
+    try {
+      const { data } = await api.PUT('/api/p/{practiceId}/visits/{visitId}/observations/{observationId}', {
+        params: { ...practiceParams(me), path: { practiceId: me.practice.id, visitId: visit.id, observationId: id } },
+        body: { kind, value, unit: VITAL_SIGNS[kind].unit },
+      })
+      if (!data) throw new Error('the reading was not saved')
+      // A newer value queued after this one stays unsaved until it is sent itself.
+      if (unsaved.current[kind]?.id === id) unsaved.current[kind] = undefined
+      setSaveState('saved')
+      void queryClient.invalidateQueries({ queryKey: observationsQuery(me, visit.id).queryKey })
+    } catch {
+      setSaveState('error')
+    }
+  }
+
+  /** Leaving a field: nothing typed sends nothing, an implausible value says what to enter, a new value is a reading. */
+  const leave = (kind: VitalKind) => {
+    const text = typed.current[kind].trim()
+    if (text === '') return
+    const value = readingOf(kind, text)
+    if (value === null) {
+      setInvalid((marked) => ({ ...marked, [kind]: true }))
+      return
+    }
+    const pending = unsaved.current[kind]
+    if (value === latest.current[kind] && !pending) return
+    const id = pending?.value === value ? pending.id : uuidv7()
+    latest.current[kind] = value
+    unsaved.current[kind] = { value, id }
+    queue.current = queue.current.then(() => send(kind, value, id))
+  }
+
+  /** Whether every reading left in a field has reached the server, once those under way are done. */
+  async function settled(): Promise<boolean> {
+    await queue.current
+    return VITALS.every((kind) => unsaved.current[kind] === undefined)
+  }
+
+  return { values, invalid, change, leave, settled, saveState }
+}
+
+/** One save line for the note and its readings: saving while either saves, not saved while either failed. */
+function combinedSaveState(a: SaveState | undefined, b: SaveState | undefined): SaveState | undefined {
+  if (a === 'saving' || b === 'saving') return 'saving'
+  if (a === 'error' || b === 'error') return 'error'
+  return a ?? b
+}
+
 type VisitWorkProps = {
   me: Me
   visit: Visit
+  observations: Observation[]
   kept: Note | null
   back: { label: string; href: string; onClick: (event: MouseEvent) => void }
 }
 
-function VisitWork({ me, visit, kept, back }: VisitWorkProps) {
+function VisitWork({ me, visit, observations, kept, back }: VisitWorkProps) {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -400,8 +546,11 @@ function VisitWork({ me, visit, kept, back }: VisitWorkProps) {
   const draft = visit.status === 'draft'
   const writes = draft && can(me.practice.roles, 'recordVitalSignsAndNote')
   const conducts = draft && can(me.practice.roles, 'conductEncounter')
+  const records = (kind: VitalKind) => draft && can(me.practice.roles, actionOfReading(kind))
   // Kept text is offered only to someone who can write it into the note.
   const note = useNote(me, visit, writes ? kept : null)
+  const vitals = useVitalSigns(me, visit, observations)
+  const lastWeight = useQuery(lastWeightQuery(me, visit.patient.id, visit.id))
   const noteRef = useRef<HTMLDivElement>(null)
   const [reasonMissing, setReasonMissing] = useState(false)
   // Each refused Complete visit asks for the focus again, even when the message already shows.
@@ -420,11 +569,11 @@ function VisitWork({ me, visit, kept, back }: VisitWorkProps) {
 
   const complete = useMutation({
     mutationFn: async (): Promise<'completed' | 'reason-missing' | 'stopped'> => {
-      if (!(await note.save())) {
-        // A conflict found by this save says so in its own banner.
-        if (note.stopped()) return 'stopped'
-        throw new Error('the note was not saved')
-      }
+      // A reading left in a field as Complete visit is pressed is sent first: the completion would refuse it.
+      const [noteSaved, readingsSaved] = await Promise.all([note.save(), vitals.settled()])
+      // A conflict found by this save says so in its own banner.
+      if (!noteSaved && note.stopped()) return 'stopped'
+      if (!noteSaved || !readingsSaved) throw new Error('the note was not saved')
       const { data, error, response } = await api.POST('/api/p/{practiceId}/visits/{visitId}/complete', {
         params: note.changeParams(),
       })
@@ -437,7 +586,10 @@ function VisitWork({ me, visit, kept, back }: VisitWorkProps) {
       if (outcome === 'reason-missing') return reasonBlocked()
       toast({ title: t('toast.visit.completed'), status: 'success' })
       void refreshLists()
-      await queryClient.invalidateQueries({ queryKey: visitQuery(me, visit.id).queryKey })
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: observationsQuery(me, visit.id).queryKey }),
+        queryClient.invalidateQueries({ queryKey: visitQuery(me, visit.id).queryKey }),
+      ])
     },
   })
 
@@ -484,6 +636,35 @@ function VisitWork({ me, visit, kept, back }: VisitWorkProps) {
     error: id === 'reasonForVisit' && reasonMissing ? t('field.reasonForVisit') : undefined,
   }))
   const labels = { high: t('visit.high'), low: t('visit.low'), empty: t('visit.notRecorded') }
+  /** A weight as formats.md writes it: kilograms to one decimal, grams under one kilogram. */
+  const weightParts = (kg: number) =>
+    kg < 1
+      ? { value: formatNumber(Math.round(kg * 1000)), unit: t('unit.g') }
+      : { value: formatNumber(kg, { decimals: 1 }), unit: t('unit.kg') }
+  const weightText = (kg: number) => {
+    const { value, unit } = weightParts(kg)
+    return `${value}${NBSP}${unit}`
+  }
+  // The note as text (completed, or a person who records nothing): the weight is written, not shown as typed.
+  const noteAsText = !writes && !VITALS.some(records)
+  const weightRead = noteAsText ? observations.findLast((reading) => reading.kind === 'weight') : undefined
+  const weighed = lastWeight.data
+  const vitalFields: VitalField[] = VITALS.map((kind) => ({
+    id: kind,
+    label: t(VITAL_WORDS[kind].label),
+    unit: t(VITAL_WORDS[kind].unit),
+    value: vitals.values[kind],
+    ...(kind === 'weight' && weightRead ? weightParts(weightRead.value) : {}),
+    previous:
+      kind === 'weight' && weighed
+        ? t('visit.lastWeight', {
+            value: weightText(weighed.value),
+            date: formatDate(wallClock(weighed.occurredAt, zone)),
+          })
+        : undefined,
+    error: vitals.invalid[kind] ? t(VITAL_WORDS[kind].error) : undefined,
+    readOnly: !records(kind),
+  }))
   const saveLine = {
     saving: { state: 'saving', label: t('visit.saving') },
     saved: { state: 'saved', label: t('visit.saved') },
@@ -491,7 +672,8 @@ function VisitWork({ me, visit, kept, back }: VisitWorkProps) {
     offline: { state: 'unsaved', label: t('visit.offline') },
     error: { state: 'error', label: t('visit.notSaved') },
   } as const
-  const line = note.saveState ? saveLine[note.saveState] : undefined
+  const saveState = combinedSaveState(note.saveState, vitals.saveState)
+  const line = saveState ? saveLine[saveState] : undefined
 
   return (
     <>
@@ -564,6 +746,10 @@ function VisitWork({ me, visit, kept, back }: VisitWorkProps) {
           <VisitNote
             title={t('visit.note')}
             subtitle={`${formatDate(wallClock(visit.startedAt, zone), { style: 'long' })} · ${visit.veterinarian.displayName}`}
+            vitalsLabel={t('visit.vitals')}
+            vitals={vitalFields}
+            onVitalChange={(id, value) => vitals.change(id as VitalKind, value)}
+            onVitalBlur={(id) => vitals.leave(id as VitalKind)}
             sections={sections}
             values={note.values}
             onChange={(id, value) => {
@@ -571,7 +757,8 @@ function VisitWork({ me, visit, kept, back }: VisitWorkProps) {
               if (id === 'reasonForVisit' && value.trim() !== '') setReasonMissing(false)
             }}
             onSectionBlur={note.settle}
-            readOnly={!writes || note.phase === 'offer'}
+            readOnly={noteAsText}
+            readOnlySections={!writes || note.phase === 'offer'}
             saveState={line?.state}
             saveLabel={line?.label}
             labels={labels}
