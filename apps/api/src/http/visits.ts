@@ -14,7 +14,7 @@ import {
   versionTag,
 } from '@vetora/contracts'
 import type { Context } from 'hono'
-import { invoiceStates } from '../modules/billing/index.js'
+import { clientBalance, invoiceStates } from '../modules/billing/index.js'
 import { clientCard, clientNames } from '../modules/client/index.js'
 import {
   type ChangeOutcome,
@@ -75,7 +75,7 @@ export const visitRoute = createRoute({
   middleware: [practiceRoute('readRecords')],
   summary: 'A visit',
   description:
-    'The visit with its note, its veterinarian, and what its patient header shows of the patient and the owner.',
+    "The visit with its note, its veterinarian, and what its patient header shows of the patient and the owner, the owner's balance across visits included.",
   request: { params: VisitPath, headers: PracticeHeaders },
   responses: {
     200: { description: 'The visit', content: { 'application/json': { schema: Visit } } },
@@ -162,7 +162,11 @@ export const putVisit: RouteHandler<typeof startVisitRoute, Env> = async (c) => 
 export const getVisit: RouteHandler<typeof visitRoute, Env> = async (c) => {
   const visit = await readEncounter(c.req.valid('param').visitId)
   if (!visit) return problem(c, 404, 'No such visit')
-  const [patient, owner] = await Promise.all([patientCard(visit.patientId), clientCard(visit.clientId)])
+  const [patient, owner, balance] = await Promise.all([
+    patientCard(visit.patientId),
+    clientCard(visit.clientId),
+    clientBalance(visit.clientId),
+  ])
   // The keys hold the two rows, which are never deleted (IN-6).
   if (!patient || !owner) throw new Error('a visit names a patient or a client that is not there')
   const { patientId: _patient, clientId: _client, ...rest } = visit
@@ -173,7 +177,7 @@ export const getVisit: RouteHandler<typeof visitRoute, Env> = async (c) => {
       startedAt: visit.startedAt.toISOString(),
       finalisedAt: visit.finalisedAt?.toISOString() ?? null,
       patient,
-      owner,
+      owner: { ...owner, balance: balance && { ...balance, amountMinor: Number(balance.amountMinor) } },
     },
     200,
   )

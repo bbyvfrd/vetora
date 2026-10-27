@@ -831,7 +831,7 @@ export interface paths {
         };
         /**
          * A visit
-         * @description The visit with its note, its veterinarian, and what its patient header shows of the patient and the owner.
+         * @description The visit with its note, its veterinarian, and what its patient header shows of the patient and the owner, the owner's balance across visits included.
          */
         get: {
             parameters: {
@@ -896,6 +896,11 @@ export interface paths {
                                 lastName: string | null;
                                 patronymic: string | null;
                                 phone: string | null;
+                                balance: {
+                                    amountMinor: number;
+                                    /** @enum {string} */
+                                    currency: "AZN";
+                                } | null;
                             };
                             note: {
                                 reasonForVisit: string;
@@ -1435,7 +1440,7 @@ export interface paths {
                                     displayName: string;
                                 };
                                 /** @enum {string} */
-                                invoice: "none" | "draft" | "unpaid";
+                                invoice: "none" | "draft" | "unpaid" | "partly_paid" | "paid";
                             }[];
                         };
                     };
@@ -2628,6 +2633,143 @@ export interface paths {
                 };
             };
         };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/p/{practiceId}/invoices/{invoiceId}/payments/{paymentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Take payment
+         * @description Takes a payment for the invoice against its version in If-Match, in one transaction: the invoice issued first when it is a draft, then the payment (now, at the request's location, received by the actor), the client's ledger entry and its allocation to the invoice. Partial by default: any amount above zero up to what is still owed. The payment id is a UUID v7 the client generates: the same request again changes nothing.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    "vetora-location": string;
+                    "if-match": string;
+                };
+                path: {
+                    practiceId: string;
+                    invoiceId: string;
+                    paymentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        amountMinor: number;
+                        /** @enum {string} */
+                        method: "cash" | "card";
+                    };
+                };
+            };
+            responses: {
+                /** @description Taken: the invoice as it now stands */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "draft" | "issued";
+                            version: number;
+                            number: string | null;
+                            /** Format: date-time */
+                            issuedAt: string | null;
+                            /** Format: uuid */
+                            visitId: string | null;
+                            /** Format: uuid */
+                            patientId: string | null;
+                            /** Format: uuid */
+                            clientId: string | null;
+                            /** @enum {string} */
+                            currency: "AZN";
+                            lines: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                serviceId: string | null;
+                                description: {
+                                    az: string | null;
+                                    ru: string | null;
+                                    en: string | null;
+                                };
+                                quantity: number;
+                                unitPriceMinor: number;
+                                totalMinor: number;
+                            }[];
+                            totalMinor: number;
+                            paidMinor: number;
+                            remainderMinor: number;
+                        };
+                    };
+                };
+                /** @description Validation failed, or no location header or one not of this practice (problem details) */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No session (problem details) */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not a member, a practice not active, or an action the roles may not perform (problem details) */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No such invoice, or a discarded one (problem details) */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description The amount is above what is still owed (problem details naming `amountMinor` in `errors`), the payment id is another invoice's payment, or a rule of the record refused it (problem details naming the rule) */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Another change came first: the version is stale (problem details) */
+                412: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description The practice is being updated (problem details) */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;

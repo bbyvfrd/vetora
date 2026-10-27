@@ -14,6 +14,8 @@ import {
   location,
   ownership,
   patient,
+  payment,
+  paymentAllocation,
   practiceSettings,
   service,
   species,
@@ -103,6 +105,9 @@ export const tableClassRegistry: TableClassRegistry = {
       { class: 'set_once', setOnce: ['removed_at'], free: ['quantity', 'total_minor', 'sort'] },
     ],
     [getTableName(ledgerEntry), { class: 'append_only' }],
+    // A payment and what it paid are never changed: a refund or a reversal is a new row (BL-6, AC-9; #26).
+    [getTableName(payment), { class: 'append_only' }],
+    [getTableName(paymentAllocation), { class: 'append_only' }],
   ]),
   /** A client's balance, the sum of their ledger rows (BL-6; #25). */
   views: new Set(['client_balance']),

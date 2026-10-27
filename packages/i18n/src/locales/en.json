@@ -94,7 +94,9 @@
     "numbered": "Invoice No. {{number}}",
     "status": {
       "draft": "Draft",
-      "unpaid": "Unpaid"
+      "unpaid": "Unpaid",
+      "partlyPaid": "Partly paid",
+      "paid": "Paid"
     },
     "addService": "Add a service",
     "issue": "Issue invoice",
@@ -106,7 +108,19 @@
     },
     "remove": "Remove",
     "total": "Total",
+    "paid": "Paid",
     "balanceDue": "Balance due"
+  },
+  "payment": {
+    "take": "Take payment",
+    "record": "Record payment",
+    "amount": "Amount, AZN",
+    "method": "Payment method",
+    "cash": "Cash",
+    "card": "Card"
+  },
+  "balance": {
+    "due": "Balance due: {{amount}}"
   },
   "confirm": {
     "visitCancel": {
@@ -189,7 +203,10 @@
     "weight": "Enter the weight in kilograms, such as 4.2",
     "temperature": "Enter the temperature in °C, such as 38.5",
     "pulse": "Enter the pulse in beats per minute, such as 90",
-    "respiratoryRate": "Enter the respiratory rate per minute, such as 24"
+    "respiratoryRate": "Enter the respiratory rate per minute, such as 24",
+    "amount": "Enter the amount in manat, such as 25.50",
+    "amountPositive": "Enter an amount greater than 0",
+    "amountMax": "Enter no more than the balance due: {{amount}}"
   },
   "unit": {
     "kg": "kg",
@@ -238,6 +255,7 @@
   },
   "action": {
     "add": "Add",
+    "cancel": "Cancel",
     "clear": "Clear",
     "close": "Close",
     "discard": "Discard",
@@ -254,6 +272,9 @@
     },
     "invoice": {
       "issued": "Invoice issued"
+    },
+    "payment": {
+      "recorded": "Payment recorded"
     }
   },
   "warning": {

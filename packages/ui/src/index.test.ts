@@ -79,9 +79,9 @@ const artifactValues = [
 
 /**
  * Added in the repo since the fork point (ADR 0005): the money wrapper of ticket #13, minor units to an amount (IN-4),
- * and its bare form for a table cell (#25).
+ * its bare form for a table cell (#25), and its way back from a typed amount (#26).
  */
-const repoValues = ['formatMinorUnits', 'formatMinorUnitsPlain']
+const repoValues = ['formatMinorUnits', 'formatMinorUnitsPlain', 'parseMinorUnits']
 
 const artifactTypes = [
   'IconProps',

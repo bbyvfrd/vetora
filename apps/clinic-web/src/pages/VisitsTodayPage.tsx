@@ -1,7 +1,18 @@
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { can, type VisitsToday } from '@vetora/contracts'
-import { Badge, Banner, Button, EmptyState, formatTime, PageBody, PageHeader, Skeleton, Table } from '@vetora/ui'
+import {
+  Badge,
+  Banner,
+  Button,
+  EmptyState,
+  formatTime,
+  PageBody,
+  PageHeader,
+  Skeleton,
+  type Status,
+  Table,
+} from '@vetora/ui'
 import { useTranslation } from 'react-i18next'
 import { visitsTodayQuery } from '../api/visits'
 import { fullName } from '../names'
@@ -12,11 +23,20 @@ import { wallClock } from '../time'
  * Visits today, the signed in home (spec #18, "Web app"; story 28), a list page whose primary action is New visit
  * (#21), shown to the roles that may register a client and a pet: the day's visits at the person's location, newest
  * first, each with its patient, client, vet, the time it started in the practice's clock and whether it is a draft or
- * completed and its invoice's state, a draft or unpaid (#25), a row opening the visit (#22). Asked again every 30 seconds until the schedule's live updates arrive
- * (slice 5). A groomer reads none of it (story 72) and sees the empty page.
+ * completed and its invoice's state, a draft or unpaid (#25), partly paid or paid (#26; story 69), a row opening the
+ * visit (#22). Asked again every 30 seconds until the schedule's live updates arrive (slice 5). A groomer reads none of
+ * it (story 72) and sees the empty page.
  */
 
 type Row = VisitsToday['visits'][number]
+
+/** Each invoice state's badge: money still owed is a warning, a paid invoice a success, a draft plain. */
+const INVOICE_BADGES = {
+  draft: { status: 'neutral', word: 'invoice.status.draft' },
+  unpaid: { status: 'warning', word: 'invoice.status.unpaid' },
+  partly_paid: { status: 'warning', word: 'invoice.status.partlyPaid' },
+  paid: { status: 'success', word: 'invoice.status.paid' },
+} as const satisfies Record<Exclude<Row['invoice'], 'none'>, { status: Status; word: string }>
 
 export function VisitsTodayPage() {
   const { t } = useTranslation()
@@ -56,12 +76,11 @@ export function VisitsTodayPage() {
       key: 'invoice',
       header: t('visitsToday.invoice'),
       // An empty cell until the visit has an invoice: nothing to say yet, and no word for it in the glossary.
-      render: (row: Row) =>
-        row.invoice === 'none' ? null : row.invoice === 'unpaid' ? (
-          <Badge status="warning">{t('invoice.status.unpaid')}</Badge>
-        ) : (
-          <Badge>{t('invoice.status.draft')}</Badge>
-        ),
+      render: (row: Row) => {
+        if (row.invoice === 'none') return null
+        const badge = INVOICE_BADGES[row.invoice]
+        return <Badge status={badge.status}>{t(badge.word)}</Badge>
+      },
     },
   ]
 

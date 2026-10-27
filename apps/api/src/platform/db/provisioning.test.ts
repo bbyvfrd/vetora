@@ -196,6 +196,8 @@ describe.skipIf(!databaseTestsEnabled())(
         'location',
         'ownership',
         'patient',
+        'payment',
+        'payment_allocation',
         'practice_settings',
         'service',
         'species',

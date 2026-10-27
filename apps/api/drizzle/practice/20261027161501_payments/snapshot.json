@@ -1,0 +1,1226 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "a5530bdb-3178-4a7e-b652-b3ca4b74a7e8",
+  "prevIds": [
+    "2bbb12cb-4470-4ecd-93fc-fdfe8a78fa18"
+  ],
+  "footprints": [
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "payment"
+      ],
+      "writes": [
+        "s|tbl|public.payment",
+        "n|tbl|public.payment",
+        "e|tbl|public.payment",
+        "n|rel|public.payment",
+        "n|type|public.payment",
+        "n|rel|public.payment_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "payment_allocation"
+      ],
+      "writes": [
+        "s|tbl|public.payment_allocation",
+        "n|tbl|public.payment_allocation",
+        "e|tbl|public.payment_allocation",
+        "n|rel|public.payment_allocation",
+        "n|type|public.payment_allocation",
+        "n|rel|public.payment_allocation_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "ledger_entry",
+        "payment_id"
+      ],
+      "writes": [
+        "s|col|public.ledger_entry.payment_id",
+        "n|col|public.ledger_entry.payment_id",
+        "e|col|public.ledger_entry.payment_id"
+      ],
+      "reads": [
+        "n|tbl|public.ledger_entry",
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "ledger_entry",
+        "ledger_entry_payment_idx"
+      ],
+      "writes": [
+        "s|idx|public.ledger_entry_payment_idx",
+        "n|idx|public.ledger_entry_payment_idx",
+        "e|idx|public.ledger_entry_payment_idx",
+        "n|rel|public.ledger_entry_payment_idx"
+      ],
+      "reads": [
+        "n|tbl|public.ledger_entry",
+        "n|sch|public",
+        "n|col|public.ledger_entry.payment_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "payment",
+        "payment_location_day_idx"
+      ],
+      "writes": [
+        "s|idx|public.payment_location_day_idx",
+        "n|idx|public.payment_location_day_idx",
+        "e|idx|public.payment_location_day_idx",
+        "n|rel|public.payment_location_day_idx"
+      ],
+      "reads": [
+        "n|tbl|public.payment",
+        "n|sch|public",
+        "n|col|public.payment.location_id",
+        "n|col|public.payment.business_date"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "payment",
+        "payment_client_idx"
+      ],
+      "writes": [
+        "s|idx|public.payment_client_idx",
+        "n|idx|public.payment_client_idx",
+        "e|idx|public.payment_client_idx",
+        "n|rel|public.payment_client_idx"
+      ],
+      "reads": [
+        "n|tbl|public.payment",
+        "n|sch|public",
+        "n|col|public.payment.client_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "payment",
+        "payment_received_by_idx"
+      ],
+      "writes": [
+        "s|idx|public.payment_received_by_idx",
+        "n|idx|public.payment_received_by_idx",
+        "e|idx|public.payment_received_by_idx",
+        "n|rel|public.payment_received_by_idx"
+      ],
+      "reads": [
+        "n|tbl|public.payment",
+        "n|sch|public",
+        "n|col|public.payment.received_by"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "payment_allocation",
+        "payment_allocation_payment_idx"
+      ],
+      "writes": [
+        "s|idx|public.payment_allocation_payment_idx",
+        "n|idx|public.payment_allocation_payment_idx",
+        "e|idx|public.payment_allocation_payment_idx",
+        "n|rel|public.payment_allocation_payment_idx"
+      ],
+      "reads": [
+        "n|tbl|public.payment_allocation",
+        "n|sch|public",
+        "n|col|public.payment_allocation.payment_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "payment_allocation",
+        "payment_allocation_invoice_idx"
+      ],
+      "writes": [
+        "s|idx|public.payment_allocation_invoice_idx",
+        "n|idx|public.payment_allocation_invoice_idx",
+        "e|idx|public.payment_allocation_invoice_idx",
+        "n|rel|public.payment_allocation_invoice_idx"
+      ],
+      "reads": [
+        "n|tbl|public.payment_allocation",
+        "n|sch|public",
+        "n|col|public.payment_allocation.invoice_id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "ledger_entry"
+      ],
+      "writes": [
+        "s|fk|public.ledger_entry.ledger_entry_payment_id_payment_id_fkey",
+        "n|fk|public.ledger_entry.ledger_entry_payment_id_payment_id_fkey",
+        "e|fk|public.ledger_entry.ledger_entry_payment_id_payment_id_fkey",
+        "n|con|public.ledger_entry.ledger_entry_payment_id_payment_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.ledger_entry",
+        "n|sch|public",
+        "n|tbl|public.payment",
+        "n|sch|public",
+        "n|col|public.ledger_entry.payment_id",
+        "n|col|public.payment.id",
+        "e|uniqueness|public.payment.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "payment"
+      ],
+      "writes": [
+        "s|fk|public.payment.payment_location_id_location_id_fkey",
+        "n|fk|public.payment.payment_location_id_location_id_fkey",
+        "e|fk|public.payment.payment_location_id_location_id_fkey",
+        "n|con|public.payment.payment_location_id_location_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.payment",
+        "n|sch|public",
+        "n|tbl|public.location",
+        "n|sch|public",
+        "n|col|public.payment.location_id",
+        "n|col|public.location.id",
+        "e|uniqueness|public.location.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "payment"
+      ],
+      "writes": [
+        "s|fk|public.payment.payment_received_by_staff_member_id_fkey",
+        "n|fk|public.payment.payment_received_by_staff_member_id_fkey",
+        "e|fk|public.payment.payment_received_by_staff_member_id_fkey",
+        "n|con|public.payment.payment_received_by_staff_member_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.payment",
+        "n|sch|public",
+        "n|tbl|public.staff_member",
+        "n|sch|public",
+        "n|col|public.payment.received_by",
+        "n|col|public.staff_member.id",
+        "e|uniqueness|public.staff_member.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "payment"
+      ],
+      "writes": [
+        "s|fk|public.payment.payment_created_by_staff_member_id_fkey",
+        "n|fk|public.payment.payment_created_by_staff_member_id_fkey",
+        "e|fk|public.payment.payment_created_by_staff_member_id_fkey",
+        "n|con|public.payment.payment_created_by_staff_member_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.payment",
+        "n|sch|public",
+        "n|tbl|public.staff_member",
+        "n|sch|public",
+        "n|col|public.payment.created_by",
+        "n|col|public.staff_member.id",
+        "e|uniqueness|public.staff_member.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "payment"
+      ],
+      "writes": [
+        "s|fk|public.payment.payment_updated_by_staff_member_id_fkey",
+        "n|fk|public.payment.payment_updated_by_staff_member_id_fkey",
+        "e|fk|public.payment.payment_updated_by_staff_member_id_fkey",
+        "n|con|public.payment.payment_updated_by_staff_member_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.payment",
+        "n|sch|public",
+        "n|tbl|public.staff_member",
+        "n|sch|public",
+        "n|col|public.payment.updated_by",
+        "n|col|public.staff_member.id",
+        "e|uniqueness|public.staff_member.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "payment_allocation"
+      ],
+      "writes": [
+        "s|fk|public.payment_allocation.payment_allocation_payment_id_payment_id_fkey",
+        "n|fk|public.payment_allocation.payment_allocation_payment_id_payment_id_fkey",
+        "e|fk|public.payment_allocation.payment_allocation_payment_id_payment_id_fkey",
+        "n|con|public.payment_allocation.payment_allocation_payment_id_payment_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.payment_allocation",
+        "n|sch|public",
+        "n|tbl|public.payment",
+        "n|sch|public",
+        "n|col|public.payment_allocation.payment_id",
+        "n|col|public.payment.id",
+        "e|uniqueness|public.payment.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "payment_allocation"
+      ],
+      "writes": [
+        "s|fk|public.payment_allocation.payment_allocation_invoice_id_invoice_id_fkey",
+        "n|fk|public.payment_allocation.payment_allocation_invoice_id_invoice_id_fkey",
+        "e|fk|public.payment_allocation.payment_allocation_invoice_id_invoice_id_fkey",
+        "n|con|public.payment_allocation.payment_allocation_invoice_id_invoice_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.payment_allocation",
+        "n|sch|public",
+        "n|tbl|public.invoice",
+        "n|sch|public",
+        "n|col|public.payment_allocation.invoice_id",
+        "n|col|public.invoice.id",
+        "e|uniqueness|public.invoice.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "payment_allocation"
+      ],
+      "writes": [
+        "s|fk|public.payment_allocation.payment_allocation_created_by_staff_member_id_fkey",
+        "n|fk|public.payment_allocation.payment_allocation_created_by_staff_member_id_fkey",
+        "e|fk|public.payment_allocation.payment_allocation_created_by_staff_member_id_fkey",
+        "n|con|public.payment_allocation.payment_allocation_created_by_staff_member_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.payment_allocation",
+        "n|sch|public",
+        "n|tbl|public.staff_member",
+        "n|sch|public",
+        "n|col|public.payment_allocation.created_by",
+        "n|col|public.staff_member.id",
+        "e|uniqueness|public.staff_member.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "payment_allocation"
+      ],
+      "writes": [
+        "s|fk|public.payment_allocation.payment_allocation_updated_by_staff_member_id_fkey",
+        "n|fk|public.payment_allocation.payment_allocation_updated_by_staff_member_id_fkey",
+        "e|fk|public.payment_allocation.payment_allocation_updated_by_staff_member_id_fkey",
+        "n|con|public.payment_allocation.payment_allocation_updated_by_staff_member_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.payment_allocation",
+        "n|sch|public",
+        "n|tbl|public.staff_member",
+        "n|sch|public",
+        "n|col|public.payment_allocation.updated_by",
+        "n|col|public.staff_member.id",
+        "e|uniqueness|public.staff_member.id"
+      ]
+    },
+    {
+      "statementType": "add_check",
+      "statementTarget": [
+        "table",
+        "public",
+        "ledger_entry"
+      ],
+      "writes": [
+        "s|ck|public.ledger_entry.ledger_entry_payment_check",
+        "n|ck|public.ledger_entry.ledger_entry_payment_check",
+        "e|ck|public.ledger_entry.ledger_entry_payment_check",
+        "n|con|public.ledger_entry.ledger_entry_payment_check"
+      ],
+      "reads": [
+        "n|tbl|public.ledger_entry",
+        "n|sch|public",
+        "n|col|public.ledger_entry.kind",
+        "n|col|public.ledger_entry.payment_id"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "payment",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "payment_allocation",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ledger_entry",
+        "name": "payment_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "uuidv7()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment",
+        "name": "location_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment",
+        "name": "client_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment",
+        "name": "method",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment",
+        "name": "amount_minor",
+        "type": "minor_units",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment",
+        "name": "currency",
+        "type": "currency_code",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "'AZN'",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment",
+        "name": "occurred_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment",
+        "name": "business_date",
+        "type": "date",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment",
+        "name": "received_by",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment",
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment",
+        "name": "created_by",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment",
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment",
+        "name": "updated_by",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment",
+        "name": "version",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "1",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment_allocation",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "uuidv7()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment_allocation",
+        "name": "payment_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment_allocation",
+        "name": "invoice_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment_allocation",
+        "name": "amount_minor",
+        "type": "minor_units",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment_allocation",
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment_allocation",
+        "name": "created_by",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment_allocation",
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment_allocation",
+        "name": "updated_by",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment_allocation",
+        "name": "version",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "1",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ledger_entry",
+        "name": "ledger_entry_payment_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "payment_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": true,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment",
+        "name": "payment_location_day_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "location_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          },
+          {
+            "value": "business_date",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment",
+        "name": "payment_client_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "client_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment",
+        "name": "payment_received_by_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "received_by",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment_allocation",
+        "name": "payment_allocation_payment_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "payment_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment_allocation",
+        "name": "payment_allocation_invoice_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "invoice_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ledger_entry",
+        "name": "ledger_entry_payment_id_payment_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "payment_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "payment",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment",
+        "name": "payment_location_id_location_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "location_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "location",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment",
+        "name": "payment_received_by_staff_member_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "received_by"
+        ],
+        "schemaTo": "public",
+        "tableTo": "staff_member",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment",
+        "name": "payment_created_by_staff_member_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "created_by"
+        ],
+        "schemaTo": "public",
+        "tableTo": "staff_member",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment",
+        "name": "payment_updated_by_staff_member_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "updated_by"
+        ],
+        "schemaTo": "public",
+        "tableTo": "staff_member",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment_allocation",
+        "name": "payment_allocation_payment_id_payment_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "payment_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "payment",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment_allocation",
+        "name": "payment_allocation_invoice_id_invoice_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "invoice_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "invoice",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment_allocation",
+        "name": "payment_allocation_created_by_staff_member_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "created_by"
+        ],
+        "schemaTo": "public",
+        "tableTo": "staff_member",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment_allocation",
+        "name": "payment_allocation_updated_by_staff_member_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "updated_by"
+        ],
+        "schemaTo": "public",
+        "tableTo": "staff_member",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment",
+        "name": "payment_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment_allocation",
+        "name": "payment_allocation_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ledger_entry",
+        "name": "ledger_entry_payment_check",
+        "value": "(\"kind\" in ('payment', 'refund')) = (\"payment_id\" is not null)",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment",
+        "name": "payment_method_check",
+        "value": "\"method\" in ('cash', 'card', 'transfer')",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment",
+        "name": "payment_amount_check",
+        "value": "\"amount_minor\" <> 0",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment",
+        "name": "payment_occurred_at_check",
+        "value": "\"occurred_at\" <= now()",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "payment_allocation",
+        "name": "payment_allocation_amount_check",
+        "value": "\"amount_minor\" <> 0",
+        "entityType": "checks"
+      }
+    }
+  ]
+}

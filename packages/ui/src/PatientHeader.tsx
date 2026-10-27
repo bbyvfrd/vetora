@@ -30,6 +30,8 @@ export interface PatientOwner {
   onClick?: (event: React.MouseEvent) => void
   /** Phone number as written. It becomes a link that dials. */
   phone?: string
+  /** What the client owes, as one line: "Borc: 58,00 ₼" (messages.md, `balance.due`). After the phone; left out when nothing is owed. */
+  balance?: string
 }
 
 export interface PatientHeaderProps {
@@ -122,6 +124,7 @@ export function PatientHeader({
                     {owner.phone}
                   </a>
                 ) : null}
+                {owner.balance ? <span className="vt-patient-balance">{owner.balance}</span> : null}
               </dd>
             </div>
           ) : null}

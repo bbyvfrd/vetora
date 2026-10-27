@@ -1,7 +1,23 @@
 import { queryOptions } from '@tanstack/react-query'
-import type { Me, VisitsToday } from '@vetora/contracts'
+import type { Me, Visit, VisitsToday } from '@vetora/contracts'
 import { api } from './client'
 import { practiceParams } from './practice'
+
+/**
+ * A visit with what its patient header shows (#22), the owner's Balance due included (#26): the visit page reads it,
+ * and an issued invoice or a payment marks it stale so the balance is current.
+ */
+export const visitQuery = (me: Me, visitId: string) =>
+  queryOptions({
+    queryKey: ['visit', me.practice.id, visitId] as const,
+    queryFn: async (): Promise<Visit> => {
+      const { data, response } = await api.GET('/api/p/{practiceId}/visits/{visitId}', {
+        params: { ...practiceParams(me), path: { practiceId: me.practice.id, visitId } },
+      })
+      if (!data) throw new Error(`visit answered ${response.status}`)
+      return data
+    },
+  })
 
 /** How often Visits today is asked again while it is open: polling until the schedule's live updates (slice 5). */
 const POLL_MS = 30_000

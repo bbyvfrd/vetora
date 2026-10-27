@@ -4,6 +4,7 @@ import { missingRowOf, ruleOf } from './errors.js'
 import { migrate } from './migrator.js'
 import {
   asPractice,
+  beginAsPractice,
   databaseTestsEnabled,
   PERMISSION_DENIED,
   provisionTestPractice,
@@ -14,11 +15,12 @@ import {
 } from './test-support.js'
 
 /**
- * The price list and the invoice of a visit (#25; spec 0002, "Data model sketch": `service`, `invoice`,
- * `invoice_line`, `ledger_entry`, "Value sourcing": Issue an invoice, Add an invoice line; AC-4), seam 1 of spec #18:
- * what the database itself guarantees, through the practice role as a request writes, whatever the API does. The
- * handler's side (the snapshot it takes, the number and the charge it writes at issue, what a person sees) is the API
- * seam, src/http/invoices.test.ts.
+ * The price list, the invoice of a visit and its payments (#25, #26; spec 0002, "Data model sketch": `service`,
+ * `invoice`, `invoice_line`, `ledger_entry`, `payment`, `payment_allocation`, "Value sourcing": Issue an invoice, Add
+ * an invoice line, Record a payment, Show a client's balance; AC-4, AC-9), seam 1 of spec #18: what the database
+ * itself guarantees, through the practice role as a request writes, whatever the API does. The handler's side (the
+ * snapshot it takes, the number and the charge it writes at issue, the payment it takes, what a person sees) is the
+ * API seam, src/http/invoices.test.ts (Take payment's cases among them) and src/http/walk.test.ts.
  */
 
 const CHECK_VIOLATION = '23514'
@@ -459,5 +461,249 @@ describe.skipIf(!databaseTestsEnabled())('the price list, the invoice and the le
         ),
       ),
     ).toBe('vetora.frozen_record')
+  })
+
+  describe('payments (#26)', () => {
+    /** An issued invoice of a new client: one consultation at 25,00 ₼ and one vaccination at 18,00 ₼, 43,00 ₼ in all. */
+    async function issuedInvoice() {
+      const owner = await ownedPatient()
+      const invoiceId = await draftInvoice(owner)
+      await addLine(invoiceId, await priced(2500))
+      await addLine(invoiceId, await priced(1800, { az: 'Peyvənd', ru: 'Вакцинация', en: 'Vaccination' }))
+      await issue(invoiceId)
+      return { ...owner, invoiceId }
+    }
+
+    type Companions = {
+      /** The ledger entry's amount: the payment's negated unless given; null leaves the entry out. */
+      entry?: number | null
+      /** The allocation's amount: the payment's unless given; null leaves the allocation out. */
+      allocation?: number | null
+    }
+
+    /** Write a payment of `amount` against an invoice with its two companions, as the handler does after its lock. */
+    async function writePayment(client: pg.Client, invoiceId: string, amount: number, companions: Companions = {}) {
+      const { entry = -amount, allocation = amount } = companions
+      const paid = await client.query<{ id: string; client_id: string | null }>(
+        `insert into ${schema}.payment (location_id, client_id, method, amount_minor, business_date, received_by)
+         select $2, client_id, 'cash', $3, current_date, $4 from ${schema}.invoice where id = $1
+         returning id, client_id`,
+        [invoiceId, locationId, amount, practice.managerId],
+      )
+      const row = paid.rows[0] as { id: string; client_id: string | null }
+      if (entry !== null) {
+        await client.query(
+          `insert into ${schema}.ledger_entry (client_id, kind, amount_minor, payment_id) values ($1, 'payment', $2, $3)`,
+          [row.client_id, entry, row.id],
+        )
+      }
+      if (allocation !== null) {
+        await client.query(
+          `insert into ${schema}.payment_allocation (payment_id, invoice_id, amount_minor) values ($1, $2, $3)`,
+          [row.id, invoiceId, allocation],
+        )
+      }
+      return row.id
+    }
+
+    /** Take payment as one request transaction: the invoice locked, then the payment and its companions. */
+    const pay = (invoiceId: string, amount: number, companions?: Companions) =>
+      asManager(async (client) => {
+        await client.query(`select id from ${schema}.invoice where id = $1 for update`, [invoiceId])
+        return writePayment(client, invoiceId, amount, companions)
+      })
+
+    const balanceOf = async (clientId: string) =>
+      (
+        await migrator.query<{ balance_minor: string }>(
+          `select balance_minor from ${schema}.client_balance where client_id = $1`,
+          [clientId],
+        )
+      ).rows[0]?.balance_minor
+
+    const paymentsOf = async (clientId: string) =>
+      (
+        await migrator.query<{ count: number }>(
+          `select (select count(*)::int from ${schema}.payment where client_id = $1)
+                + (select count(*)::int from ${schema}.ledger_entry where client_id = $1 and kind = 'payment') as count`,
+          [clientId],
+        )
+      ).rows[0]?.count
+
+    it('IN-1: an insert on payment and payment_allocation writes one audit_event row naming the actor', async () => {
+      const { invoiceId } = await issuedInvoice()
+      const paymentId = await pay(invoiceId, 1000)
+      const allocation = await migrator.query<{ id: string }>(
+        `select id from ${schema}.payment_allocation where payment_id = $1`,
+        [paymentId],
+      )
+
+      for (const [table, id] of [
+        ['payment', paymentId],
+        ['payment_allocation', allocation.rows[0]?.id],
+      ] as const) {
+        const rows = await migrator.query(
+          `select action, actor_id, source from ${schema}.audit_event
+           where table_name = $1 and row_id = $2 and action = 'insert'`,
+          [table, id],
+        )
+        expect(rows.rows, table).toEqual([{ action: 'insert', actor_id: practice.managerId, source: 'request' }])
+      }
+    })
+
+    it('AC-4, BL-5, BL-6: a part payment leaves client_balance the charge less the payment, and a second of the rest brings it to zero', async () => {
+      const { clientId, invoiceId } = await issuedInvoice()
+      expect(await balanceOf(clientId)).toBe('4300')
+
+      await pay(invoiceId, 1000)
+      expect(await balanceOf(clientId)).toBe('3300')
+      await pay(invoiceId, 3300)
+      expect(await balanceOf(clientId)).toBe('0')
+
+      const ledger = await migrator.query(
+        `select kind, amount_minor from ${schema}.ledger_entry where client_id = $1 order by amount_minor desc`,
+        [clientId],
+      )
+      expect(ledger.rows).toEqual([
+        { kind: 'charge', amount_minor: '4300' },
+        { kind: 'payment', amount_minor: '-1000' },
+        { kind: 'payment', amount_minor: '-3300' },
+      ])
+      const allocated = await migrator.query(
+        `select sum(amount_minor)::text as sum from ${schema}.payment_allocation where invoice_id = $1`,
+        [invoiceId],
+      )
+      expect(allocated.rows).toEqual([{ sum: '4300' }])
+    })
+
+    it('AC-4: a payment committed without its ledger entry, or with a wrong one, fails with vetora.incomplete_payment and keeps nothing', async () => {
+      const { clientId, invoiceId } = await issuedInvoice()
+
+      for (const companions of [{ entry: null }, { entry: -999 }, { entry: 1000 }]) {
+        const refused = await refusalOf(pay(invoiceId, 1000, companions))
+        expect(ruleOf(refused), JSON.stringify(companions)).toBe('vetora.incomplete_payment')
+        expect(missingRowOf(refused)).toBe('ledger_entry')
+      }
+      expect(await paymentsOf(clientId)).toBe(0)
+      expect(await balanceOf(clientId)).toBe('4300')
+
+      const twice = await refusalOf(
+        asManager(async (client) => {
+          const paymentId = await writePayment(client, invoiceId, 1000)
+          await client.query(
+            `insert into ${schema}.ledger_entry (client_id, kind, amount_minor, payment_id) values ($1, 'payment', -1000, $2)`,
+            [clientId, paymentId],
+          )
+        }),
+      )
+      expect(twice).toMatchObject({ code: UNIQUE_VIOLATION, constraint: 'ledger_entry_payment_idx' })
+      const unnamed = await refusalOf(
+        asManager((client) =>
+          client.query(
+            `insert into ${schema}.ledger_entry (client_id, kind, amount_minor) values ($1, 'payment', -1000)`,
+            [clientId],
+          ),
+        ),
+      )
+      expect(unnamed).toMatchObject({ code: CHECK_VIOLATION, constraint: 'ledger_entry_payment_check' })
+      expect(await paymentsOf(clientId)).toBe(0)
+    })
+
+    it('AC-4: an allocation above the invoice total, above its payment, or to a draft invoice fails at commit with vetora.incomplete_allocation and keeps nothing', async () => {
+      const { clientId, patientId, invoiceId } = await issuedInvoice()
+
+      const aboveTotal = await refusalOf(pay(invoiceId, 4301))
+      expect(ruleOf(aboveTotal)).toBe('vetora.incomplete_allocation')
+      expect(missingRowOf(aboveTotal)).toBe('invoice')
+      const abovePayment = await refusalOf(pay(invoiceId, 1000, { allocation: 1500 }))
+      expect(ruleOf(abovePayment)).toBe('vetora.incomplete_allocation')
+      expect(missingRowOf(abovePayment)).toBe('payment')
+      const negative = await refusalOf(pay(invoiceId, 1000, { allocation: -1000 }))
+      expect(missingRowOf(negative)).toBe('invoice')
+      expect(await paymentsOf(clientId)).toBe(0)
+
+      await pay(invoiceId, 3000)
+      const aboveRemainder = await refusalOf(pay(invoiceId, 1301))
+      expect(ruleOf(aboveRemainder)).toBe('vetora.incomplete_allocation')
+      expect(missingRowOf(aboveRemainder)).toBe('invoice')
+
+      const draft = await draftInvoice({ clientId, patientId })
+      await addLine(draft, await priced(2500))
+      const onDraft = await refusalOf(pay(draft, 1000))
+      expect(ruleOf(onDraft)).toBe('vetora.incomplete_allocation')
+      expect(missingRowOf(onDraft)).toBe('invoice')
+      expect(await paymentsOf(clientId)).toBe(2)
+      expect(await balanceOf(clientId)).toBe('1300')
+    })
+
+    it("AC-4: an allocation to another client's invoice fails at commit", async () => {
+      const { invoiceId } = await issuedInvoice()
+      const other = await issuedInvoice()
+
+      const refused = await refusalOf(
+        asManager(async (client) => {
+          const paymentId = await writePayment(client, invoiceId, 1000, { allocation: null })
+          await client.query(
+            `insert into ${schema}.payment_allocation (payment_id, invoice_id, amount_minor) values ($1, $2, 1000)`,
+            [paymentId, other.invoiceId],
+          )
+        }),
+      )
+      expect(ruleOf(refused)).toBe('vetora.incomplete_allocation')
+      expect(missingRowOf(refused)).toBe('invoice')
+    })
+
+    it('AC-9: an UPDATE or DELETE on a payment or an allocation through the practice role is denied', async () => {
+      const { invoiceId } = await issuedInvoice()
+      const paymentId = await pay(invoiceId, 1000)
+
+      for (const sql of [
+        `update ${schema}.payment set amount_minor = 1 where id = $1`,
+        `delete from ${schema}.payment where id = $1`,
+        `update ${schema}.payment_allocation set amount_minor = 1 where payment_id = $1`,
+        `delete from ${schema}.payment_allocation where payment_id = $1`,
+      ]) {
+        expect(await refusalOf(asManager((client) => client.query(sql, [paymentId]))), sql).toMatchObject(
+          PERMISSION_DENIED,
+        )
+      }
+    })
+
+    it('two payments committing at once cannot both take the remainder: the second waits for the first, then is refused', async () => {
+      const { clientId, invoiceId } = await issuedInvoice()
+      const other = new pg.Client({ connectionString: urls.app, application_name: 'billing.test other' })
+      await other.connect()
+      try {
+        // The first holds the invoice as its commit check does, its payment written and not yet committed.
+        await beginAsPractice(other, practice)
+        await other.query(`select id from ${schema}.invoice where id = $1 for no key update`, [invoiceId])
+        await writePayment(other, invoiceId, 3000)
+
+        const pid = (await app.query<{ pid: number }>('select pg_backend_pid() as pid')).rows[0]?.pid as number
+        const second = refusalOf(asManager((client) => writePayment(client, invoiceId, 3000)))
+        await untilBlocked(pid)
+        await other.query('commit')
+
+        const refused = await second
+        expect(ruleOf(refused)).toBe('vetora.incomplete_allocation')
+        expect(missingRowOf(refused)).toBe('invoice')
+        expect(await balanceOf(clientId)).toBe('1300')
+      } finally {
+        await other.end()
+      }
+    })
+
+    /** Wait until the session `pid` is blocked on a lock another session holds (five seconds at most). */
+    async function untilBlocked(pid: number): Promise<void> {
+      for (let attempt = 0; attempt < 200; attempt++) {
+        const result = await migrator.query<{ blocked: boolean }>(
+          'select cardinality(pg_blocking_pids($1)) > 0 as blocked',
+          [pid],
+        )
+        if (result.rows[0]?.blocked) return
+        await new Promise((resolve) => setTimeout(resolve, 25))
+      }
+      throw new Error(`session ${pid} never blocked on a lock`)
+    }
   })
 })

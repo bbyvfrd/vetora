@@ -69,6 +69,7 @@ const draftOf = (note: VisitNote = emptyNote, version = 1): Visit => ({
     lastName: 'Məmmədova',
     patronymic: null,
     phone: '050 123 45 67',
+    balance: null,
   },
   note,
 })

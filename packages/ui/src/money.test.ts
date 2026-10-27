@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatMinorUnits, formatMinorUnitsPlain } from './money.js'
+import { formatMinorUnits, formatMinorUnitsPlain, parseMinorUnits } from './money.js'
 
 const NBSP = ' '
 
@@ -72,5 +72,46 @@ describe('formatMinorUnitsPlain(), the bare number a table cell under "Qiymət, 
     expect(() => formatMinorUnitsPlain(12.5, 'AZN', 'az')).toThrow(RangeError)
     expect(() => formatMinorUnitsPlain(100, 'USD', 'en')).toThrow(RangeError)
     expect(() => formatMinorUnitsPlain(2n ** 53n, 'AZN', 'en')).toThrow(RangeError)
+  })
+})
+
+describe('parseMinorUnits(), an amount typed in manat to whole qəpik (IN-4, #26)', () => {
+  it('reads a comma or a point as the decimal mark, up to two decimals, as the dialog prefills and people type', () => {
+    expect(parseMinorUnits('43,50', 'AZN')).toBe(4350)
+    expect(parseMinorUnits('43.5', 'AZN')).toBe(4350)
+    expect(parseMinorUnits('43', 'AZN')).toBe(4300)
+    expect(parseMinorUnits(' 0,05 ', 'AZN')).toBe(5)
+    expect(parseMinorUnits('0', 'AZN')).toBe(0)
+  })
+
+  it('reads back what formatMinorUnitsPlain writes, in every language, thousands and their spaces included', () => {
+    for (const locale of ['az', 'ru', 'en']) {
+      for (const amount of [125000, 7, 123456789]) {
+        expect(parseMinorUnits(formatMinorUnitsPlain(amount, 'AZN', locale), 'AZN'), `${locale} ${amount}`).toBe(amount)
+      }
+    }
+    expect(parseMinorUnits('1 250,00', 'AZN')).toBe(125000)
+  })
+
+  it('moves the digits rather than multiplying a float, so no amount comes out a qəpik off', () => {
+    // 0.29 * 100 is 28.999999999999996 and 1.005 * 100 is 100.49999999999999 in a double.
+    expect(parseMinorUnits('0,29', 'AZN')).toBe(29)
+    expect(parseMinorUnits('1.15', 'AZN')).toBe(115)
+    expect(parseMinorUnits('70368744177664,01', 'AZN')).toBe(7036874417766401)
+  })
+
+  it('reads a minus, either sign, so that a negative amount is refused by the form for what it is', () => {
+    expect(parseMinorUnits('-4,00', 'AZN')).toBe(-400)
+    expect(parseMinorUnits('−0,05', 'AZN')).toBe(-5)
+  })
+
+  it('answers null for what is not an amount in manat: more than two decimals, letters, signs, nothing', () => {
+    for (const text of ['43,505', '4,3,5', 'abc', '12₼', '+5', '1e3', '', ' ', ',', '5,', '99999999999999999']) {
+      expect(parseMinorUnits(text, 'AZN'), text).toBeNull()
+    }
+  })
+
+  it('refuses a currency the design system has no format for', () => {
+    expect(() => parseMinorUnits('1', 'USD')).toThrow(RangeError)
   })
 })

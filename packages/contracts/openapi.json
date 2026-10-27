@@ -1389,7 +1389,7 @@
       },
       "get": {
         "summary": "A visit",
-        "description": "The visit with its note, its veterinarian, and what its patient header shows of the patient and the owner.",
+        "description": "The visit with its note, its veterinarian, and what its patient header shows of the patient and the owner, the owner's balance across visits included.",
         "parameters": [
           {
             "schema": {
@@ -1592,6 +1592,27 @@
                             "string",
                             "null"
                           ]
+                        },
+                        "balance": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "amountMinor": {
+                              "type": "integer"
+                            },
+                            "currency": {
+                              "type": "string",
+                              "enum": [
+                                "AZN"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "amountMinor",
+                            "currency"
+                          ]
                         }
                       },
                       "required": [
@@ -1599,7 +1620,8 @@
                         "firstName",
                         "lastName",
                         "patronymic",
-                        "phone"
+                        "phone",
+                        "balance"
                       ]
                     },
                     "note": {
@@ -2101,7 +2123,9 @@
                             "enum": [
                               "none",
                               "draft",
-                              "unpaid"
+                              "unpaid",
+                              "partly_paid",
+                              "paid"
                             ]
                           }
                         },
@@ -4132,6 +4156,269 @@
           },
           "409": {
             "description": "Refused by a rule of the record: issued, or issued without a line (problem details naming the rule)"
+          },
+          "412": {
+            "description": "Another change came first: the version is stale (problem details)"
+          },
+          "503": {
+            "description": "The practice is being updated (problem details)"
+          }
+        }
+      }
+    },
+    "/api/p/{practiceId}/invoices/{invoiceId}/payments/{paymentId}": {
+      "put": {
+        "summary": "Take payment",
+        "description": "Takes a payment for the invoice against its version in If-Match, in one transaction: the invoice issued first when it is a draft, then the payment (now, at the request's location, received by the actor), the client's ledger entry and its allocation to the invoice. Partial by default: any amount above zero up to what is still owed. The payment id is a UUID v7 the client generates: the same request again changes nothing.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "practiceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "invoiceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "paymentId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "vetora-location",
+            "in": "header"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\"[1-9]\\d*\"$"
+            },
+            "required": true,
+            "name": "if-match",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "amountMinor": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "cash",
+                      "card"
+                    ]
+                  }
+                },
+                "required": [
+                  "amountMinor",
+                  "method"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Taken: the invoice as it now stands",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "draft",
+                        "issued"
+                      ]
+                    },
+                    "version": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0
+                    },
+                    "number": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "issuedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "visitId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "patientId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "clientId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "currency": {
+                      "type": "string",
+                      "enum": [
+                        "AZN"
+                      ]
+                    },
+                    "lines": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "serviceId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "uuid"
+                          },
+                          "description": {
+                            "type": "object",
+                            "properties": {
+                              "az": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "ru": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "en": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "az",
+                              "ru",
+                              "en"
+                            ]
+                          },
+                          "quantity": {
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          },
+                          "unitPriceMinor": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "totalMinor": {
+                            "type": "integer",
+                            "minimum": 0
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "serviceId",
+                          "description",
+                          "quantity",
+                          "unitPriceMinor",
+                          "totalMinor"
+                        ]
+                      }
+                    },
+                    "totalMinor": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "paidMinor": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "remainderMinor": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "status",
+                    "version",
+                    "number",
+                    "issuedAt",
+                    "visitId",
+                    "patientId",
+                    "clientId",
+                    "currency",
+                    "lines",
+                    "totalMinor",
+                    "paidMinor",
+                    "remainderMinor"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed, or no location header or one not of this practice (problem details)"
+          },
+          "401": {
+            "description": "No session (problem details)"
+          },
+          "403": {
+            "description": "Not a member, a practice not active, or an action the roles may not perform (problem details)"
+          },
+          "404": {
+            "description": "No such invoice, or a discarded one (problem details)"
+          },
+          "409": {
+            "description": "The amount is above what is still owed (problem details naming `amountMinor` in `errors`), the payment id is another invoice's payment, or a rule of the record refused it (problem details naming the rule)"
           },
           "412": {
             "description": "Another change came first: the version is stale (problem details)"

@@ -94,7 +94,9 @@
     "numbered": "Hesab-faktura № {{number}}",
     "status": {
       "draft": "Qaralama",
-      "unpaid": "Ödənilməyib"
+      "unpaid": "Ödənilməyib",
+      "partlyPaid": "Qismən ödənilib",
+      "paid": "Ödənilib"
     },
     "addService": "Xidmət əlavə et",
     "issue": "Hesab-fakturanı rəsmiləşdir",
@@ -106,7 +108,19 @@
     },
     "remove": "Çıxar",
     "total": "Cəmi",
+    "paid": "Ödənilib",
     "balanceDue": "Borc"
+  },
+  "payment": {
+    "take": "Ödəniş qəbul et",
+    "record": "Ödənişi qeydə al",
+    "amount": "Məbləğ, ₼",
+    "method": "Ödəniş üsulu",
+    "cash": "Nağd",
+    "card": "Kart"
+  },
+  "balance": {
+    "due": "Borc: {{amount}}"
   },
   "confirm": {
     "visitCancel": {
@@ -189,7 +203,10 @@
     "weight": "Çəkini kiloqramla daxil edin, məsələn 4,2",
     "temperature": "Temperaturu °C ilə daxil edin, məsələn 38,5",
     "pulse": "Nəbzi dəqiqədəki vuruşla daxil edin, məsələn 90",
-    "respiratoryRate": "Tənəffüs tezliyini dəqiqədəki sayla daxil edin, məsələn 24"
+    "respiratoryRate": "Tənəffüs tezliyini dəqiqədəki sayla daxil edin, məsələn 24",
+    "amount": "Məbləği manatla daxil edin, məsələn 25,50",
+    "amountPositive": "0-dan böyük məbləğ daxil edin",
+    "amountMax": "Borcdan çox olmayan məbləğ daxil edin: {{amount}}"
   },
   "unit": {
     "kg": "kq",
@@ -238,6 +255,7 @@
   },
   "action": {
     "add": "Əlavə et",
+    "cancel": "İmtina",
     "clear": "Təmizlə",
     "close": "Bağla",
     "discard": "Yadda saxlama",
@@ -254,6 +272,9 @@
     },
     "invoice": {
       "issued": "Hesab-faktura rəsmiləşdirildi"
+    },
+    "payment": {
+      "recorded": "Ödəniş qeydə alındı"
     }
   },
   "warning": {

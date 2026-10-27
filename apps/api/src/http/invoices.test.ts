@@ -14,11 +14,13 @@ import { uuidv7 } from '../platform/ids.js'
 import { type ApiPractice, type Login, provisionApiPractice } from '../test-support.js'
 
 /**
- * A visit's invoice through the API (#25; spec #18, "Visit and money behaviour": the invoice; stories 56 to 61, 69),
- * seam 2: the draft created with its first line from the price list, the names and price it snapshots, quantities
- * changed and lines removed while a draft, Issue invoice with its number and the client's charge, retries and stale
- * versions, Cancel visit with a draft and with an issued invoice, the invoice's state on Visits today, and the matrix.
- * What the database refuses whatever the API does is src/platform/db/billing.test.ts.
+ * A visit's invoice and its payments through the API (#25, #26; spec #18, "Visit and money behaviour": the invoice,
+ * Take payment; stories 56 to 69), seam 2: the draft created with its first line from the price list, the names and
+ * price it snapshots, quantities changed and lines removed while a draft, Issue invoice with its number and the
+ * client's charge, retries and stale versions, Cancel visit with a draft and with an issued invoice, the invoice's
+ * state on Visits today, and the matrix; then Take payment, which issues a draft and records the payment, part payments
+ * and the owner's Balance due, the refused amounts, and the payment's business day. What the database refuses whatever
+ * the API does is src/platform/db/billing.test.ts; the whole visit in one walk is src/http/walk.test.ts.
  */
 describe.skipIf(!databaseTestsEnabled())("a visit's invoice (#25, seam 2)", () => {
   let urls: TestDatabaseUrls
@@ -363,5 +365,186 @@ describe.skipIf(!databaseTestsEnabled())("a visit's invoice (#25, seam 2)", () =
 
     const issued = await json(await issue(invoice, desk))
     expect(issued).toMatchObject({ status: 'issued', totalMinor: 4350 })
+  })
+
+  describe('Take payment (#26)', () => {
+    type PaymentOptions = { login?: Login; method?: 'cash' | 'card'; paymentId?: string; version?: number }
+    const takePayment = (invoice: InvoiceBody, amountMinor: number, options: PaymentOptions = {}) => {
+      const { login = desk, method = 'cash', paymentId = uuidv7(), version = invoice.version } = options
+      return practice.request(login, `/invoices/${invoice.id}/payments/${paymentId}`, {
+        method: 'PUT',
+        headers: ifMatch(version),
+        body: { amountMinor, method },
+      })
+    }
+
+    /** A visit's draft invoice of a consultation and a vaccination, 43,50 ₼. */
+    async function drafted() {
+      const visit = await started()
+      const draft = await json(await create(visit, services.consultation))
+      return { visit, invoice: await json(await addLine(draft, services.vaccination)) }
+    }
+
+    /** The client's payments as the database holds them, each with its allocation and its ledger entry. */
+    const paymentsOf = async (clientId: string) =>
+      (
+        await migrator.query(
+          `select p.method, p.amount_minor, p.location_id, p.received_by, a.invoice_id,
+                  a.amount_minor as allocated, l.amount_minor as entry
+           from ${schema()}.payment p
+           join ${schema()}.payment_allocation a on a.payment_id = p.id
+           join ${schema()}.ledger_entry l on l.payment_id = p.id
+           where p.client_id = $1 order by p.created_at`,
+          [clientId],
+        )
+      ).rows
+
+    /** The owner's balance as the visit page reads it. */
+    const ownerBalance = async (visitId: string) =>
+      ((await (await practice.request(desk, `/visits/${visitId}`)).json()) as { owner: { balance: unknown } }).owner
+        .balance
+
+    /** The visit's invoice as Visits today shows it. */
+    const stateOn = async (visitId: string) => {
+      const today = (await (await practice.request(desk, '/visits')).json()) as {
+        visits: { id: string; invoice: string }[]
+      }
+      return today.visits.find((row) => row.id === visitId)?.invoice
+    }
+
+    it('on a draft invoice it issues it and records the payment, its ledger entry and its allocation in one transaction; a retry with the same payment id changes nothing', async () => {
+      const { visit, invoice } = await drafted()
+      const paymentId = uuidv7()
+
+      const paid = await json(await takePayment(invoice, 4350, { method: 'card', paymentId }))
+
+      expect(paid).toMatchObject({
+        status: 'issued',
+        version: invoice.version + 1,
+        totalMinor: 4350,
+        paidMinor: 4350,
+        remainderMinor: 0,
+      })
+      expect(paid.number).toMatch(/^\d+$/)
+      expect(await charges(invoice.id)).toEqual([{ kind: 'charge', amount_minor: '4350', client_id: visit.clientId }])
+      const taken = [
+        {
+          method: 'card',
+          amount_minor: '4350',
+          location_id: practice.locationId,
+          received_by: desk.userId,
+          invoice_id: invoice.id,
+          allocated: '4350',
+          entry: '-4350',
+        },
+      ]
+      expect(await paymentsOf(visit.clientId)).toEqual(taken)
+
+      // The retry carries the version the first request was made against, which the issue moved on.
+      expect(await json(await takePayment(invoice, 4350, { method: 'card', paymentId }))).toEqual(paid)
+      expect(await paymentsOf(visit.clientId)).toEqual(taken)
+      expect(await charges(invoice.id)).toHaveLength(1)
+
+      const other = await drafted()
+      expect((await takePayment(other.invoice, 1000, { paymentId })).status).toBe(409)
+      expect(await invoiceStatus(other.invoice.id)).toBe('draft')
+    })
+
+    it('BL-5, BL-6: a part payment leaves Balance due the total less the payment; a second of the rest brings it to zero and the invoice to paid', async () => {
+      const { visit, invoice } = await drafted()
+      expect(await ownerBalance(visit.visitId)).toBeNull()
+      const issued = await json(await issue(invoice))
+      expect(await ownerBalance(visit.visitId)).toEqual({ amountMinor: 4350, currency: 'AZN' })
+      expect(await stateOn(visit.visitId)).toBe('unpaid')
+
+      const part = await json(await takePayment(issued, 1000))
+      expect(part).toMatchObject({ status: 'issued', version: issued.version, paidMinor: 1000, remainderMinor: 3350 })
+      expect(await ownerBalance(visit.visitId)).toEqual({ amountMinor: 3350, currency: 'AZN' })
+      expect(await stateOn(visit.visitId)).toBe('partly_paid')
+
+      const rest = await json(await takePayment(part, 3350, { method: 'card', login: vet }))
+      expect(rest).toMatchObject({ paidMinor: 4350, remainderMinor: 0 })
+      expect(await ownerBalance(visit.visitId)).toEqual({ amountMinor: 0, currency: 'AZN' })
+      expect(await stateOn(visit.visitId)).toBe('paid')
+      expect((await paymentsOf(visit.clientId)).map((row) => [row.method, row.entry, row.received_by])).toEqual([
+        ['cash', '-1000', desk.userId],
+        ['card', '-3350', vet.userId],
+      ])
+    })
+
+    it('a payment of zero or above the remainder answers a problem response naming the amount and writes nothing', async () => {
+      const { visit, invoice } = await drafted()
+
+      for (const amount of [0, -100, 12.5]) {
+        const refused = await takePayment(invoice, amount)
+        expect(refused.status, String(amount)).toBe(400)
+        expect(refused.headers.get('content-type')).toBe('application/problem+json')
+        expect(await refused.json()).toMatchObject({ errors: [{ path: ['amountMinor'] }] })
+      }
+      const tooMuch = await takePayment(invoice, 4351)
+      expect(tooMuch.status).toBe(409)
+      expect(tooMuch.headers.get('content-type')).toBe('application/problem+json')
+      expect(await tooMuch.json()).toMatchObject({ errors: [{ path: ['amountMinor'], code: 'above_remainder' }] })
+      expect(await invoiceStatus(invoice.id)).toBe('draft')
+      expect(await charges(invoice.id)).toEqual([])
+
+      const part = await json(await takePayment(invoice, 4000))
+      const aboveRest = await takePayment(part, 351)
+      expect(aboveRest.status).toBe(409)
+      expect(await aboveRest.json()).toMatchObject({ errors: [{ path: ['amountMinor'], code: 'above_remainder' }] })
+      expect(await paymentsOf(visit.clientId)).toHaveLength(1)
+    })
+
+    it('a stale version is refused with 412, a discarded invoice with 404, a groomer with 403', async () => {
+      const { visit, invoice } = await drafted()
+      await json(await setQuantity(invoice, invoice.lines[1]?.id as string, 2))
+      expect((await takePayment(invoice, 1000)).status).toBe(412)
+      expect((await takePayment(invoice, 1000, { login: groomer, version: invoice.version + 1 })).status).toBe(403)
+
+      const cancelled = await practice.request(vet, `/visits/${visit.visitId}/cancel`, {
+        method: 'POST',
+        headers: ifMatch(1),
+      })
+      expect(cancelled.status).toBe(200)
+      expect((await takePayment(invoice, 1000, { version: invoice.version + 1 })).status).toBe(404)
+      expect(await paymentsOf(visit.clientId)).toEqual([])
+    })
+
+    it("a payment's business_date is its day in the practice's time zone: Baku's, and a zone's just past its midnight while UTC is on another day", async () => {
+      const { invoice } = await drafted()
+      /** A fixed offset zone, whole hours east of UTC, as the tz database names it (its sign the other way round). */
+      const offsetZone = (hoursEast: number) =>
+        hoursEast === 0 ? 'Etc/UTC' : `Etc/GMT${hoursEast > 0 ? '-' : '+'}${Math.abs(hoursEast)}`
+      const dayIn = (zone: string, instant: Date) =>
+        new Intl.DateTimeFormat('en-CA', { timeZone: zone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(
+          instant,
+        )
+      // The database's clock cannot be set, so the practice's zone moves instead: from 10:00 UTC a zone ahead of UTC
+      // reads 00:xx on the next day; before it, the zone reading 00:xx is on UTC's day, and one twelve hours behind is
+      // on the day before. Between 20:00 and 24:00 UTC, Baku itself is just past midnight.
+      const hour = new Date().getUTCHours()
+      const pastMidnight = offsetZone(hour >= 10 ? 24 - hour : -hour)
+      const apart = offsetZone(hour >= 10 ? 24 - hour : -12)
+
+      let current = invoice
+      try {
+        for (const zone of ['Asia/Baku', pastMidnight, apart]) {
+          await migrator.query(`update ${schema()}.practice_settings set time_zone = $1`, [zone])
+          const paymentId = uuidv7()
+          current = await json(await takePayment(current, 100, { paymentId }))
+          const [taken] = (
+            await migrator.query<{ occurred_at: Date; business_date: string }>(
+              `select occurred_at, business_date::text from ${schema()}.payment where id = $1`,
+              [paymentId],
+            )
+          ).rows
+          if (!taken) throw new Error(`no payment in ${zone}`)
+          expect(taken.business_date, zone).toBe(dayIn(zone, taken.occurred_at))
+          if (zone === apart) expect(taken.business_date, zone).not.toBe(dayIn('Etc/UTC', taken.occurred_at))
+        }
+      } finally {
+        await migrator.query(`update ${schema()}.practice_settings set time_zone = 'Asia/Baku'`)
+      }
+    })
   })
 })

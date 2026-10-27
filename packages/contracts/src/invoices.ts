@@ -119,9 +119,9 @@ export const Invoice = z.object({
   ),
   /** Total: the lines' totals added up. */
   totalMinor: MinorUnits.nonnegative(),
-  /** Paid: what payments allocated to it (#26; zero until then). */
+  /** Paid: what payments allocated to it (#26). */
   paidMinor: MinorUnits.nonnegative(),
-  /** Balance due once issued: the total less what was paid. */
+  /** Balance due once issued: the total less what was paid, what Take payment offers. */
   remainderMinor: MinorUnits,
 })
 export type Invoice = z.infer<typeof Invoice>
@@ -130,6 +130,17 @@ export type Invoice = z.infer<typeof Invoice>
 export const VisitInvoice = z.object({ invoice: Invoice.nullable() })
 export type VisitInvoice = z.infer<typeof VisitInvoice>
 
-/** A visit's invoice as Visits today shows it: none yet, a draft, or issued and unpaid (part paid and paid with #26). */
-export const InvoiceState = z.enum(['none', 'draft', 'unpaid'])
+/**
+ * A visit's invoice as Visits today shows it (story 69): none yet, a draft, or issued and unpaid, partly paid (#26) or
+ * paid (#26).
+ */
+export const InvoiceState = z.enum(['none', 'draft', 'unpaid', 'partly_paid', 'paid'])
 export type InvoiceState = z.infer<typeof InvoiceState>
+
+/** A client's balance (BL-6): the sum of their ledger, positive as Balance due, negative as a Prepayment. */
+export const ClientBalance = z.object({
+  /** Whole minor units, signed. */
+  amountMinor: MinorUnits,
+  currency: Currency,
+})
+export type ClientBalance = z.infer<typeof ClientBalance>
