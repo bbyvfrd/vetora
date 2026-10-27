@@ -41,7 +41,51 @@
   },
   "visitsToday": {
     "title": "Visits today",
-    "newVisit": "New visit"
+    "newVisit": "New visit",
+    "time": "Time",
+    "patient": "Patient",
+    "client": "Client",
+    "vet": "Vet",
+    "status": "Status"
+  },
+  "visit": {
+    "start": "Start visit",
+    "complete": "Complete visit",
+    "cancel": "Cancel visit",
+    "note": "Visit note",
+    "status": {
+      "draft": "Draft",
+      "finalised": "Completed"
+    },
+    "section": {
+      "reasonForVisit": "Reason for visit",
+      "anamnesis": "History",
+      "examination": "Examination",
+      "diagnosis": "Diagnosis",
+      "treatment": "Treatment",
+      "recommendations": "Recommendations"
+    },
+    "notRecorded": "Not recorded",
+    "saving": "Saving",
+    "saved": "Saved",
+    "notSaved": "Not saved",
+    "high": "High",
+    "low": "Low",
+    "age": "Age",
+    "owner": "Owner",
+    "neutered": {
+      "female": "neutered",
+      "male": "neutered",
+      "unknown": "neutered"
+    }
+  },
+  "confirm": {
+    "visitCancel": {
+      "title": "Cancel the visit?",
+      "body": "The visit is removed from Visits today.",
+      "button": "Cancel visit",
+      "back": "Keep visit"
+    }
   },
   "empty": {
     "visitsToday": {
@@ -88,6 +132,7 @@
     "birthDate": "The date of birth cannot be in the future",
     "microchip": "Enter the 15 digits of the microchip",
     "microchipTaken": "This microchip is recorded for another patient",
+    "reasonForVisit": "Enter the reason for visit",
     "dateExample": "12/10/2026"
   },
   "newVisit": {
@@ -138,6 +183,10 @@
   "toast": {
     "patient": {
       "saved": "Patient saved"
+    },
+    "visit": {
+      "completed": "Visit completed",
+      "cancelled": "Visit cancelled"
     }
   },
   "warning": {

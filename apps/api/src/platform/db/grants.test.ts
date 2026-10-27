@@ -31,7 +31,10 @@ function expectedGrant(entry: TableEntry, columns: string[]): { table: string[];
     case 'append_only':
       return { table: ['INSERT', 'SELECT'], updatable: [] }
     case 'set_once':
-      return { table: ['INSERT', 'SELECT'], updatable: [...entry.setOnce] }
+      return {
+        table: ['INSERT', 'SELECT'],
+        updatable: columns.filter((column) => [...entry.setOnce, ...(entry.movesLater ?? [])].includes(column)),
+      }
     case 'mutable':
     case 'frozen_by_status': {
       const noUpdate = entry.noUpdate ?? []
@@ -464,7 +467,8 @@ describe.skipIf(!databaseTestsEnabled())(
       it('a migration that drops a registered table is refused too, and the table is still there with its rows (AC-9)', async () => {
         const before = await migrator.query(`select count(*)::int as count from ${schema}.location`)
 
-        const outcome = await migrateWithExtra('20991231235959_dropped', 'DROP TABLE "location";\n')
+        // CASCADE, since visits reference the location (#22): the drop goes through and the pass refuses it all the same.
+        const outcome = await migrateWithExtra('20991231235959_dropped', 'DROP TABLE "location" CASCADE;\n')
 
         expect(outcome).toMatchObject({
           status: 'failed',

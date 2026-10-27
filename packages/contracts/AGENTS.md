@@ -15,6 +15,7 @@
 | `src/practice.ts` | What every practice route shares: `PracticePath` (`/api/p/{practiceId}/…`) and `PracticeHeaders` with `LOCATION_HEADER` (`vetora-location`) |
 | `src/phone.ts` | `normalisePhone()`, the one function that reads a typed phone number to E.164 with Azerbaijan as the default region (libphonenumber-js, this package's only dependency besides zod), and the `Phone` schema it backs |
 | `src/patients.ts`, `src/clients.ts` | #21's routes: `SpeciesList`, `BreedCreate` and `Breed`; `PhoneLookup` and `PhoneLookupResult`; `Registration` (an existing or a `NewClient`, an existing or a `NewPatient`) and `Registered`. The web app's New visit form validates with the same schemas |
+| `src/visits.ts` | #22's routes: `VisitPath`, `Visit`, `VisitNote` (the six sections), `VisitStarted`, `VisitVersion`, `VisitsToday`; `VisitChangeHeaders` with `If-Match`, and `versionTag()` and `versionOfTag()`, a version to and from its entity tag (`"3"`) |
 | `openapi.json` | The API's published document, written by `pnpm openapi`; committed, and CI diffs it |
 | `src/generated/api.ts` | Generated from `openapi.json` by openapi-typescript; committed, never edited by hand |
 

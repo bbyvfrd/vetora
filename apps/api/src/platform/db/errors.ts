@@ -17,6 +17,14 @@ export const ruleErrors = {
   'vetora.frozen_record': 'VT003',
   /** AC-13: occurred_at earlier than now() minus practice_settings.backdate_limit_hours (assert_backdate_limit()); the future half is the table's CHECK. */
   'vetora.backdated_too_far': 'VT004',
+  /** CR-2: a visit finalised by someone other than the acting, active veterinarian (finalise_encounter()). */
+  'vetora.not_veterinarian': 'VT006',
+  /** CR-4, AC-14: a visit finalised without the patient's current care relationship with that vet, or any vet under delegation (finalise_encounter()). */
+  'vetora.no_care_relationship': 'VT007',
+  /** Spec 0002: a visit finalised with a blank reason for visit (finalise_encounter()). */
+  'vetora.reason_for_visit_required': 'VT008',
+  /** CR-5: a visit finalised without who told the reason and the history (finalise_encounter()). */
+  'vetora.reporter_required': 'VT009',
 } as const satisfies Record<`vetora.${string}`, `VT${string}`>
 
 /**

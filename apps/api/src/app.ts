@@ -17,6 +17,20 @@ import {
   registrationRoute,
   speciesRoute,
 } from './http/registration.js'
+import {
+  cancelRoute,
+  completeRoute,
+  getVisit,
+  getVisitsToday,
+  noteRoute,
+  postCancel,
+  postComplete,
+  putNote,
+  putVisit,
+  startVisitRoute,
+  visitRoute,
+  visitsTodayRoute,
+} from './http/visits.js'
 import { ruleOf } from './platform/db/errors.js'
 import { checkDatabase } from './platform/db/index.js'
 import { log, scrubError } from './platform/log.js'
@@ -70,6 +84,12 @@ app.openapi(speciesRoute, getSpecies)
 app.openapi(breedRoute, putBreed)
 app.openapi(lookupRoute, lookUpClients)
 app.openapi(registrationRoute, putRegistration)
+app.openapi(startVisitRoute, putVisit)
+app.openapi(visitRoute, getVisit)
+app.openapi(noteRoute, putNote)
+app.openapi(completeRoute, postComplete)
+app.openapi(cancelRoute, postCancel)
+app.openapi(visitsTodayRoute, getVisitsToday)
 
 app.doc31('/api/openapi.json', openApiInfo)
 

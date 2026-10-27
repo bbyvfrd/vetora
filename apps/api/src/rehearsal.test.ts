@@ -321,8 +321,10 @@ describe.skipIf(!databaseTestsEnabled())(
       const practiceTables = [
         'audit_event',
         'breed',
+        'care_relationship',
         'client',
         'client_contact',
+        'encounter',
         'location',
         'ownership',
         'patient',

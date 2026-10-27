@@ -48,6 +48,8 @@ function stubSignedIn(me: Me = meOf()) {
   const state = { signedIn: true }
   const asked = stubApi(fetchMock, {
     'GET /api/me': () => (state.signedIn ? Response.json(me) : problemAnswer(401, 'Not signed in')),
+    [`GET /api/p/${me.practice.id}/visits`]: () =>
+      state.signedIn ? Response.json({ day: '2026-10-27', visits: [] }) : problemAnswer(401, 'Not signed in'),
     'GET /api/health': () =>
       Response.json({ status: 'ok', version: '0.1.0', database: 'ok', time: '2026-10-26T08:00:00.000Z' }),
   })
@@ -68,7 +70,7 @@ describe('the shell around the signed in pages (spec #9 seam 1, spec #18 seam 3:
     const main = await screen.findByRole('main')
     const title = await within(main).findByRole('heading', { level: 1, name: 'Bugünkü qəbullar' })
     expect(screen.getByRole('navigation', { name: 'Əsas naviqasiya' })).toBeInTheDocument()
-    const empty = within(main).getByText('Bu gün qəbul yoxdur')
+    const empty = await within(main).findByText('Bu gün qəbul yoxdur')
     expect(title.compareDocumentPosition(empty) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(0)
   })
 
@@ -127,7 +129,7 @@ describe('the shell around the signed in pages (spec #9 seam 1, spec #18 seam 3:
       expect(screen.getByRole('link', { name: expected.skip })).toBeInTheDocument()
       expect(screen.getByRole('link', { name: expected.status })).toBeInTheDocument()
       expect(screen.getByRole('link', { name: expected.account })).toBeInTheDocument()
-      expect(screen.getByText(expected.empty)).toBeInTheDocument()
+      expect(await screen.findByText(expected.empty)).toBeInTheDocument()
       expect(document.documentElement.lang).toBe(language)
       expect(violationsOf(await axe(document.body, axeOptions))).toEqual([])
     },
