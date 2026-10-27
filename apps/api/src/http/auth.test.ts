@@ -11,20 +11,17 @@ import {
   type TestDatabaseUrls,
   testDatabaseUrls,
 } from '../platform/db/test-support.js'
-import { type ApiPractice, call, type Login, provisionApiPractice, sessionCookie, signIn } from '../test-support.js'
+import {
+  type ApiPractice,
+  call,
+  type Login,
+  provisionApiPractice,
+  refusal,
+  sessionCookie,
+  signIn,
+} from '../test-support.js'
 
 const HOUR = 60 * 60 * 1000
-
-/** What a refused sign in answers, minus the parts that differ per request (its id). */
-async function refusal(response: Response) {
-  const body = (await response.json()) as Record<string, unknown>
-  return {
-    status: response.status,
-    type: body.type,
-    title: body.title,
-    contentType: response.headers.get('content-type'),
-  }
-}
 
 describe.skipIf(!databaseTestsEnabled())('signing in through the allowlist (spec #18, seam 2: the API seam)', () => {
   let urls: TestDatabaseUrls
@@ -82,9 +79,10 @@ describe.skipIf(!databaseTestsEnabled())('signing in through the allowlist (spec
       type: 'about:blank',
       title: 'Sign in failed',
       contentType: 'application/problem+json',
+      cookies: [],
     })
+    // All four alike, so none sets a cookie either.
     expect(new Set(refusals.map((answer) => JSON.stringify(answer))).size).toBe(1)
-    for (const answer of answers) expect(answer.headers.getSetCookie()).toEqual([])
   })
 
   it('refuses a sign in or a sign out sent from another origin or with none, the right credentials notwithstanding (login CSRF): 403, no cookie, the session kept', async () => {

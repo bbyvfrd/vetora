@@ -23,6 +23,7 @@ const words = {
     forgot: 'Şifrəni unutmusunuz? Klinikanın rəhbərinə müraciət edin.',
     brand: 'Baytarlıq klinikaları üçün idarəetmə',
     language: 'Dil',
+    refusal: 'Klinika kodu, istifadəçi adı və ya şifrə düzgün deyil',
   },
   ru: {
     title: 'Вход',
@@ -33,6 +34,7 @@ const words = {
     forgot: 'Забыли пароль? Обратитесь к руководителю клиники.',
     brand: 'Управление ветеринарной клиникой',
     language: 'Язык',
+    refusal: 'Неверный код клиники, имя пользователя или пароль',
   },
   en: {
     title: 'Sign in',
@@ -43,6 +45,7 @@ const words = {
     forgot: "Forgot your password? Ask the clinic's manager.",
     brand: 'Practice management for veterinary clinics',
     language: 'Language',
+    refusal: 'The clinic code, username or password is not right',
   },
 } as const satisfies Record<Language, Record<string, string>>
 
@@ -64,6 +67,23 @@ function stubSignIn(signInAnswer: () => Answer, me = meOf()) {
 
 const signedIn = () => new Response(null, { status: 204 })
 const refused = () => problemAnswer(401, 'Sign in failed')
+const locked = () => problemAnswer(429, 'Login locked')
+
+/** The lock message in each language (the design system's `error.locked`): how long, and to ask the manager. */
+const lockWords = {
+  az: {
+    title: 'Bu istifadəçi adı 15 dəqiqəlik bloklanıb',
+    body: 'Sonra yenidən cəhd edin və ya bloku açmaq üçün klinikanın rəhbərinə müraciət edin.',
+  },
+  ru: {
+    title: 'Имя пользователя заблокировано на 15 минут',
+    body: 'Повторите попытку позже или обратитесь к руководителю клиники, чтобы снять блокировку.',
+  },
+  en: {
+    title: 'This username is locked for 15 minutes',
+    body: "Try again later, or ask the clinic's manager to unlock it.",
+  },
+} as const satisfies Record<Language, Record<string, string>>
 
 async function fillIn(values: { code?: string; username?: string; password?: string }) {
   const user = userEvent.setup()
@@ -149,7 +169,11 @@ describe('the sign in page (spec #18, seam 3: the page in a DOM through the real
     await fillIn({ code: 'alfa', username: 'dr.leyla', password: 'not the password' })
 
     expect(await screen.findByText('Klinika kodu, istifadəçi adı və ya şifrə düzgün deyil')).toBeInTheDocument()
-    expect(screen.getByText('Hər üçünü yoxlayın və yenidən cəhd edin.')).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Hər üçünü yoxlayın və yenidən cəhd edin. Beş cəhddən sonra istifadəçi adı 15 dəqiqəlik bloklanır.',
+      ),
+    ).toBeInTheDocument()
     expect(screen.getByLabelText('Klinika kodu')).toHaveValue('alfa')
     expect(screen.getByLabelText('İstifadəçi adı')).toHaveValue('dr.leyla')
     expect(screen.getByLabelText('Şifrə')).toHaveValue('')
@@ -157,6 +181,31 @@ describe('the sign in page (spec #18, seam 3: the page in a DOM through the real
     expect(router.state.location.pathname).toBe('/sign-in')
     expect(localStorage.getItem('vetora.clinicCode')).toBeNull()
   })
+
+  it.each(languages)(
+    'answers a locked username with the lock message in %s, how long and to ask the manager, in place of the refusal; clears the password and stays on the page, with no axe violation (story 5)',
+    async (language) => {
+      stubSignIn(locked)
+      setLanguage(language)
+      const { router } = renderApp('/sign-in')
+      const expected = words[language]
+      await screen.findByRole('heading', { level: 1, name: expected.title })
+
+      const user = userEvent.setup()
+      await user.type(screen.getByLabelText(expected.code), 'alfa')
+      await user.type(screen.getByLabelText(expected.username), 'dr.leyla')
+      await user.type(screen.getByLabelText(expected.password), 'correct horse battery staple')
+      await user.click(screen.getByRole('button', { name: expected.submit }))
+
+      expect(await screen.findByText(lockWords[language].title)).toBeInTheDocument()
+      expect(screen.getByText(lockWords[language].body)).toBeInTheDocument()
+      expect(screen.queryByText(expected.refusal)).toBeNull()
+      expect(screen.getByLabelText(expected.password)).toHaveValue('')
+      expect(router.state.location.pathname).toBe('/sign-in')
+      expect(localStorage.getItem('vetora.clinicCode')).toBeNull()
+      expect(violationsOf(await axe(document.body, axeOptions))).toEqual([])
+    },
+  )
 
   it('asks for every empty field under it and sends nothing', async () => {
     const { asked } = stubSignIn(signedIn)

@@ -15,7 +15,8 @@ type Field = 'clinicCode' | 'username' | 'password'
  * example lays it out: the stacked logo and its line, the clinic code (filled from this computer's last sign in), the
  * username and the password, one button, the line about a forgotten password, and the language choice in the three
  * languages' own names, which changes the page at once and is kept on this computer. A refusal is one message that
- * names none of the three as the wrong one, and clears the password; a session that ended says so here.
+ * names none of the three as the wrong one, a locked username another (#20), and both clear the password; a session
+ * that ended says so here.
  */
 export function SignInPage() {
   const { t, i18n } = useTranslation()
@@ -45,7 +46,7 @@ export function SignInPage() {
     if (result !== 'signed-in') {
       setBusy(false)
       setFailure(result)
-      if (result === 'refused') setValues((current) => ({ ...current, password: '' }))
+      if (result !== 'offline') setValues((current) => ({ ...current, password: '' }))
       return
     }
     // Nothing of an earlier person stays; the app then speaks this person's language from the first page.
@@ -94,6 +95,11 @@ export function SignInPage() {
       {failure === 'refused' && (
         <Banner status="danger" title={t('error.signin.title')}>
           {t('error.signin.body')}
+        </Banner>
+      )}
+      {failure === 'locked' && (
+        <Banner status="danger" title={t('error.locked.title')}>
+          {t('error.locked.body')}
         </Banner>
       )}
       {failure === 'offline' && (

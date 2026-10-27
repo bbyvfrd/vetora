@@ -50,7 +50,11 @@
   "error": {
     "signin": {
       "title": "The clinic code, username or password is not right",
-      "body": "Check all three and try again."
+      "body": "Check all three and try again. After five tries, the username is locked for 15 minutes."
+    },
+    "locked": {
+      "title": "This username is locked for 15 minutes",
+      "body": "Try again later, or ask the clinic's manager to unlock it."
     },
     "session": {
       "title": "Your session has ended",

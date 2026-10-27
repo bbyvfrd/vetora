@@ -16,6 +16,7 @@ import { STAFF_ROLES, type StaffRole } from '../db/platform-tables.js'
 import { uuidv7 } from '../ids.js'
 import { log } from '../log.js'
 import { MAX_USERNAME_LENGTH, USERNAME } from './names.js'
+import { SIGN_IN_PATH, signInLockHooks } from './sign-in-lock.js'
 
 const authLog = log.child({ source: 'better-auth' })
 
@@ -120,9 +121,13 @@ export function createAuth(tables: typeof authTables = authTables) {
       disableSessionRefresh: true,
       cookieCache: { enabled: false },
     },
-    // On in production only (Better Auth's default) with its default rules, which #20 sets; stored in control.rate_limit
-    // so every API container counts the same requests.
-    rateLimit: { storage: 'database' },
+    // Five failed sign ins lock a username for 15 minutes (sign-in-lock.ts).
+    hooks: signInLockHooks,
+    // On in production only (Better Auth's default), stored in control.rate_limit so every API container counts the
+    // same requests. Its own rule for sign in, 3 requests per 10 seconds per address, would refuse a clinic signing in
+    // together behind one address: 30 a minute stays a guard against spraying usernames, and the per account lock
+    // (sign-in-lock.ts) guards each login (spec #18, story 6).
+    rateLimit: { storage: 'database', customRules: { [SIGN_IN_PATH]: { window: 60, max: 30 } } },
     advanced: {
       database: {
         generateId: ({ model }) => {

@@ -2,6 +2,7 @@ import { createRoute, type RouteHandler } from '@hono/zod-openapi'
 import { SessionResponse, SignInRequest } from '@vetora/contracts'
 import type { Context } from 'hono'
 import { AUTH_BASE_PATH, auth } from '../platform/auth/auth.js'
+import { LOGIN_LOCKED } from '../platform/auth/sign-in-lock.js'
 import { loadConfig } from '../platform/config.js'
 import { problem } from '../platform/problem.js'
 import type { Env } from './env.js'
@@ -19,13 +20,16 @@ export const signInRoute = createRoute({
   path: `${AUTH_BASE_PATH}/sign-in/username`,
   summary: 'Sign in',
   description:
-    'Signs a staff member in with `handle@practice-code` and a password and sets the session cookie, which ends 12 hours later. Every refusal of the credentials answers the same 401, whichever part was wrong (story 4).',
+    'Signs a staff member in with `handle@practice-code` and a password and sets the session cookie, which ends 12 hours later. Every refusal of the credentials answers the same 401, whichever part was wrong (story 4). Five failures for one username within 15 minutes lock it for 15 minutes, whether or not a login has it (story 5).',
   request: { body: { content: { 'application/json': { schema: SignInRequest } }, required: true } },
   responses: {
     204: { description: 'Signed in: the session cookie is set' },
     401: { description: 'The clinic code, username or password is not right (problem details)' },
     403: { description: "The request does not come from the app's own origin (problem details)" },
-    429: { description: 'Too many attempts from this client for now (problem details)' },
+    429: {
+      description:
+        'The username is locked (title "Login locked"), or this client sent too many sign ins for now (problem details)',
+    },
   },
 })
 
@@ -79,7 +83,8 @@ function fromTheApp(c: Context<Env>): boolean {
 /**
  * Only the username and the password go on, so `rememberMe: false` (a day long session) or a callback URL never
  * reaches Better Auth. Success answers 204 with the cookie alone: the session token Better Auth puts in its body stays
- * out of the page's reach, as the httpOnly cookie means it to. Any refusal but the rate limiter's is one 401.
+ * out of the page's reach, as the httpOnly cookie means it to. Any refusal but a 429 is one 401; a 429 is the sign in
+ * lock's (src/platform/auth/sign-in-lock.ts) or the rate limiter's, told apart by the code Better Auth's body carries.
  */
 export const signIn: RouteHandler<typeof signInRoute, Env> = async (c) => {
   if (!fromTheApp(c)) return problem(c, 403, 'Origin not allowed')
@@ -88,7 +93,10 @@ export const signIn: RouteHandler<typeof signInRoute, Env> = async (c) => {
     forward(c, '/sign-in/username', { method: 'POST', body: JSON.stringify({ username, password }) }),
   )
   if (answer.ok) return withCookies(answer, c.body(null, 204))
-  if (answer.status === 429) return problem(c, 429, 'Too many sign in attempts')
+  if (answer.status === 429) {
+    const { code } = (await answer.json().catch(() => ({}))) as { code?: unknown }
+    return problem(c, 429, code === LOGIN_LOCKED ? 'Login locked' : 'Too many sign in attempts')
+  }
   return problem(c, 401, 'Sign in failed')
 }
 

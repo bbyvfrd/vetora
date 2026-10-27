@@ -55,7 +55,7 @@ export const practice = control.table(
  * the app's UUID v7 (src/platform/auth/auth.ts) and foreign keys, timestamptz instants, snake_case columns under the
  * field names Better Auth uses as the TypeScript keys, which are also the model names the adapter looks up. `auth check
  * schema` (CI, beside db:check) proves they hold what Better Auth writes. The two factor table arrives with feature 15
- * (ADR 0008), the sign in lock with #20.
+ * (ADR 0008). The sign in lock beside them is vetora's own (#20).
  */
 
 const instant = (name: string) => timestamp(name, { withTimezone: true })
@@ -220,4 +220,19 @@ export const rateLimit = control.table('rate_limit', {
   key: text('key').notNull().unique(),
   count: integer('count').notNull(),
   lastRequest: bigint('last_request', { mode: 'number' }).notNull(),
+})
+
+/**
+ * The per account lock (spec #18, "Identity and access"; #20): one row per username that has sign ins not followed
+ * by a success, written by src/platform/auth/sign-in-lock.ts alone. Any username string gets a row, a login's or not,
+ * so the lock never tells whether a login exists; a success or `unlock-login` deletes the row.
+ */
+export const signInLock = control.table('sign_in_lock', {
+  /** The username as Better Auth looks it up: as typed, lower cased. */
+  username: text('username').primaryKey(),
+  /** The attempts since the first failure that have not succeeded, each counted from the moment it starts. */
+  failures: integer('failures').notNull(),
+  firstFailedAt: instant('first_failed_at').notNull(),
+  /** Set by the fifth failure within 15 minutes of the first: no sign in until then. */
+  lockedUntil: instant('locked_until'),
 })

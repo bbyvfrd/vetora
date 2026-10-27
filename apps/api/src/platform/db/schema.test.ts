@@ -150,7 +150,8 @@ describe('the module schema skeleton (AC-1; spec 0002, Interface surface: Drizzl
       expect(source, module).toContain(`export * from '../../modules/${module}/schema.js'`)
     }
     expect(tableNames(practiceSchema)).toEqual(expect.arrayContaining(tableNames(platformTables)))
-    // The registry, and the models Better Auth's configured plugins declare (spec #18; no two factor table, ADR 0008).
+    // The registry, the models Better Auth's configured plugins declare (spec #18; no two factor table, ADR 0008), and
+    // the sign in lock (#20).
     expect(tableNames(controlSchema)).toEqual([
       'account',
       'invitation',
@@ -159,6 +160,7 @@ describe('the module schema skeleton (AC-1; spec 0002, Interface surface: Drizzl
       'practice',
       'rate_limit',
       'session',
+      'sign_in_lock',
       'user',
       'verification',
     ])

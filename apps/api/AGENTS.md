@@ -2,7 +2,7 @@
 
 ## Overview
 
-The vetora API: a Hono server on Node 24 that declares every route with a zod schema from `@vetora/contracts`, publishes its OpenAPI document, reaches Postgres through Drizzle, and signs staff in through Better Auth (spec #18). It grows into a modular monolith with one module per bounded context under `src/modules/` (spec 0001); the same image carries the operator commands `migrate`, `provision-practice`, `add-staff` and `reset-password` (`dist/<command>.js`) and later the worker.
+The vetora API: a Hono server on Node 24 that declares every route with a zod schema from `@vetora/contracts`, publishes its OpenAPI document, reaches Postgres through Drizzle, and signs staff in through Better Auth (spec #18). It grows into a modular monolith with one module per bounded context under `src/modules/` (spec 0001); the same image carries the operator commands (`dist/<command>.js`, Commands below) and later the worker.
 
 ## Stack
 
@@ -22,11 +22,11 @@ Each file's own comments say what it owns and why; this index finds the file.
 | `src/app.ts` | The `OpenAPIHono` app: middleware, every route, the 404 and 500 handlers |
 | `src/http/` | Route declarations and middleware: `auth.ts` the three Better Auth routes (the allowlist), `me.ts` `/api/me` |
 | `src/openapi.ts` | Writes `packages/contracts/openapi.json` (`pnpm openapi` at the root) |
-| `src/migrate.ts`, `provision-practice.ts`, `add-staff.ts`, `reset-password.ts` | The operator commands: arguments and exit codes over their engines |
+| `src/migrate.ts`, `provision-practice.ts`, `add-staff.ts`, `reset-password.ts`, `unlock-login.ts` | The operator commands: arguments and exit codes over their engines |
 | `src/check-migrations.ts` | The order half of `db:check`, a developer and CI tool |
 | `src/modules/` | One folder per bounded context (`README.md`); `identity-access/` holds the staff service |
 | `src/platform/config.ts` | The validated environment: `loadConfig()`, `loadMigratorConfig()`, `configVariables` |
-| `src/platform/auth/` | Better Auth: the instance (`auth.ts`), logins and passwords, the naming rules, what `auth:check` loads |
+| `src/platform/auth/` | Better Auth: the instance (`auth.ts`), logins and passwords, the naming rules, the sign in lock, what `auth:check` loads |
 | `src/platform/db/index.ts` | `db()` and the pools, the only place the API creates a database client |
 | `src/platform/db/migrator.ts`, `provisioning.ts`, `grants.ts` | The migrate engine, the provision engine, the grants pass each practice migration runs |
 | `src/platform/db/table-classes.ts` | The table class registry every practice table enters |
@@ -53,6 +53,7 @@ pnpm --filter @vetora/api migrate     # reads .env when present; the control set
 pnpm --filter @vetora/api provision-practice -- --slug alfa --name "Alfa Vet" --manager-handle dr.aliyeva --manager-name "Dr Aliyeva" --location-name "Nərimanov"   # [--time-zone Asia/Baku] [--languages az,ru], the first language is the default; asks the manager's password; prints the id; safe to rerun
 pnpm --filter @vetora/api add-staff -- --practice alfa --handle dr.leyla --name "Leyla Həsənova" --roles veterinarian   # several roles comma joined; asks the password; prints the login id; safe to rerun
 pnpm --filter @vetora/api reset-password -- --practice alfa --handle dr.leyla   # asks the new password; ends the person's sessions
+pnpm --filter @vetora/api unlock-login -- --practice alfa --handle dr.leyla
 pnpm --filter @vetora/api auth:check  # auth check schema: Better Auth's configuration against the control tables, no database needed; CI runs it beside db:check
 pnpm --filter @vetora/api db:check    # the migration sets in order; db:generate, psql and a run against vetora_test are in docs/database.md, Commands
 kamal deploy -c apps/api/config/deploy.yml -d staging   # at the root; a destination is always required

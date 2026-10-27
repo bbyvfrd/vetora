@@ -10,4 +10,7 @@ export {
   type StaffInput,
   type StaffOutcome,
   staffInput,
+  type UnlockInput,
+  unlockInput,
+  unlockLogin,
 } from './staff.js'
