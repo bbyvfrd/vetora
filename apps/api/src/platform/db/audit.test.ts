@@ -181,7 +181,9 @@ describe.skipIf(!databaseTestsEnabled())('every write names its actor and lands 
     )
 
     expect(settings).toMatchObject({ updated_by: manager, version: 2 })
-    expect(await auditOf(settings.id)).toMatchObject([
+    // The settings row's nil UUID is also the invoice counter's (#25): read the settings' rows alone.
+    const settingsAudit = (await auditOf(settings.id)).filter((row) => row.table_name === 'practice_settings')
+    expect(settingsAudit).toMatchObject([
       { table_name: 'practice_settings', action: 'insert', actor_id: manager, source: 'migration:provision-practice' },
       { action: 'update', actor_id: manager, source: 'request', changed: { display_name: 'Renamed', version: 2 } },
     ])

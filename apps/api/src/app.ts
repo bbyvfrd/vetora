@@ -5,6 +5,22 @@ import { requestId } from 'hono/request-id'
 import { getSession, getSessionRoute, signIn, signInRoute, signOut, signOutRoute } from './http/auth.js'
 import type { Env } from './http/env.js'
 import { healthRoute } from './http/health.js'
+import {
+  addLineRoute,
+  createInvoiceRoute,
+  getServices,
+  getVisitInvoice,
+  issueRoute,
+  postIssue,
+  postRemoveLine,
+  putInvoice,
+  putLine,
+  putQuantity,
+  quantityRoute,
+  removeLineRoute,
+  servicesRoute,
+  visitInvoiceRoute,
+} from './http/invoices.js'
 import { getMe, languageRoute, meRoute, putLanguage } from './http/me.js'
 import { requestLogger } from './http/middleware.js'
 import {
@@ -101,6 +117,13 @@ app.openapi(visitsTodayRoute, getVisitsToday)
 app.openapi(recordObservationRoute, putObservation)
 app.openapi(visitObservationsRoute, getVisitObservations)
 app.openapi(lastWeightRoute, getLastWeight)
+app.openapi(servicesRoute, getServices)
+app.openapi(visitInvoiceRoute, getVisitInvoice)
+app.openapi(createInvoiceRoute, putInvoice)
+app.openapi(addLineRoute, putLine)
+app.openapi(quantityRoute, putQuantity)
+app.openapi(removeLineRoute, postRemoveLine)
+app.openapi(issueRoute, postIssue)
 
 app.doc31('/api/openapi.json', openApiInfo)
 

@@ -1,6 +1,7 @@
 import { and, desc, eq, gt, isNull, ne, or, sql } from 'drizzle-orm'
 import { practiceSettings, practiceToday, staffMember } from '../../platform/db/platform-tables.js'
 import { practiceContext } from '../../platform/request-context.js'
+import { discardVisitInvoice } from '../billing/index.js'
 import { careRelationship, encounter } from './schema.js'
 
 /**
@@ -214,15 +215,26 @@ export async function completeEncounter(id: string, version: number): Promise<Ch
   return { status: 'changed', version: done.version }
 }
 
-/** Cancel a draft visit opened by mistake (spec #18: Cancel visit): it is discarded, and a completed one is frozen. */
-export async function cancelEncounter(id: string, version: number): Promise<ChangeOutcome> {
+export type CancelOutcome =
+  | ChangeOutcome
+  /** The visit's invoice is issued: the cancel is refused, and the request's rollback keeps the visit as it was. */
+  | { status: 'invoiced' }
+
+/**
+ * Cancel a draft visit opened by mistake (spec #18: Cancel visit): it is discarded, and a completed one is frozen. Then
+ * billing is asked, through its public interface, to discard the visit's draft invoice (#25); when the invoice is
+ * issued billing refuses, and so does the cancel.
+ */
+export async function cancelEncounter(id: string, version: number): Promise<CancelOutcome> {
   const { db } = practiceContext()
   const [cancelled] = await db
     .update(encounter)
     .set({ status: 'discarded' })
     .where(and(eq(encounter.id, id), eq(encounter.version, version), ne(encounter.status, 'discarded')))
     .returning({ version: encounter.version })
-  return cancelled ? { status: 'changed', version: cancelled.version } : unchangedOutcome(id)
+  if (!cancelled) return unchangedOutcome(id)
+  if ((await discardVisitInvoice(id)) === 'issued') return { status: 'invoiced' }
+  return { status: 'changed', version: cancelled.version }
 }
 
 /**

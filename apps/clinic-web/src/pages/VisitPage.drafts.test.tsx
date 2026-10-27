@@ -31,6 +31,9 @@ const patientId = '019a3f00-0000-7000-8000-0000000000e1'
 const noReadings = {
   [`GET ${visitPath}/observations`]: () => Response.json({ observations: [] }),
   [`GET /api/p/${me.practice.id}/patients/${patientId}/last-weight`]: () => Response.json({ lastWeight: null }),
+  // The invoice card (#25), with no invoice yet.
+  [`GET ${visitPath}/invoice`]: () => Response.json({ invoice: null }),
+  [`GET /api/p/${me.practice.id}/services`]: () => Response.json({ services: [] }),
 }
 
 const emptyNote: VisitNote = {

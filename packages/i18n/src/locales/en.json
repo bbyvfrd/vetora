@@ -46,7 +46,8 @@
     "patient": "Patient",
     "client": "Client",
     "vet": "Vet",
-    "status": "Status"
+    "status": "Status",
+    "invoice": "Invoice"
   },
   "visit": {
     "start": "Start visit",
@@ -88,6 +89,25 @@
     },
     "lastWeight": "Last weight: {{value}}, {{date}}"
   },
+  "invoice": {
+    "title": "Invoice",
+    "numbered": "Invoice No. {{number}}",
+    "status": {
+      "draft": "Draft",
+      "unpaid": "Unpaid"
+    },
+    "addService": "Add a service",
+    "issue": "Issue invoice",
+    "column": {
+      "service": "Service",
+      "quantity": "Quantity",
+      "price": "Price, AZN",
+      "amount": "Amount, AZN"
+    },
+    "remove": "Remove",
+    "total": "Total",
+    "balanceDue": "Balance due"
+  },
   "confirm": {
     "visitCancel": {
       "title": "Cancel the visit?",
@@ -102,6 +122,9 @@
     },
     "search": {
       "title": "No results"
+    },
+    "invoiceLines": {
+      "title": "No services added yet"
     }
   },
   "error": {
@@ -129,6 +152,15 @@
     "save": {
       "title": "The changes could not be saved",
       "body": "Everything you typed is still here. Try again."
+    },
+    "conflict": {
+      "title": "Someone else changed this while you were editing",
+      "body": "Refresh the page to see the latest version. Your own changes have not been saved.",
+      "button": "Refresh"
+    },
+    "visitInvoiced": {
+      "title": "The visit could not be cancelled",
+      "body": "Its invoice is already issued. Complete the visit instead."
     },
     "noteConflict": {
       "title": "Someone else changed this note while you were editing",
@@ -219,6 +251,9 @@
     "visit": {
       "completed": "Visit completed",
       "cancelled": "Visit cancelled"
+    },
+    "invoice": {
+      "issued": "Invoice issued"
     }
   },
   "warning": {

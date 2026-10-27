@@ -14,6 +14,7 @@
     "add-staff": "node --env-file-if-exists=.env --import=tsx src/add-staff.ts",
     "reset-password": "node --env-file-if-exists=.env --import=tsx src/reset-password.ts",
     "unlock-login": "node --env-file-if-exists=.env --import=tsx src/unlock-login.ts",
+    "load-services": "node --env-file-if-exists=.env --import=tsx src/load-services.ts",
     "auth:check": "auth check schema --config src/platform/auth/schema-check.ts",
     "db:generate:control": "drizzle-kit generate --config drizzle.control.config.ts",
     "db:generate:practice": "drizzle-kit generate --config drizzle.practice.config.ts",

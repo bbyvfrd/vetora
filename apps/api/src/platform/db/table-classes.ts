@@ -7,10 +7,15 @@ import {
   clientContact,
   clinicalObservation,
   encounter,
+  invoice,
+  invoiceLine,
+  invoiceNumberSeq,
+  ledgerEntry,
   location,
   ownership,
   patient,
   practiceSettings,
+  service,
   species,
   staffMember,
 } from './practice-schema.js'
@@ -30,10 +35,17 @@ export type TableEntry =
   | { class: 'append_only' }
   /**
    * INSERT and SELECT, and UPDATE on the named columns alone (`consent_record.withdrawn_at`); the set_once() trigger
-   * lets each go from null to a value once. `movesLater` names the class's one kind of exception, an instant that may
-   * only move later (`care_relationship.lapses_at`), which the trigger takes as a `later:<column>` argument.
+   * lets each go from null to a value once. `movesLater` names an instant that may only move later
+   * (`care_relationship.lapses_at`), which the trigger takes as a `later:<column>` argument; `free` names a column that
+   * may change while the row lives (`invoice_line.quantity` while its invoice is a draft, lock_parent() freezing it
+   * after), which the trigger takes as `free:<column>`.
    */
-  | { class: 'set_once'; setOnce: readonly [string, ...string[]]; movesLater?: readonly string[] }
+  | {
+      class: 'set_once'
+      setOnce: readonly [string, ...string[]]
+      movesLater?: readonly string[]
+      free?: readonly string[]
+    }
   /** INSERT, SELECT, UPDATE, never DELETE: a record retires by status (IN-6). `noUpdate` names columns the role never updates (`lot.quantity_on_hand`, the movement trigger's alone). */
   | { class: 'mutable'; noUpdate?: readonly string[] }
   /** As mutable until the status column reaches its final value; the freeze_record() trigger then refuses every change but the columns it names (and lock_parent() its child rows). */
@@ -80,9 +92,22 @@ export const tableClassRegistry: TableClassRegistry = {
     [getTableName(encounter), { class: 'frozen_by_status' }],
     // A reading is never changed: a corrected weight is a new row (PT-2, AC-6; #23).
     [getTableName(clinicalObservation), { class: 'append_only' }],
+    // The Inventory module (#25): the price list, edited and retired by `active`.
+    [getTableName(service), { class: 'mutable' }],
+    // The Billing module (#25): the counter only next_invoice_number() advances; an invoice freezes at issue and its
+    // lines with it, a draft line's quantity changing and its removal set once; the ledger is never changed (BL-6).
+    [getTableName(invoiceNumberSeq), { class: 'function_written' }],
+    [getTableName(invoice), { class: 'frozen_by_status' }],
+    [
+      getTableName(invoiceLine),
+      { class: 'set_once', setOnce: ['removed_at'], free: ['quantity', 'total_minor', 'sort'] },
+    ],
+    [getTableName(ledgerEntry), { class: 'append_only' }],
   ]),
-  views: new Set(),
-  functions: new Set(),
+  /** A client's balance, the sum of their ledger rows (BL-6; #25). */
+  views: new Set(['client_balance']),
+  /** The gapless invoice number, taken by the issue handler (#25). */
+  functions: new Set(['next_invoice_number']),
 }
 
 /** The table privileges a class can grant; DELETE, TRUNCATE, REFERENCES, and TRIGGER are in none (IN-6). */
@@ -103,7 +128,7 @@ export function grantOf(entry: TableEntry, columns: readonly string[]): TableGra
     case 'append_only':
       return { privileges: ['INSERT', 'SELECT'], namedColumns: [] }
     case 'set_once': {
-      const updatable = [...entry.setOnce, ...(entry.movesLater ?? [])]
+      const updatable = [...entry.setOnce, ...(entry.movesLater ?? []), ...(entry.free ?? [])]
       return { privileges: ['INSERT', 'SELECT'], updateColumns: updatable, namedColumns: updatable }
     }
     case 'mutable':

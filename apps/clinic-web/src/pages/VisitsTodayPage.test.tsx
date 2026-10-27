@@ -17,10 +17,22 @@ const me = meOf()
 const visitsPath = `/api/p/${me.practice.id}/visits`
 const leyla = { id: me.id, displayName: 'Leyla Həsənova' }
 
-/** Two visits, newest first: one completed at 00:30 in Baku (20:30 UTC the day before), one a draft at 09:05. */
+/**
+ * Three visits, newest first: a draft at 09:40 with no invoice yet, a draft at 09:05 with a draft invoice (#25), and
+ * one completed at 00:30 in Baku (20:30 UTC the day before) with its invoice issued and unpaid.
+ */
 const today: VisitsToday = {
   day: '2026-10-27',
   visits: [
+    {
+      id: '019a3f00-0000-7000-8000-0000000000f3',
+      status: 'draft',
+      startedAt: '2026-10-27T05:40:00.000Z',
+      patient: { id: '019a3f00-0000-7000-8000-0000000000e3', name: 'Pambıq' },
+      client: { id: '019a3f00-0000-7000-8000-00000000c1e2', firstName: 'Rəşad', lastName: 'Əliyev', patronymic: null },
+      veterinarian: leyla,
+      invoice: 'none',
+    },
     {
       id: '019a3f00-0000-7000-8000-0000000000f2',
       status: 'draft',
@@ -28,6 +40,7 @@ const today: VisitsToday = {
       patient: { id: '019a3f00-0000-7000-8000-0000000000e2', name: 'Bəbir' },
       client: { id: '019a3f00-0000-7000-8000-00000000c1e2', firstName: 'Rəşad', lastName: 'Əliyev', patronymic: null },
       veterinarian: leyla,
+      invoice: 'draft',
     },
     {
       id: '019a3f00-0000-7000-8000-0000000000f1',
@@ -41,6 +54,7 @@ const today: VisitsToday = {
         patronymic: null,
       },
       veterinarian: leyla,
+      invoice: 'unpaid',
     },
   ],
 }
@@ -48,27 +62,30 @@ const today: VisitsToday = {
 const words = {
   az: {
     title: 'Bugünkü qəbullar',
-    columns: ['Vaxt', 'Pasiyent', 'Müştəri', 'Həkim', 'Status'],
+    columns: ['Vaxt', 'Pasiyent', 'Müştəri', 'Həkim', 'Status', 'Hesab-faktura'],
     draft: 'Qaralama',
     completed: 'Tamamlanıb',
+    unpaid: 'Ödənilməyib',
     empty: 'Bu gün qəbul yoxdur',
     failed: 'Səhifəni yükləmək mümkün olmadı',
     retry: 'Yenidən cəhd et',
   },
   ru: {
     title: 'Приёмы сегодня',
-    columns: ['Время', 'Пациент', 'Клиент', 'Врач', 'Статус'],
+    columns: ['Время', 'Пациент', 'Клиент', 'Врач', 'Статус', 'Счёт'],
     draft: 'Черновик',
     completed: 'Завершён',
+    unpaid: 'Не оплачен',
     empty: 'Сегодня приёмов нет',
     failed: 'Не удалось загрузить страницу',
     retry: 'Повторить',
   },
   en: {
     title: 'Visits today',
-    columns: ['Time', 'Patient', 'Client', 'Vet', 'Status'],
+    columns: ['Time', 'Patient', 'Client', 'Vet', 'Status', 'Invoice'],
     draft: 'Draft',
     completed: 'Completed',
+    unpaid: 'Unpaid',
     empty: 'No visits today',
     failed: 'This page could not be loaded',
     retry: 'Try again',
@@ -90,7 +107,7 @@ describe("Visits today: the day's visits at the location (#22, seam 3)", () => {
   })
 
   it.each(languages)(
-    'in %s: lists each visit with its time in the practice clock, patient, client, vet and state, newest first; axe finds no violation',
+    "in %s: lists each visit with its time in the practice clock, patient, client, vet, state and its invoice's state (none, draft, unpaid), newest first; axe finds no violation",
     async (language) => {
       stubVisits(() => Response.json(today), meOf({ language }))
       setLanguage(language)
@@ -112,8 +129,9 @@ describe("Visits today: the day's visits at the location (#22, seam 3)", () => {
             .map((cell) => cell.textContent),
         )
       expect(rows).toEqual([
-        ['09:05', 'Bəbir', 'Əliyev Rəşad', 'Leyla Həsənova', expected.draft],
-        ['00:30', 'Şəkər', 'Məmmədova Aysel', 'Leyla Həsənova', expected.completed],
+        ['09:40', 'Pambıq', 'Əliyev Rəşad', 'Leyla Həsənova', expected.draft, ''],
+        ['09:05', 'Bəbir', 'Əliyev Rəşad', 'Leyla Həsənova', expected.draft, expected.draft],
+        ['00:30', 'Şəkər', 'Məmmədova Aysel', 'Leyla Həsənova', expected.completed, expected.unpaid],
       ])
       expect(violationsOf(await axe(document.body, axeOptions))).toEqual([])
     },

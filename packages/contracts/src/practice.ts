@@ -16,6 +16,15 @@ export const PracticePath = z.object({
 })
 export type PracticePath = z.infer<typeof PracticePath>
 
+/** A version as the entity tag `If-Match` carries: the number in quotes, `"3"` (a visit's #22, an invoice's #25). */
+export const VersionTag = z.string().regex(/^"[1-9]\d*"$/, 'The version in quotes, such as "3"')
+
+/** The `If-Match` value for a version. */
+export const versionTag = (version: number): string => `"${version}"`
+
+/** The version an `If-Match` value carries (validated by VersionTag). */
+export const versionOfTag = (tag: string): number => Number(tag.slice(1, -1))
+
 /** The headers every practice route requires. */
 export const PracticeHeaders = z.object({
   /** One of the practice's active locations, from `GET /api/me`; the default one unless the person chose another. */

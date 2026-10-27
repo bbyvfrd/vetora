@@ -33,7 +33,9 @@ function expectedGrant(entry: TableEntry, columns: string[]): { table: string[];
     case 'set_once':
       return {
         table: ['INSERT', 'SELECT'],
-        updatable: columns.filter((column) => [...entry.setOnce, ...(entry.movesLater ?? [])].includes(column)),
+        updatable: columns.filter((column) =>
+          [...entry.setOnce, ...(entry.movesLater ?? []), ...(entry.free ?? [])].includes(column),
+        ),
       }
     case 'mutable':
     case 'frozen_by_status': {
@@ -223,8 +225,8 @@ describe.skipIf(!databaseTestsEnabled())(
         expect(await publicExecutable()).toEqual(['scratch_fn'])
         const scratch: TableClassRegistry = {
           ...tableClassRegistry,
-          views: new Set(['scratch_view']),
-          functions: new Set(['scratch_fn']),
+          views: new Set([...tableClassRegistry.views, 'scratch_view']),
+          functions: new Set([...tableClassRegistry.functions, 'scratch_fn']),
         }
 
         const granted = await applyGrants(migrator, practice, scratch)
@@ -238,7 +240,10 @@ describe.skipIf(!databaseTestsEnabled())(
         )
         expect(callable.rows[0]).toEqual({ integer: true, text: true, current_actor: false })
         expect(await publicExecutable()).toEqual([])
-        expect(granted).toMatchObject({ views: ['scratch_view'], functions: ['scratch_fn'] })
+        expect(granted).toMatchObject({
+          views: [...tableClassRegistry.views, 'scratch_view'],
+          functions: [...tableClassRegistry.functions, 'scratch_fn'],
+        })
       })
     })
 
@@ -298,8 +303,8 @@ describe.skipIf(!databaseTestsEnabled())(
               ['ghost', { class: 'mutable' }],
               ['scratch_view', { class: 'mutable' }],
             ]),
-            views: new Set(['ghost_view']),
-            functions: new Set(['ghost_fn']),
+            views: new Set([...tableClassRegistry.views, 'ghost_view']),
+            functions: new Set([...tableClassRegistry.functions, 'ghost_fn']),
           }
 
           expect(await refusal(scratch)).toMatchObject({
@@ -498,8 +503,8 @@ describe.skipIf(!databaseTestsEnabled())(
             staff_member: { class: 'mutable', privileges: ['INSERT', 'SELECT', 'UPDATE'] },
             audit_event: { class: 'function_written', privileges: ['SELECT'] },
           },
-          views: [],
-          functions: [],
+          views: ['client_balance'],
+          functions: ['next_invoice_number'],
         })
       })
     })

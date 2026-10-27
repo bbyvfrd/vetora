@@ -1892,7 +1892,7 @@
     "/api/p/{practiceId}/visits/{visitId}/cancel": {
       "post": {
         "summary": "Cancel a draft visit",
-        "description": "Discards a draft visit opened by mistake, against the version in If-Match; a completed one is refused.",
+        "description": "Discards a draft visit opened by mistake, against the version in If-Match, with its draft invoice; a completed one is refused, and so is one whose invoice is issued.",
         "parameters": [
           {
             "schema": {
@@ -1964,7 +1964,7 @@
             "description": "No such visit, or a cancelled one (problem details)"
           },
           "409": {
-            "description": "Refused by a rule of the record: completed, or not complete (problem details naming the rule)"
+            "description": "Refused by a rule of the record (problem details naming the rule: a completed visit), or the visit's invoice is issued"
           },
           "412": {
             "description": "Another change came first: the version is stale (problem details)"
@@ -1978,7 +1978,7 @@
     "/api/p/{practiceId}/visits": {
       "get": {
         "summary": "Visits today",
-        "description": "The visits started today at the request's location, the day in the practice's time zone, newest first; cancelled ones are left out.",
+        "description": "The visits started today at the request's location, the day in the practice's time zone, newest first, each with its invoice's state; cancelled ones are left out.",
         "parameters": [
           {
             "schema": {
@@ -2095,6 +2095,14 @@
                               "id",
                               "displayName"
                             ]
+                          },
+                          "invoice": {
+                            "type": "string",
+                            "enum": [
+                              "none",
+                              "draft",
+                              "unpaid"
+                            ]
                           }
                         },
                         "required": [
@@ -2103,7 +2111,8 @@
                           "startedAt",
                           "patient",
                           "client",
-                          "veterinarian"
+                          "veterinarian",
+                          "invoice"
                         ]
                       }
                     }
@@ -2535,6 +2544,1597 @@
           },
           "403": {
             "description": "Not a member, a practice not active, or an action the roles may not perform (problem details)"
+          },
+          "503": {
+            "description": "The practice is being updated (problem details)"
+          }
+        }
+      }
+    },
+    "/api/p/{practiceId}/services": {
+      "get": {
+        "summary": "The price list",
+        "description": "The active services, each with its names in the three languages, its category and its price now.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "practiceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "vetora-location",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The price list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "services": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "names": {
+                            "type": "object",
+                            "properties": {
+                              "az": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "ru": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "en": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "az",
+                              "ru",
+                              "en"
+                            ]
+                          },
+                          "category": {
+                            "type": "string",
+                            "enum": [
+                              "consultation",
+                              "procedure",
+                              "lab",
+                              "grooming",
+                              "boarding",
+                              "other"
+                            ]
+                          },
+                          "priceMinor": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "currency": {
+                            "type": "string",
+                            "enum": [
+                              "AZN"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "names",
+                          "category",
+                          "priceMinor",
+                          "currency"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "services"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed, or no location header or one not of this practice (problem details)"
+          },
+          "401": {
+            "description": "No session (problem details)"
+          },
+          "403": {
+            "description": "Not a member, a practice not active, or an action the roles may not perform (problem details)"
+          },
+          "503": {
+            "description": "The practice is being updated (problem details)"
+          }
+        }
+      }
+    },
+    "/api/p/{practiceId}/visits/{visitId}/invoice": {
+      "get": {
+        "summary": "A visit's invoice",
+        "description": "The visit's invoice, draft or issued, with its lines, Total, Paid and the remainder; null before its first line.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "practiceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "visitId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "vetora-location",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The visit's invoice",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "invoice": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "draft",
+                            "issued"
+                          ]
+                        },
+                        "version": {
+                          "type": "integer",
+                          "exclusiveMinimum": 0
+                        },
+                        "number": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "issuedAt": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "date-time"
+                        },
+                        "visitId": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "uuid"
+                        },
+                        "patientId": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "uuid"
+                        },
+                        "clientId": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "uuid"
+                        },
+                        "currency": {
+                          "type": "string",
+                          "enum": [
+                            "AZN"
+                          ]
+                        },
+                        "lines": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "serviceId": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "format": "uuid"
+                              },
+                              "description": {
+                                "type": "object",
+                                "properties": {
+                                  "az": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  },
+                                  "ru": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  },
+                                  "en": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "az",
+                                  "ru",
+                                  "en"
+                                ]
+                              },
+                              "quantity": {
+                                "type": "number",
+                                "exclusiveMinimum": 0
+                              },
+                              "unitPriceMinor": {
+                                "type": "integer",
+                                "minimum": 0
+                              },
+                              "totalMinor": {
+                                "type": "integer",
+                                "minimum": 0
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "serviceId",
+                              "description",
+                              "quantity",
+                              "unitPriceMinor",
+                              "totalMinor"
+                            ]
+                          }
+                        },
+                        "totalMinor": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "paidMinor": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "remainderMinor": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "status",
+                        "version",
+                        "number",
+                        "issuedAt",
+                        "visitId",
+                        "patientId",
+                        "clientId",
+                        "currency",
+                        "lines",
+                        "totalMinor",
+                        "paidMinor",
+                        "remainderMinor"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "invoice"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed, or no location header or one not of this practice (problem details)"
+          },
+          "401": {
+            "description": "No session (problem details)"
+          },
+          "403": {
+            "description": "Not a member, a practice not active, or an action the roles may not perform (problem details)"
+          },
+          "503": {
+            "description": "The practice is being updated (problem details)"
+          }
+        }
+      }
+    },
+    "/api/p/{practiceId}/invoices/{invoiceId}": {
+      "put": {
+        "summary": "Create a visit's draft invoice",
+        "description": "Creates the visit's draft invoice with its first line, at the request's location: the service's names and price snapshotted, the visit, patient and client stored as given once the API has checked they are the visit's. The invoice id is a UUID v7 the client generates: the same request again changes nothing.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "practiceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "invoiceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "vetora-location",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "visitId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "patientId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "clientId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "line": {
+                    "type": "object",
+                    "properties": {
+                      "serviceId": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "quantity": {
+                        "type": "number",
+                        "exclusiveMinimum": 0,
+                        "maximum": 9999
+                      },
+                      "id": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "required": [
+                      "serviceId",
+                      "quantity",
+                      "id"
+                    ]
+                  }
+                },
+                "required": [
+                  "visitId",
+                  "patientId",
+                  "clientId",
+                  "line"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "draft",
+                        "issued"
+                      ]
+                    },
+                    "version": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0
+                    },
+                    "number": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "issuedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "visitId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "patientId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "clientId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "currency": {
+                      "type": "string",
+                      "enum": [
+                        "AZN"
+                      ]
+                    },
+                    "lines": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "serviceId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "uuid"
+                          },
+                          "description": {
+                            "type": "object",
+                            "properties": {
+                              "az": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "ru": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "en": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "az",
+                              "ru",
+                              "en"
+                            ]
+                          },
+                          "quantity": {
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          },
+                          "unitPriceMinor": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "totalMinor": {
+                            "type": "integer",
+                            "minimum": 0
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "serviceId",
+                          "description",
+                          "quantity",
+                          "unitPriceMinor",
+                          "totalMinor"
+                        ]
+                      }
+                    },
+                    "totalMinor": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "paidMinor": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "remainderMinor": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "status",
+                    "version",
+                    "number",
+                    "issuedAt",
+                    "visitId",
+                    "patientId",
+                    "clientId",
+                    "currency",
+                    "lines",
+                    "totalMinor",
+                    "paidMinor",
+                    "remainderMinor"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed, or no location header or one not of this practice (problem details)"
+          },
+          "401": {
+            "description": "No session (problem details)"
+          },
+          "403": {
+            "description": "Not a member, a practice not active, or an action the roles may not perform (problem details)"
+          },
+          "404": {
+            "description": "No such visit, or a cancelled one; or no such active service (problem details)"
+          },
+          "409": {
+            "description": "The patient or client is not the visit's, the visit already has an invoice, or an id is another invoice's or line's (problem details)"
+          },
+          "503": {
+            "description": "The practice is being updated (problem details)"
+          }
+        }
+      }
+    },
+    "/api/p/{practiceId}/invoices/{invoiceId}/lines/{lineId}": {
+      "put": {
+        "summary": "Add a service to a draft invoice",
+        "description": "Adds a line for a service of the price list against the invoice's version in If-Match, its names and price snapshotted. The line id is a UUID v7 the client generates: the same line again changes nothing.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "practiceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "invoiceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "lineId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "vetora-location",
+            "in": "header"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\"[1-9]\\d*\"$"
+            },
+            "required": true,
+            "name": "if-match",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "serviceId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "quantity": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9999
+                  }
+                },
+                "required": [
+                  "serviceId",
+                  "quantity"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Added",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "draft",
+                        "issued"
+                      ]
+                    },
+                    "version": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0
+                    },
+                    "number": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "issuedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "visitId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "patientId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "clientId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "currency": {
+                      "type": "string",
+                      "enum": [
+                        "AZN"
+                      ]
+                    },
+                    "lines": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "serviceId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "uuid"
+                          },
+                          "description": {
+                            "type": "object",
+                            "properties": {
+                              "az": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "ru": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "en": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "az",
+                              "ru",
+                              "en"
+                            ]
+                          },
+                          "quantity": {
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          },
+                          "unitPriceMinor": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "totalMinor": {
+                            "type": "integer",
+                            "minimum": 0
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "serviceId",
+                          "description",
+                          "quantity",
+                          "unitPriceMinor",
+                          "totalMinor"
+                        ]
+                      }
+                    },
+                    "totalMinor": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "paidMinor": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "remainderMinor": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "status",
+                    "version",
+                    "number",
+                    "issuedAt",
+                    "visitId",
+                    "patientId",
+                    "clientId",
+                    "currency",
+                    "lines",
+                    "totalMinor",
+                    "paidMinor",
+                    "remainderMinor"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed, or no location header or one not of this practice (problem details)"
+          },
+          "401": {
+            "description": "No session (problem details)"
+          },
+          "403": {
+            "description": "Not a member, a practice not active, or an action the roles may not perform (problem details)"
+          },
+          "404": {
+            "description": "No such invoice, a discarded one, or no such line on it (problem details)"
+          },
+          "409": {
+            "description": "Refused by a rule of the record: issued, or issued without a line (problem details naming the rule)"
+          },
+          "412": {
+            "description": "Another change came first: the version is stale (problem details)"
+          },
+          "503": {
+            "description": "The practice is being updated (problem details)"
+          }
+        }
+      }
+    },
+    "/api/p/{practiceId}/invoices/{invoiceId}/lines/{lineId}/quantity": {
+      "put": {
+        "summary": "Change a draft line's quantity",
+        "description": "Sets the line's quantity against the invoice's version in If-Match; its total follows from its unit price.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "practiceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "invoiceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "lineId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "vetora-location",
+            "in": "header"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\"[1-9]\\d*\"$"
+            },
+            "required": true,
+            "name": "if-match",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "quantity": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9999
+                  }
+                },
+                "required": [
+                  "quantity"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Changed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "draft",
+                        "issued"
+                      ]
+                    },
+                    "version": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0
+                    },
+                    "number": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "issuedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "visitId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "patientId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "clientId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "currency": {
+                      "type": "string",
+                      "enum": [
+                        "AZN"
+                      ]
+                    },
+                    "lines": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "serviceId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "uuid"
+                          },
+                          "description": {
+                            "type": "object",
+                            "properties": {
+                              "az": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "ru": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "en": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "az",
+                              "ru",
+                              "en"
+                            ]
+                          },
+                          "quantity": {
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          },
+                          "unitPriceMinor": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "totalMinor": {
+                            "type": "integer",
+                            "minimum": 0
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "serviceId",
+                          "description",
+                          "quantity",
+                          "unitPriceMinor",
+                          "totalMinor"
+                        ]
+                      }
+                    },
+                    "totalMinor": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "paidMinor": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "remainderMinor": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "status",
+                    "version",
+                    "number",
+                    "issuedAt",
+                    "visitId",
+                    "patientId",
+                    "clientId",
+                    "currency",
+                    "lines",
+                    "totalMinor",
+                    "paidMinor",
+                    "remainderMinor"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed, or no location header or one not of this practice (problem details)"
+          },
+          "401": {
+            "description": "No session (problem details)"
+          },
+          "403": {
+            "description": "Not a member, a practice not active, or an action the roles may not perform (problem details)"
+          },
+          "404": {
+            "description": "No such invoice, a discarded one, or no such line on it (problem details)"
+          },
+          "409": {
+            "description": "Refused by a rule of the record: issued, or issued without a line (problem details naming the rule)"
+          },
+          "412": {
+            "description": "Another change came first: the version is stale (problem details)"
+          },
+          "503": {
+            "description": "The practice is being updated (problem details)"
+          }
+        }
+      }
+    },
+    "/api/p/{practiceId}/invoices/{invoiceId}/lines/{lineId}/remove": {
+      "post": {
+        "summary": "Remove a line from a draft invoice",
+        "description": "Removes a mistaken line against the invoice's version in If-Match; it is left out of every total.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "practiceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "invoiceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "lineId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "vetora-location",
+            "in": "header"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\"[1-9]\\d*\"$"
+            },
+            "required": true,
+            "name": "if-match",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Removed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "draft",
+                        "issued"
+                      ]
+                    },
+                    "version": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0
+                    },
+                    "number": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "issuedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "visitId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "patientId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "clientId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "currency": {
+                      "type": "string",
+                      "enum": [
+                        "AZN"
+                      ]
+                    },
+                    "lines": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "serviceId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "uuid"
+                          },
+                          "description": {
+                            "type": "object",
+                            "properties": {
+                              "az": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "ru": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "en": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "az",
+                              "ru",
+                              "en"
+                            ]
+                          },
+                          "quantity": {
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          },
+                          "unitPriceMinor": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "totalMinor": {
+                            "type": "integer",
+                            "minimum": 0
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "serviceId",
+                          "description",
+                          "quantity",
+                          "unitPriceMinor",
+                          "totalMinor"
+                        ]
+                      }
+                    },
+                    "totalMinor": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "paidMinor": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "remainderMinor": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "status",
+                    "version",
+                    "number",
+                    "issuedAt",
+                    "visitId",
+                    "patientId",
+                    "clientId",
+                    "currency",
+                    "lines",
+                    "totalMinor",
+                    "paidMinor",
+                    "remainderMinor"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed, or no location header or one not of this practice (problem details)"
+          },
+          "401": {
+            "description": "No session (problem details)"
+          },
+          "403": {
+            "description": "Not a member, a practice not active, or an action the roles may not perform (problem details)"
+          },
+          "404": {
+            "description": "No such invoice, a discarded one, or no such line on it (problem details)"
+          },
+          "409": {
+            "description": "Refused by a rule of the record: issued, or issued without a line (problem details naming the rule)"
+          },
+          "412": {
+            "description": "Another change came first: the version is stale (problem details)"
+          },
+          "503": {
+            "description": "The practice is being updated (problem details)"
+          }
+        }
+      }
+    },
+    "/api/p/{practiceId}/invoices/{invoiceId}/issue": {
+      "post": {
+        "summary": "Issue an invoice",
+        "description": "Issues the invoice against its version in If-Match, in one transaction: the next number, gapless per practice, and the client's charge equal to its lines' total, which becomes their Balance due. An invoice with no line is refused.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "practiceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "invoiceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "vetora-location",
+            "in": "header"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\"[1-9]\\d*\"$"
+            },
+            "required": true,
+            "name": "if-match",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Issued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "draft",
+                        "issued"
+                      ]
+                    },
+                    "version": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0
+                    },
+                    "number": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "issuedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "visitId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "patientId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "clientId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "currency": {
+                      "type": "string",
+                      "enum": [
+                        "AZN"
+                      ]
+                    },
+                    "lines": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "serviceId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "uuid"
+                          },
+                          "description": {
+                            "type": "object",
+                            "properties": {
+                              "az": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "ru": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "en": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "az",
+                              "ru",
+                              "en"
+                            ]
+                          },
+                          "quantity": {
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          },
+                          "unitPriceMinor": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "totalMinor": {
+                            "type": "integer",
+                            "minimum": 0
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "serviceId",
+                          "description",
+                          "quantity",
+                          "unitPriceMinor",
+                          "totalMinor"
+                        ]
+                      }
+                    },
+                    "totalMinor": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "paidMinor": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "remainderMinor": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "status",
+                    "version",
+                    "number",
+                    "issuedAt",
+                    "visitId",
+                    "patientId",
+                    "clientId",
+                    "currency",
+                    "lines",
+                    "totalMinor",
+                    "paidMinor",
+                    "remainderMinor"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed, or no location header or one not of this practice (problem details)"
+          },
+          "401": {
+            "description": "No session (problem details)"
+          },
+          "403": {
+            "description": "Not a member, a practice not active, or an action the roles may not perform (problem details)"
+          },
+          "404": {
+            "description": "No such invoice, a discarded one, or no such line on it (problem details)"
+          },
+          "409": {
+            "description": "Refused by a rule of the record: issued, or issued without a line (problem details naming the rule)"
+          },
+          "412": {
+            "description": "Another change came first: the version is stale (problem details)"
           },
           "503": {
             "description": "The practice is being updated (problem details)"

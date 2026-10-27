@@ -1,0 +1,2521 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "2bbb12cb-4470-4ecd-93fc-fdfe8a78fa18",
+  "prevIds": [
+    "27036789-18c6-4711-ac50-b71ab7f45d8e"
+  ],
+  "footprints": [
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "invoice"
+      ],
+      "writes": [
+        "s|tbl|public.invoice",
+        "n|tbl|public.invoice",
+        "e|tbl|public.invoice",
+        "n|rel|public.invoice",
+        "n|type|public.invoice",
+        "n|rel|public.invoice_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "invoice_line"
+      ],
+      "writes": [
+        "s|tbl|public.invoice_line",
+        "n|tbl|public.invoice_line",
+        "e|tbl|public.invoice_line",
+        "n|rel|public.invoice_line",
+        "n|type|public.invoice_line",
+        "n|rel|public.invoice_line_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "invoice_number_seq"
+      ],
+      "writes": [
+        "s|tbl|public.invoice_number_seq",
+        "n|tbl|public.invoice_number_seq",
+        "e|tbl|public.invoice_number_seq",
+        "n|rel|public.invoice_number_seq",
+        "n|type|public.invoice_number_seq",
+        "n|rel|public.invoice_number_seq_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "ledger_entry"
+      ],
+      "writes": [
+        "s|tbl|public.ledger_entry",
+        "n|tbl|public.ledger_entry",
+        "e|tbl|public.ledger_entry",
+        "n|rel|public.ledger_entry",
+        "n|type|public.ledger_entry",
+        "n|rel|public.ledger_entry_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "service"
+      ],
+      "writes": [
+        "s|tbl|public.service",
+        "n|tbl|public.service",
+        "e|tbl|public.service",
+        "n|rel|public.service",
+        "n|type|public.service",
+        "n|rel|public.service_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "invoice",
+        "invoice_number_idx"
+      ],
+      "writes": [
+        "s|idx|public.invoice_number_idx",
+        "n|idx|public.invoice_number_idx",
+        "e|idx|public.invoice_number_idx",
+        "n|rel|public.invoice_number_idx"
+      ],
+      "reads": [
+        "n|tbl|public.invoice",
+        "n|sch|public",
+        "n|col|public.invoice.number"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "invoice",
+        "invoice_encounter_live_idx"
+      ],
+      "writes": [
+        "s|idx|public.invoice_encounter_live_idx",
+        "n|idx|public.invoice_encounter_live_idx",
+        "e|idx|public.invoice_encounter_live_idx",
+        "n|rel|public.invoice_encounter_live_idx"
+      ],
+      "reads": [
+        "n|tbl|public.invoice",
+        "n|sch|public",
+        "n|col|public.invoice.encounter_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "invoice",
+        "invoice_location_idx"
+      ],
+      "writes": [
+        "s|idx|public.invoice_location_idx",
+        "n|idx|public.invoice_location_idx",
+        "e|idx|public.invoice_location_idx",
+        "n|rel|public.invoice_location_idx"
+      ],
+      "reads": [
+        "n|tbl|public.invoice",
+        "n|sch|public",
+        "n|col|public.invoice.location_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "invoice",
+        "invoice_client_idx"
+      ],
+      "writes": [
+        "s|idx|public.invoice_client_idx",
+        "n|idx|public.invoice_client_idx",
+        "e|idx|public.invoice_client_idx",
+        "n|rel|public.invoice_client_idx"
+      ],
+      "reads": [
+        "n|tbl|public.invoice",
+        "n|sch|public",
+        "n|col|public.invoice.client_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "invoice",
+        "invoice_patient_idx"
+      ],
+      "writes": [
+        "s|idx|public.invoice_patient_idx",
+        "n|idx|public.invoice_patient_idx",
+        "e|idx|public.invoice_patient_idx",
+        "n|rel|public.invoice_patient_idx"
+      ],
+      "reads": [
+        "n|tbl|public.invoice",
+        "n|sch|public",
+        "n|col|public.invoice.patient_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "invoice",
+        "invoice_encounter_idx"
+      ],
+      "writes": [
+        "s|idx|public.invoice_encounter_idx",
+        "n|idx|public.invoice_encounter_idx",
+        "e|idx|public.invoice_encounter_idx",
+        "n|rel|public.invoice_encounter_idx"
+      ],
+      "reads": [
+        "n|tbl|public.invoice",
+        "n|sch|public",
+        "n|col|public.invoice.encounter_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "invoice_line",
+        "invoice_line_invoice_idx"
+      ],
+      "writes": [
+        "s|idx|public.invoice_line_invoice_idx",
+        "n|idx|public.invoice_line_invoice_idx",
+        "e|idx|public.invoice_line_invoice_idx",
+        "n|rel|public.invoice_line_invoice_idx"
+      ],
+      "reads": [
+        "n|tbl|public.invoice_line",
+        "n|sch|public",
+        "n|col|public.invoice_line.invoice_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "invoice_line",
+        "invoice_line_service_idx"
+      ],
+      "writes": [
+        "s|idx|public.invoice_line_service_idx",
+        "n|idx|public.invoice_line_service_idx",
+        "e|idx|public.invoice_line_service_idx",
+        "n|rel|public.invoice_line_service_idx"
+      ],
+      "reads": [
+        "n|tbl|public.invoice_line",
+        "n|sch|public",
+        "n|col|public.invoice_line.service_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "ledger_entry",
+        "ledger_entry_client_idx"
+      ],
+      "writes": [
+        "s|idx|public.ledger_entry_client_idx",
+        "n|idx|public.ledger_entry_client_idx",
+        "e|idx|public.ledger_entry_client_idx",
+        "n|rel|public.ledger_entry_client_idx"
+      ],
+      "reads": [
+        "n|tbl|public.ledger_entry",
+        "n|sch|public",
+        "n|col|public.ledger_entry.client_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "ledger_entry",
+        "ledger_entry_invoice_idx"
+      ],
+      "writes": [
+        "s|idx|public.ledger_entry_invoice_idx",
+        "n|idx|public.ledger_entry_invoice_idx",
+        "e|idx|public.ledger_entry_invoice_idx",
+        "n|rel|public.ledger_entry_invoice_idx"
+      ],
+      "reads": [
+        "n|tbl|public.ledger_entry",
+        "n|sch|public",
+        "n|col|public.ledger_entry.invoice_id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "invoice"
+      ],
+      "writes": [
+        "s|fk|public.invoice.invoice_location_id_location_id_fkey",
+        "n|fk|public.invoice.invoice_location_id_location_id_fkey",
+        "e|fk|public.invoice.invoice_location_id_location_id_fkey",
+        "n|con|public.invoice.invoice_location_id_location_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.invoice",
+        "n|sch|public",
+        "n|tbl|public.location",
+        "n|sch|public",
+        "n|col|public.invoice.location_id",
+        "n|col|public.location.id",
+        "e|uniqueness|public.location.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "invoice"
+      ],
+      "writes": [
+        "s|fk|public.invoice.invoice_created_by_staff_member_id_fkey",
+        "n|fk|public.invoice.invoice_created_by_staff_member_id_fkey",
+        "e|fk|public.invoice.invoice_created_by_staff_member_id_fkey",
+        "n|con|public.invoice.invoice_created_by_staff_member_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.invoice",
+        "n|sch|public",
+        "n|tbl|public.staff_member",
+        "n|sch|public",
+        "n|col|public.invoice.created_by",
+        "n|col|public.staff_member.id",
+        "e|uniqueness|public.staff_member.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "invoice"
+      ],
+      "writes": [
+        "s|fk|public.invoice.invoice_updated_by_staff_member_id_fkey",
+        "n|fk|public.invoice.invoice_updated_by_staff_member_id_fkey",
+        "e|fk|public.invoice.invoice_updated_by_staff_member_id_fkey",
+        "n|con|public.invoice.invoice_updated_by_staff_member_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.invoice",
+        "n|sch|public",
+        "n|tbl|public.staff_member",
+        "n|sch|public",
+        "n|col|public.invoice.updated_by",
+        "n|col|public.staff_member.id",
+        "e|uniqueness|public.staff_member.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "invoice_line"
+      ],
+      "writes": [
+        "s|fk|public.invoice_line.invoice_line_invoice_id_invoice_id_fkey",
+        "n|fk|public.invoice_line.invoice_line_invoice_id_invoice_id_fkey",
+        "e|fk|public.invoice_line.invoice_line_invoice_id_invoice_id_fkey",
+        "n|con|public.invoice_line.invoice_line_invoice_id_invoice_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.invoice_line",
+        "n|sch|public",
+        "n|tbl|public.invoice",
+        "n|sch|public",
+        "n|col|public.invoice_line.invoice_id",
+        "n|col|public.invoice.id",
+        "e|uniqueness|public.invoice.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "invoice_line"
+      ],
+      "writes": [
+        "s|fk|public.invoice_line.invoice_line_created_by_staff_member_id_fkey",
+        "n|fk|public.invoice_line.invoice_line_created_by_staff_member_id_fkey",
+        "e|fk|public.invoice_line.invoice_line_created_by_staff_member_id_fkey",
+        "n|con|public.invoice_line.invoice_line_created_by_staff_member_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.invoice_line",
+        "n|sch|public",
+        "n|tbl|public.staff_member",
+        "n|sch|public",
+        "n|col|public.invoice_line.created_by",
+        "n|col|public.staff_member.id",
+        "e|uniqueness|public.staff_member.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "invoice_line"
+      ],
+      "writes": [
+        "s|fk|public.invoice_line.invoice_line_updated_by_staff_member_id_fkey",
+        "n|fk|public.invoice_line.invoice_line_updated_by_staff_member_id_fkey",
+        "e|fk|public.invoice_line.invoice_line_updated_by_staff_member_id_fkey",
+        "n|con|public.invoice_line.invoice_line_updated_by_staff_member_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.invoice_line",
+        "n|sch|public",
+        "n|tbl|public.staff_member",
+        "n|sch|public",
+        "n|col|public.invoice_line.updated_by",
+        "n|col|public.staff_member.id",
+        "e|uniqueness|public.staff_member.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "invoice_number_seq"
+      ],
+      "writes": [
+        "s|fk|public.invoice_number_seq.invoice_number_seq_created_by_staff_member_id_fkey",
+        "n|fk|public.invoice_number_seq.invoice_number_seq_created_by_staff_member_id_fkey",
+        "e|fk|public.invoice_number_seq.invoice_number_seq_created_by_staff_member_id_fkey",
+        "n|con|public.invoice_number_seq.invoice_number_seq_created_by_staff_member_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.invoice_number_seq",
+        "n|sch|public",
+        "n|tbl|public.staff_member",
+        "n|sch|public",
+        "n|col|public.invoice_number_seq.created_by",
+        "n|col|public.staff_member.id",
+        "e|uniqueness|public.staff_member.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "invoice_number_seq"
+      ],
+      "writes": [
+        "s|fk|public.invoice_number_seq.invoice_number_seq_updated_by_staff_member_id_fkey",
+        "n|fk|public.invoice_number_seq.invoice_number_seq_updated_by_staff_member_id_fkey",
+        "e|fk|public.invoice_number_seq.invoice_number_seq_updated_by_staff_member_id_fkey",
+        "n|con|public.invoice_number_seq.invoice_number_seq_updated_by_staff_member_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.invoice_number_seq",
+        "n|sch|public",
+        "n|tbl|public.staff_member",
+        "n|sch|public",
+        "n|col|public.invoice_number_seq.updated_by",
+        "n|col|public.staff_member.id",
+        "e|uniqueness|public.staff_member.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "ledger_entry"
+      ],
+      "writes": [
+        "s|fk|public.ledger_entry.ledger_entry_invoice_id_invoice_id_fkey",
+        "n|fk|public.ledger_entry.ledger_entry_invoice_id_invoice_id_fkey",
+        "e|fk|public.ledger_entry.ledger_entry_invoice_id_invoice_id_fkey",
+        "n|con|public.ledger_entry.ledger_entry_invoice_id_invoice_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.ledger_entry",
+        "n|sch|public",
+        "n|tbl|public.invoice",
+        "n|sch|public",
+        "n|col|public.ledger_entry.invoice_id",
+        "n|col|public.invoice.id",
+        "e|uniqueness|public.invoice.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "ledger_entry"
+      ],
+      "writes": [
+        "s|fk|public.ledger_entry.ledger_entry_created_by_staff_member_id_fkey",
+        "n|fk|public.ledger_entry.ledger_entry_created_by_staff_member_id_fkey",
+        "e|fk|public.ledger_entry.ledger_entry_created_by_staff_member_id_fkey",
+        "n|con|public.ledger_entry.ledger_entry_created_by_staff_member_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.ledger_entry",
+        "n|sch|public",
+        "n|tbl|public.staff_member",
+        "n|sch|public",
+        "n|col|public.ledger_entry.created_by",
+        "n|col|public.staff_member.id",
+        "e|uniqueness|public.staff_member.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "ledger_entry"
+      ],
+      "writes": [
+        "s|fk|public.ledger_entry.ledger_entry_updated_by_staff_member_id_fkey",
+        "n|fk|public.ledger_entry.ledger_entry_updated_by_staff_member_id_fkey",
+        "e|fk|public.ledger_entry.ledger_entry_updated_by_staff_member_id_fkey",
+        "n|con|public.ledger_entry.ledger_entry_updated_by_staff_member_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.ledger_entry",
+        "n|sch|public",
+        "n|tbl|public.staff_member",
+        "n|sch|public",
+        "n|col|public.ledger_entry.updated_by",
+        "n|col|public.staff_member.id",
+        "e|uniqueness|public.staff_member.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "service"
+      ],
+      "writes": [
+        "s|fk|public.service.service_created_by_staff_member_id_fkey",
+        "n|fk|public.service.service_created_by_staff_member_id_fkey",
+        "e|fk|public.service.service_created_by_staff_member_id_fkey",
+        "n|con|public.service.service_created_by_staff_member_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.service",
+        "n|sch|public",
+        "n|tbl|public.staff_member",
+        "n|sch|public",
+        "n|col|public.service.created_by",
+        "n|col|public.staff_member.id",
+        "e|uniqueness|public.staff_member.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "service"
+      ],
+      "writes": [
+        "s|fk|public.service.service_updated_by_staff_member_id_fkey",
+        "n|fk|public.service.service_updated_by_staff_member_id_fkey",
+        "e|fk|public.service.service_updated_by_staff_member_id_fkey",
+        "n|con|public.service.service_updated_by_staff_member_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.service",
+        "n|sch|public",
+        "n|tbl|public.staff_member",
+        "n|sch|public",
+        "n|col|public.service.updated_by",
+        "n|col|public.staff_member.id",
+        "e|uniqueness|public.staff_member.id"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "invoice",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "invoice_line",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "invoice_number_seq",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "ledger_entry",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "service",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "uuidv7()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice",
+        "name": "location_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice",
+        "name": "number",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice",
+        "name": "client_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice",
+        "name": "patient_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice",
+        "name": "encounter_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice",
+        "name": "status",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "'draft'",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice",
+        "name": "issued_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice",
+        "name": "currency",
+        "type": "currency_code",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "'AZN'",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice",
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice",
+        "name": "created_by",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice",
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice",
+        "name": "updated_by",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice",
+        "name": "version",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "1",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_line",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "uuidv7()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_line",
+        "name": "invoice_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_line",
+        "name": "kind",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_line",
+        "name": "service_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_line",
+        "name": "description_az",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_line",
+        "name": "description_ru",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_line",
+        "name": "description_en",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_line",
+        "name": "quantity",
+        "type": "numeric",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_line",
+        "name": "unit_price_minor",
+        "type": "minor_units",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_line",
+        "name": "discount_minor",
+        "type": "minor_units",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "0",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_line",
+        "name": "discount_reason",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_line",
+        "name": "total_minor",
+        "type": "minor_units",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_line",
+        "name": "tax_rate",
+        "type": "numeric",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_line",
+        "name": "removed_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_line",
+        "name": "sort",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_line",
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_line",
+        "name": "created_by",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_line",
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_line",
+        "name": "updated_by",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_line",
+        "name": "version",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "1",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_number_seq",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "'00000000-0000-0000-0000-000000000000'",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_number_seq",
+        "name": "last_value",
+        "type": "bigint",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "0",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_number_seq",
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_number_seq",
+        "name": "created_by",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_number_seq",
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_number_seq",
+        "name": "updated_by",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_number_seq",
+        "name": "version",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "1",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ledger_entry",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "uuidv7()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ledger_entry",
+        "name": "client_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ledger_entry",
+        "name": "kind",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ledger_entry",
+        "name": "amount_minor",
+        "type": "minor_units",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ledger_entry",
+        "name": "currency",
+        "type": "currency_code",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "'AZN'",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ledger_entry",
+        "name": "invoice_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ledger_entry",
+        "name": "note",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ledger_entry",
+        "name": "occurred_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ledger_entry",
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ledger_entry",
+        "name": "created_by",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ledger_entry",
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ledger_entry",
+        "name": "updated_by",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ledger_entry",
+        "name": "version",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "1",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "service",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "uuidv7()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "service",
+        "name": "name_az",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "service",
+        "name": "name_ru",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "service",
+        "name": "name_en",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "service",
+        "name": "category",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "service",
+        "name": "price_minor",
+        "type": "minor_units",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "service",
+        "name": "currency",
+        "type": "currency_code",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "'AZN'",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "service",
+        "name": "default_duration_min",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "service",
+        "name": "requires_consent_scope",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "service",
+        "name": "active",
+        "type": "boolean",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "true",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "service",
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "service",
+        "name": "created_by",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "service",
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "service",
+        "name": "updated_by",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "service",
+        "name": "version",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "1",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice",
+        "name": "invoice_number_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "number",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": true,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice",
+        "name": "invoice_encounter_live_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "encounter_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": true,
+        "where": "\"status\" in ('draft', 'issued')",
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice",
+        "name": "invoice_location_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "location_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice",
+        "name": "invoice_client_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "client_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice",
+        "name": "invoice_patient_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "patient_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice",
+        "name": "invoice_encounter_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "encounter_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_line",
+        "name": "invoice_line_invoice_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "invoice_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_line",
+        "name": "invoice_line_service_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "service_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ledger_entry",
+        "name": "ledger_entry_client_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "client_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ledger_entry",
+        "name": "ledger_entry_invoice_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "invoice_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice",
+        "name": "invoice_location_id_location_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "location_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "location",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice",
+        "name": "invoice_created_by_staff_member_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "created_by"
+        ],
+        "schemaTo": "public",
+        "tableTo": "staff_member",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice",
+        "name": "invoice_updated_by_staff_member_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "updated_by"
+        ],
+        "schemaTo": "public",
+        "tableTo": "staff_member",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_line",
+        "name": "invoice_line_invoice_id_invoice_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "invoice_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "invoice",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_line",
+        "name": "invoice_line_created_by_staff_member_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "created_by"
+        ],
+        "schemaTo": "public",
+        "tableTo": "staff_member",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_line",
+        "name": "invoice_line_updated_by_staff_member_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "updated_by"
+        ],
+        "schemaTo": "public",
+        "tableTo": "staff_member",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_number_seq",
+        "name": "invoice_number_seq_created_by_staff_member_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "created_by"
+        ],
+        "schemaTo": "public",
+        "tableTo": "staff_member",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_number_seq",
+        "name": "invoice_number_seq_updated_by_staff_member_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "updated_by"
+        ],
+        "schemaTo": "public",
+        "tableTo": "staff_member",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ledger_entry",
+        "name": "ledger_entry_invoice_id_invoice_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "invoice_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "invoice",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ledger_entry",
+        "name": "ledger_entry_created_by_staff_member_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "created_by"
+        ],
+        "schemaTo": "public",
+        "tableTo": "staff_member",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ledger_entry",
+        "name": "ledger_entry_updated_by_staff_member_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "updated_by"
+        ],
+        "schemaTo": "public",
+        "tableTo": "staff_member",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "service",
+        "name": "service_created_by_staff_member_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "created_by"
+        ],
+        "schemaTo": "public",
+        "tableTo": "staff_member",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "service",
+        "name": "service_updated_by_staff_member_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "updated_by"
+        ],
+        "schemaTo": "public",
+        "tableTo": "staff_member",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice",
+        "name": "invoice_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_line",
+        "name": "invoice_line_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_number_seq",
+        "name": "invoice_number_seq_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ledger_entry",
+        "name": "ledger_entry_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "service",
+        "name": "service_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice",
+        "name": "invoice_status_check",
+        "value": "\"status\" in ('draft', 'issued', 'void', 'discarded')",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice",
+        "name": "invoice_issued_check",
+        "value": "(\"status\" in ('issued', 'void')) = (\"issued_at\" is not null) and (\"issued_at\" is null) = (\"number\" is null)",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_line",
+        "name": "invoice_line_kind_check",
+        "value": "\"kind\" in ('service', 'dispense', 'sale', 'administration', 'boarding_night', 'lab_test', 'other')",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_line",
+        "name": "invoice_line_service_check",
+        "value": "\"kind\" <> 'service' or \"service_id\" is not null",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_line",
+        "name": "invoice_line_description_check",
+        "value": "coalesce(\"description_az\", \"description_ru\", \"description_en\") is not null",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_line",
+        "name": "invoice_line_quantity_check",
+        "value": "\"quantity\" > 0",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_line",
+        "name": "invoice_line_unit_price_check",
+        "value": "\"unit_price_minor\" >= 0",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_line",
+        "name": "invoice_line_discount_check",
+        "value": "\"discount_minor\" >= 0 and \"discount_minor\" <= \"quantity\" * \"unit_price_minor\"",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_line",
+        "name": "invoice_line_discount_reason_check",
+        "value": "\"discount_minor\" = 0 or coalesce(\"discount_reason\", '') ~ '\\S'",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_line",
+        "name": "invoice_line_total_check",
+        "value": "\"total_minor\" = round(\"quantity\" * \"unit_price_minor\") - \"discount_minor\"",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_number_seq",
+        "name": "invoice_number_seq_single_row",
+        "value": "\"id\" = '00000000-0000-0000-0000-000000000000'",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "invoice_number_seq",
+        "name": "invoice_number_seq_last_value_check",
+        "value": "\"last_value\" >= 0",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ledger_entry",
+        "name": "ledger_entry_kind_check",
+        "value": "\"kind\" in ('charge', 'charge_reversal', 'payment', 'refund', 'adjustment', 'opening_balance', 'write_off')",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ledger_entry",
+        "name": "ledger_entry_invoice_check",
+        "value": "\"kind\" not in ('charge', 'charge_reversal', 'write_off') or \"invoice_id\" is not null",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ledger_entry",
+        "name": "ledger_entry_occurred_at_check",
+        "value": "\"occurred_at\" <= now()",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "service",
+        "name": "service_name_check",
+        "value": "coalesce(\"name_az\", \"name_ru\", \"name_en\") is not null",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "service",
+        "name": "service_category_check",
+        "value": "\"category\" in ('consultation', 'procedure', 'lab', 'grooming', 'boarding', 'other')",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "service",
+        "name": "service_consent_scope_check",
+        "value": "\"requires_consent_scope\" is null or \"requires_consent_scope\" in ('surgery', 'anaesthesia', 'euthanasia', 'procedure')",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "service",
+        "name": "service_price_check",
+        "value": "\"price_minor\" >= 0",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "service",
+        "name": "service_duration_check",
+        "value": "\"default_duration_min\" is null or \"default_duration_min\" > 0",
+        "entityType": "checks"
+      }
+    }
+  ]
+}
