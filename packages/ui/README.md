@@ -43,4 +43,4 @@ A change to `src/*.tsx`, a helper beside them, `src/index.ts` or `styles/compone
 
 ## The repo's changes to the sources
 
-None is pending: the first sync up (#15, 2026-10-26) took every change since the fork point to the artifact's version 22. Each change, mechanical or not, with the version and date it reached the artifact, is the ledger in `docs/design.md`.
+None is pending: the first sync up (#15, 2026-10-26) took every change since the fork point to the artifact's version 22, and the second (2026-10-27) took those of #19, #22, #23 and #25 to version 32. Each change, mechanical or not, with the version and date it reached the artifact, is the ledger in `docs/design.md`.
