@@ -41,7 +41,51 @@
   },
   "visitsToday": {
     "title": "Приёмы сегодня",
-    "newVisit": "Новый приём"
+    "newVisit": "Новый приём",
+    "time": "Время",
+    "patient": "Пациент",
+    "client": "Клиент",
+    "vet": "Врач",
+    "status": "Статус"
+  },
+  "visit": {
+    "start": "Начать приём",
+    "complete": "Завершить приём",
+    "cancel": "Отменить приём",
+    "note": "Протокол приёма",
+    "status": {
+      "draft": "Черновик",
+      "finalised": "Завершён"
+    },
+    "section": {
+      "reasonForVisit": "Причина обращения",
+      "anamnesis": "Анамнез",
+      "examination": "Осмотр",
+      "diagnosis": "Диагноз",
+      "treatment": "Лечение",
+      "recommendations": "Рекомендации"
+    },
+    "notRecorded": "Не указано",
+    "saving": "Сохранение",
+    "saved": "Сохранено",
+    "notSaved": "Не сохранено",
+    "high": "Выше нормы",
+    "low": "Ниже нормы",
+    "age": "Возраст",
+    "owner": "Владелец",
+    "neutered": {
+      "female": "стерилизована",
+      "male": "кастрирован",
+      "unknown": "стерилизован"
+    }
+  },
+  "confirm": {
+    "visitCancel": {
+      "title": "Отменить приём?",
+      "body": "Приём будет убран из списка приёмов на сегодня.",
+      "button": "Отменить приём",
+      "back": "Оставить приём"
+    }
   },
   "empty": {
     "visitsToday": {
@@ -88,6 +132,7 @@
     "birthDate": "Дата рождения не может быть в будущем",
     "microchip": "Введите 15 цифр микрочипа",
     "microchipTaken": "Этот микрочип уже записан у другого пациента",
+    "reasonForVisit": "Введите причину обращения",
     "dateExample": "12.10.2026"
   },
   "newVisit": {
@@ -138,6 +183,10 @@
   "toast": {
     "patient": {
       "saved": "Пациент сохранён"
+    },
+    "visit": {
+      "completed": "Приём завершён",
+      "cancelled": "Приём отменён"
     }
   },
   "warning": {

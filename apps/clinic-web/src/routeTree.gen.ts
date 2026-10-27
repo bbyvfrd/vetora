@@ -14,6 +14,7 @@ import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppProfileRouteImport } from './routes/_app/profile'
 import { Route as AppStatusRouteImport } from './routes/_app/status'
+import { Route as AppVisitsVisitIdRouteImport } from './routes/_app/visits.$visitId'
 import { Route as AppVisitsNewRouteImport } from './routes/_app/visits.new'
 
 const AppRoute = AppRouteImport.update({
@@ -40,6 +41,11 @@ const AppStatusRoute = AppStatusRouteImport.update({
   path: '/status',
   getParentRoute: () => AppRoute,
 } as any)
+const AppVisitsVisitIdRoute = AppVisitsVisitIdRouteImport.update({
+  id: '/visits/$visitId',
+  path: '/visits/$visitId',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppVisitsNewRoute = AppVisitsNewRouteImport.update({
   id: '/visits/new',
   path: '/visits/new',
@@ -51,6 +57,7 @@ export interface FileRoutesByFullPath {
   '/sign-in': typeof SignInRoute
   '/profile': typeof AppProfileRoute
   '/status': typeof AppStatusRoute
+  '/visits/$visitId': typeof AppVisitsVisitIdRoute
   '/visits/new': typeof AppVisitsNewRoute
 }
 export interface FileRoutesByTo {
@@ -58,6 +65,7 @@ export interface FileRoutesByTo {
   '/profile': typeof AppProfileRoute
   '/status': typeof AppStatusRoute
   '/': typeof AppIndexRoute
+  '/visits/$visitId': typeof AppVisitsVisitIdRoute
   '/visits/new': typeof AppVisitsNewRoute
 }
 export interface FileRoutesById {
@@ -67,13 +75,26 @@ export interface FileRoutesById {
   '/_app/profile': typeof AppProfileRoute
   '/_app/status': typeof AppStatusRoute
   '/_app/': typeof AppIndexRoute
+  '/_app/visits/$visitId': typeof AppVisitsVisitIdRoute
   '/_app/visits/new': typeof AppVisitsNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/sign-in' | '/profile' | '/status' | '/visits/new'
+  fullPaths:
+    | '/'
+    | '/sign-in'
+    | '/profile'
+    | '/status'
+    | '/visits/$visitId'
+    | '/visits/new'
   fileRoutesByTo: FileRoutesByTo
-  to: '/sign-in' | '/profile' | '/status' | '/' | '/visits/new'
+  to:
+    | '/sign-in'
+    | '/profile'
+    | '/status'
+    | '/'
+    | '/visits/$visitId'
+    | '/visits/new'
   id:
     | '__root__'
     | '/_app'
@@ -81,6 +102,7 @@ export interface FileRouteTypes {
     | '/_app/profile'
     | '/_app/status'
     | '/_app/'
+    | '/_app/visits/$visitId'
     | '/_app/visits/new'
   fileRoutesById: FileRoutesById
 }
@@ -126,6 +148,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppStatusRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/visits/$visitId': {
+      id: '/_app/visits/$visitId'
+      path: '/visits/$visitId'
+      fullPath: '/visits/$visitId'
+      preLoaderRoute: typeof AppVisitsVisitIdRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/visits/new': {
       id: '/_app/visits/new'
       path: '/visits/new'
@@ -140,6 +169,7 @@ interface AppRouteChildren {
   AppProfileRoute: typeof AppProfileRoute
   AppStatusRoute: typeof AppStatusRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppVisitsVisitIdRoute: typeof AppVisitsVisitIdRoute
   AppVisitsNewRoute: typeof AppVisitsNewRoute
 }
 
@@ -147,6 +177,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppProfileRoute: AppProfileRoute,
   AppStatusRoute: AppStatusRoute,
   AppIndexRoute: AppIndexRoute,
+  AppVisitsVisitIdRoute: AppVisitsVisitIdRoute,
   AppVisitsNewRoute: AppVisitsNewRoute,
 }
 

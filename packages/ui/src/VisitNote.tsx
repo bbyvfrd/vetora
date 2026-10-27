@@ -30,6 +30,8 @@ export interface NoteSection {
   rows?: number
   required?: boolean
   hint?: string
+  /** What to enter, shown under the section when the visit cannot be completed without it: "Enter the reason for visit". */
+  error?: string
 }
 
 export interface VisitNoteLabels {
@@ -54,11 +56,13 @@ export interface VisitNoteProps {
   /** Text of each section, by id. */
   values: Record<string, string>
   onChange?: (id: string, value: string) => void
+  /** Called when a section loses the focus: the moment to save what was typed in it. */
+  onSectionBlur?: (id: string) => void
   /** Shows the note as text. For a signed note, and for past visits. */
   readOnly?: boolean
   /** Whether what is typed has reached the server. */
   saveState?: 'saved' | 'saving' | 'unsaved' | 'error'
-  /** The save state in words: "Saved at 14:32", "Saving…", "Not saved. Check the connection". */
+  /** The save state in words: "Saved at 14:32", "Saving", "Not saved. Check the connection". */
   saveLabel?: string
   labels: VisitNoteLabels
   /** Buttons at the bottom: "Complete visit". */
@@ -127,6 +131,7 @@ export function VisitNote({
   sections,
   values,
   onChange,
+  onSectionBlur,
   readOnly = false,
   saveState,
   saveLabel,
@@ -219,12 +224,14 @@ export function VisitNote({
             label={s.label}
             placeholder={s.placeholder}
             hint={s.hint}
+            error={s.error}
             required={s.required}
             rows={s.rows || 2}
             autoGrow
             maxRows={20}
             value={values[s.id] || ''}
             onChange={(e) => onChange?.(s.id, e.target.value)}
+            onBlur={() => onSectionBlur?.(s.id)}
           />
         ))}
       </div>

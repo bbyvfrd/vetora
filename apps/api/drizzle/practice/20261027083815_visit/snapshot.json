@@ -1,0 +1,1748 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "fa2387ce-dea5-4e7f-b4b8-2b793e3af94b",
+  "prevIds": [
+    "35aebda9-f6a2-4e88-90ed-cc8da7e96ed2"
+  ],
+  "footprints": [
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "care_relationship"
+      ],
+      "writes": [
+        "s|tbl|public.care_relationship",
+        "n|tbl|public.care_relationship",
+        "e|tbl|public.care_relationship",
+        "n|rel|public.care_relationship",
+        "n|type|public.care_relationship",
+        "n|rel|public.care_relationship_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "encounter"
+      ],
+      "writes": [
+        "s|tbl|public.encounter",
+        "n|tbl|public.encounter",
+        "e|tbl|public.encounter",
+        "n|rel|public.encounter",
+        "n|type|public.encounter",
+        "n|rel|public.encounter_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "care_relationship",
+        "care_relationship_open_idx"
+      ],
+      "writes": [
+        "s|idx|public.care_relationship_open_idx",
+        "n|idx|public.care_relationship_open_idx",
+        "e|idx|public.care_relationship_open_idx",
+        "n|rel|public.care_relationship_open_idx"
+      ],
+      "reads": [
+        "n|tbl|public.care_relationship",
+        "n|sch|public",
+        "n|col|public.care_relationship.patient_id",
+        "n|col|public.care_relationship.veterinarian_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "care_relationship",
+        "care_relationship_patient_idx"
+      ],
+      "writes": [
+        "s|idx|public.care_relationship_patient_idx",
+        "n|idx|public.care_relationship_patient_idx",
+        "e|idx|public.care_relationship_patient_idx",
+        "n|rel|public.care_relationship_patient_idx"
+      ],
+      "reads": [
+        "n|tbl|public.care_relationship",
+        "n|sch|public",
+        "n|col|public.care_relationship.patient_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "care_relationship",
+        "care_relationship_veterinarian_idx"
+      ],
+      "writes": [
+        "s|idx|public.care_relationship_veterinarian_idx",
+        "n|idx|public.care_relationship_veterinarian_idx",
+        "e|idx|public.care_relationship_veterinarian_idx",
+        "n|rel|public.care_relationship_veterinarian_idx"
+      ],
+      "reads": [
+        "n|tbl|public.care_relationship",
+        "n|sch|public",
+        "n|col|public.care_relationship.veterinarian_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "care_relationship",
+        "care_relationship_encounter_idx"
+      ],
+      "writes": [
+        "s|idx|public.care_relationship_encounter_idx",
+        "n|idx|public.care_relationship_encounter_idx",
+        "e|idx|public.care_relationship_encounter_idx",
+        "n|rel|public.care_relationship_encounter_idx"
+      ],
+      "reads": [
+        "n|tbl|public.care_relationship",
+        "n|sch|public",
+        "n|col|public.care_relationship.established_by_encounter_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "care_relationship",
+        "care_relationship_ended_by_idx"
+      ],
+      "writes": [
+        "s|idx|public.care_relationship_ended_by_idx",
+        "n|idx|public.care_relationship_ended_by_idx",
+        "e|idx|public.care_relationship_ended_by_idx",
+        "n|rel|public.care_relationship_ended_by_idx"
+      ],
+      "reads": [
+        "n|tbl|public.care_relationship",
+        "n|sch|public",
+        "n|col|public.care_relationship.ended_by"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "encounter",
+        "encounter_location_started_idx"
+      ],
+      "writes": [
+        "s|idx|public.encounter_location_started_idx",
+        "n|idx|public.encounter_location_started_idx",
+        "e|idx|public.encounter_location_started_idx",
+        "n|rel|public.encounter_location_started_idx"
+      ],
+      "reads": [
+        "n|tbl|public.encounter",
+        "n|sch|public",
+        "n|col|public.encounter.location_id",
+        "n|col|public.encounter.started_at"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "encounter",
+        "encounter_patient_idx"
+      ],
+      "writes": [
+        "s|idx|public.encounter_patient_idx",
+        "n|idx|public.encounter_patient_idx",
+        "e|idx|public.encounter_patient_idx",
+        "n|rel|public.encounter_patient_idx"
+      ],
+      "reads": [
+        "n|tbl|public.encounter",
+        "n|sch|public",
+        "n|col|public.encounter.patient_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "encounter",
+        "encounter_client_idx"
+      ],
+      "writes": [
+        "s|idx|public.encounter_client_idx",
+        "n|idx|public.encounter_client_idx",
+        "e|idx|public.encounter_client_idx",
+        "n|rel|public.encounter_client_idx"
+      ],
+      "reads": [
+        "n|tbl|public.encounter",
+        "n|sch|public",
+        "n|col|public.encounter.client_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "encounter",
+        "encounter_veterinarian_idx"
+      ],
+      "writes": [
+        "s|idx|public.encounter_veterinarian_idx",
+        "n|idx|public.encounter_veterinarian_idx",
+        "e|idx|public.encounter_veterinarian_idx",
+        "n|rel|public.encounter_veterinarian_idx"
+      ],
+      "reads": [
+        "n|tbl|public.encounter",
+        "n|sch|public",
+        "n|col|public.encounter.veterinarian_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "encounter",
+        "encounter_care_relationship_idx"
+      ],
+      "writes": [
+        "s|idx|public.encounter_care_relationship_idx",
+        "n|idx|public.encounter_care_relationship_idx",
+        "e|idx|public.encounter_care_relationship_idx",
+        "n|rel|public.encounter_care_relationship_idx"
+      ],
+      "reads": [
+        "n|tbl|public.encounter",
+        "n|sch|public",
+        "n|col|public.encounter.care_relationship_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "encounter",
+        "encounter_reported_by_idx"
+      ],
+      "writes": [
+        "s|idx|public.encounter_reported_by_idx",
+        "n|idx|public.encounter_reported_by_idx",
+        "e|idx|public.encounter_reported_by_idx",
+        "n|rel|public.encounter_reported_by_idx"
+      ],
+      "reads": [
+        "n|tbl|public.encounter",
+        "n|sch|public",
+        "n|col|public.encounter.reported_by_client_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "encounter",
+        "encounter_finalised_by_idx"
+      ],
+      "writes": [
+        "s|idx|public.encounter_finalised_by_idx",
+        "n|idx|public.encounter_finalised_by_idx",
+        "e|idx|public.encounter_finalised_by_idx",
+        "n|rel|public.encounter_finalised_by_idx"
+      ],
+      "reads": [
+        "n|tbl|public.encounter",
+        "n|sch|public",
+        "n|col|public.encounter.finalised_by"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "care_relationship"
+      ],
+      "writes": [
+        "s|fk|public.care_relationship.care_relationship_veterinarian_id_staff_member_id_fkey",
+        "n|fk|public.care_relationship.care_relationship_veterinarian_id_staff_member_id_fkey",
+        "e|fk|public.care_relationship.care_relationship_veterinarian_id_staff_member_id_fkey",
+        "n|con|public.care_relationship.care_relationship_veterinarian_id_staff_member_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.care_relationship",
+        "n|sch|public",
+        "n|tbl|public.staff_member",
+        "n|sch|public",
+        "n|col|public.care_relationship.veterinarian_id",
+        "n|col|public.staff_member.id",
+        "e|uniqueness|public.staff_member.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "care_relationship"
+      ],
+      "writes": [
+        "s|fk|public.care_relationship.care_relationship_established_by_encounter_id_encounter_id_fkey",
+        "n|fk|public.care_relationship.care_relationship_established_by_encounter_id_encounter_id_fkey",
+        "e|fk|public.care_relationship.care_relationship_established_by_encounter_id_encounter_id_fkey",
+        "n|con|public.care_relationship.care_relationship_established_by_encounter_id_encounter_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.care_relationship",
+        "n|sch|public",
+        "n|tbl|public.encounter",
+        "n|sch|public",
+        "n|col|public.care_relationship.established_by_encounter_id",
+        "n|col|public.encounter.id",
+        "e|uniqueness|public.encounter.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "care_relationship"
+      ],
+      "writes": [
+        "s|fk|public.care_relationship.care_relationship_ended_by_staff_member_id_fkey",
+        "n|fk|public.care_relationship.care_relationship_ended_by_staff_member_id_fkey",
+        "e|fk|public.care_relationship.care_relationship_ended_by_staff_member_id_fkey",
+        "n|con|public.care_relationship.care_relationship_ended_by_staff_member_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.care_relationship",
+        "n|sch|public",
+        "n|tbl|public.staff_member",
+        "n|sch|public",
+        "n|col|public.care_relationship.ended_by",
+        "n|col|public.staff_member.id",
+        "e|uniqueness|public.staff_member.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "care_relationship"
+      ],
+      "writes": [
+        "s|fk|public.care_relationship.care_relationship_created_by_staff_member_id_fkey",
+        "n|fk|public.care_relationship.care_relationship_created_by_staff_member_id_fkey",
+        "e|fk|public.care_relationship.care_relationship_created_by_staff_member_id_fkey",
+        "n|con|public.care_relationship.care_relationship_created_by_staff_member_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.care_relationship",
+        "n|sch|public",
+        "n|tbl|public.staff_member",
+        "n|sch|public",
+        "n|col|public.care_relationship.created_by",
+        "n|col|public.staff_member.id",
+        "e|uniqueness|public.staff_member.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "care_relationship"
+      ],
+      "writes": [
+        "s|fk|public.care_relationship.care_relationship_updated_by_staff_member_id_fkey",
+        "n|fk|public.care_relationship.care_relationship_updated_by_staff_member_id_fkey",
+        "e|fk|public.care_relationship.care_relationship_updated_by_staff_member_id_fkey",
+        "n|con|public.care_relationship.care_relationship_updated_by_staff_member_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.care_relationship",
+        "n|sch|public",
+        "n|tbl|public.staff_member",
+        "n|sch|public",
+        "n|col|public.care_relationship.updated_by",
+        "n|col|public.staff_member.id",
+        "e|uniqueness|public.staff_member.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "encounter"
+      ],
+      "writes": [
+        "s|fk|public.encounter.encounter_location_id_location_id_fkey",
+        "n|fk|public.encounter.encounter_location_id_location_id_fkey",
+        "e|fk|public.encounter.encounter_location_id_location_id_fkey",
+        "n|con|public.encounter.encounter_location_id_location_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.encounter",
+        "n|sch|public",
+        "n|tbl|public.location",
+        "n|sch|public",
+        "n|col|public.encounter.location_id",
+        "n|col|public.location.id",
+        "e|uniqueness|public.location.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "encounter"
+      ],
+      "writes": [
+        "s|fk|public.encounter.encounter_veterinarian_id_staff_member_id_fkey",
+        "n|fk|public.encounter.encounter_veterinarian_id_staff_member_id_fkey",
+        "e|fk|public.encounter.encounter_veterinarian_id_staff_member_id_fkey",
+        "n|con|public.encounter.encounter_veterinarian_id_staff_member_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.encounter",
+        "n|sch|public",
+        "n|tbl|public.staff_member",
+        "n|sch|public",
+        "n|col|public.encounter.veterinarian_id",
+        "n|col|public.staff_member.id",
+        "e|uniqueness|public.staff_member.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "encounter"
+      ],
+      "writes": [
+        "s|fk|public.encounter.encounter_care_relationship_id_care_relationship_id_fkey",
+        "n|fk|public.encounter.encounter_care_relationship_id_care_relationship_id_fkey",
+        "e|fk|public.encounter.encounter_care_relationship_id_care_relationship_id_fkey",
+        "n|con|public.encounter.encounter_care_relationship_id_care_relationship_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.encounter",
+        "n|sch|public",
+        "n|tbl|public.care_relationship",
+        "n|sch|public",
+        "n|col|public.encounter.care_relationship_id",
+        "n|col|public.care_relationship.id",
+        "e|uniqueness|public.care_relationship.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "encounter"
+      ],
+      "writes": [
+        "s|fk|public.encounter.encounter_finalised_by_staff_member_id_fkey",
+        "n|fk|public.encounter.encounter_finalised_by_staff_member_id_fkey",
+        "e|fk|public.encounter.encounter_finalised_by_staff_member_id_fkey",
+        "n|con|public.encounter.encounter_finalised_by_staff_member_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.encounter",
+        "n|sch|public",
+        "n|tbl|public.staff_member",
+        "n|sch|public",
+        "n|col|public.encounter.finalised_by",
+        "n|col|public.staff_member.id",
+        "e|uniqueness|public.staff_member.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "encounter"
+      ],
+      "writes": [
+        "s|fk|public.encounter.encounter_created_by_staff_member_id_fkey",
+        "n|fk|public.encounter.encounter_created_by_staff_member_id_fkey",
+        "e|fk|public.encounter.encounter_created_by_staff_member_id_fkey",
+        "n|con|public.encounter.encounter_created_by_staff_member_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.encounter",
+        "n|sch|public",
+        "n|tbl|public.staff_member",
+        "n|sch|public",
+        "n|col|public.encounter.created_by",
+        "n|col|public.staff_member.id",
+        "e|uniqueness|public.staff_member.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "encounter"
+      ],
+      "writes": [
+        "s|fk|public.encounter.encounter_updated_by_staff_member_id_fkey",
+        "n|fk|public.encounter.encounter_updated_by_staff_member_id_fkey",
+        "e|fk|public.encounter.encounter_updated_by_staff_member_id_fkey",
+        "n|con|public.encounter.encounter_updated_by_staff_member_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.encounter",
+        "n|sch|public",
+        "n|tbl|public.staff_member",
+        "n|sch|public",
+        "n|col|public.encounter.updated_by",
+        "n|col|public.staff_member.id",
+        "e|uniqueness|public.staff_member.id"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "care_relationship",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "encounter",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "care_relationship",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "uuidv7()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "care_relationship",
+        "name": "patient_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "care_relationship",
+        "name": "veterinarian_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "care_relationship",
+        "name": "established_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "care_relationship",
+        "name": "established_by_encounter_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "care_relationship",
+        "name": "lapses_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "care_relationship",
+        "name": "ended_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "care_relationship",
+        "name": "ended_by",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "care_relationship",
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "care_relationship",
+        "name": "created_by",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "care_relationship",
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "care_relationship",
+        "name": "updated_by",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "care_relationship",
+        "name": "version",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "1",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "uuidv7()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "location_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "patient_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "client_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "veterinarian_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "care_relationship_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "status",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "'draft'",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "started_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "ended_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "reason_for_visit",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "anamnesis",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "reported_by_client_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "examination",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "diagnosis_text",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "treatment",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "recommendations",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "finalised_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "finalised_by",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "created_by",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "updated_by",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "version",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "1",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "care_relationship",
+        "name": "care_relationship_open_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "patient_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          },
+          {
+            "value": "veterinarian_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": true,
+        "where": "\"ended_at\" is null",
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "care_relationship",
+        "name": "care_relationship_patient_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "patient_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "care_relationship",
+        "name": "care_relationship_veterinarian_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "veterinarian_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "care_relationship",
+        "name": "care_relationship_encounter_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "established_by_encounter_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "care_relationship",
+        "name": "care_relationship_ended_by_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "ended_by",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "encounter_location_started_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "location_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          },
+          {
+            "value": "started_at",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "encounter_patient_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "patient_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "encounter_client_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "client_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "encounter_veterinarian_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "veterinarian_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "encounter_care_relationship_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "care_relationship_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "encounter_reported_by_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "reported_by_client_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "encounter_finalised_by_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "finalised_by",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "care_relationship",
+        "name": "care_relationship_veterinarian_id_staff_member_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "veterinarian_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "staff_member",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "care_relationship",
+        "name": "care_relationship_established_by_encounter_id_encounter_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "established_by_encounter_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "encounter",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "care_relationship",
+        "name": "care_relationship_ended_by_staff_member_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "ended_by"
+        ],
+        "schemaTo": "public",
+        "tableTo": "staff_member",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "care_relationship",
+        "name": "care_relationship_created_by_staff_member_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "created_by"
+        ],
+        "schemaTo": "public",
+        "tableTo": "staff_member",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "care_relationship",
+        "name": "care_relationship_updated_by_staff_member_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "updated_by"
+        ],
+        "schemaTo": "public",
+        "tableTo": "staff_member",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "encounter_location_id_location_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "location_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "location",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "encounter_veterinarian_id_staff_member_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "veterinarian_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "staff_member",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "encounter_care_relationship_id_care_relationship_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "care_relationship_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "care_relationship",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "encounter_finalised_by_staff_member_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "finalised_by"
+        ],
+        "schemaTo": "public",
+        "tableTo": "staff_member",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "encounter_created_by_staff_member_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "created_by"
+        ],
+        "schemaTo": "public",
+        "tableTo": "staff_member",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "encounter_updated_by_staff_member_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "updated_by"
+        ],
+        "schemaTo": "public",
+        "tableTo": "staff_member",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "care_relationship",
+        "name": "care_relationship_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "encounter_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "care_relationship",
+        "name": "care_relationship_lapses_check",
+        "value": "\"lapses_at\" > \"established_at\"",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "care_relationship",
+        "name": "care_relationship_ended_check",
+        "value": "(\"ended_at\" is null) = (\"ended_by\" is null)",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "encounter_status_check",
+        "value": "\"status\" in ('draft', 'finalised', 'discarded')",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "encounter_finalised_check",
+        "value": "(\"status\" = 'finalised') = (\"finalised_at\" is not null) and (\"finalised_at\" is null) = (\"finalised_by\" is null)",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "encounter_ended_check",
+        "value": "\"ended_at\" is null or \"ended_at\" >= \"started_at\"",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "encounter",
+        "name": "encounter_reporter_check",
+        "value": "\"reported_by_client_id\" is not null or not (coalesce(\"reason_for_visit\", '') ~ '\\S' or coalesce(\"anamnesis\", '') ~ '\\S')",
+        "entityType": "checks"
+      }
+    }
+  ]
+}

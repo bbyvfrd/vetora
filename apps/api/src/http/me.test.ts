@@ -69,7 +69,13 @@ describe.skipIf(!databaseTestsEnabled())('who is signed in: /api/me and the lang
       id: vet.userId,
       displayName: 'Leyla Həsənova',
       language: 'az',
-      practice: { id: practice.practiceId, name: 'Alfa Vet', code: practice.slug, roles: ['veterinarian'] },
+      practice: {
+        id: practice.practiceId,
+        name: 'Alfa Vet',
+        code: practice.slug,
+        roles: ['veterinarian'],
+        timeZone: 'Asia/Baku',
+      },
       locations: [
         { id: expect.any(String), name: 'Nərimanov', isDefault: true },
         { id: expect.any(String), name: 'Yasamal', isDefault: false },

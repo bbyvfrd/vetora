@@ -130,13 +130,23 @@ type Stub = {
   lookup?: (body: unknown) => Answer
   register?: (body: unknown) => Answer
   breed?: (body: unknown) => Answer
+  start?: (body: unknown) => Answer
 }
 
-/** The API a receptionist's New visit talks to. */
-function stubPractice({ lookup, register, breed }: Stub = {}, who = me) {
+/** The API New visit talks to, and the pages it leads to: Visits today, a started visit (refused, as it is not here). */
+function stubPractice({ lookup, register, breed, start }: Stub = {}, who = me) {
   const empty: PhoneLookupResult = { phone: '+994501234567', clients: [] }
   return stubApi(fetchMock, {
     'GET /api/me': () => Response.json(who),
+    [`GET ${practicePath}/visits`]: () => Response.json({ day: '2026-10-27', visits: [] }),
+    [`PUT ${practicePath}/visits/*`]:
+      start ??
+      ((body) => {
+        // The page opens the visit by the id it sent in the path, so the one answered here is never read.
+        const sent = body as { client: { id: string }; patient: { id: string } }
+        return Response.json({ clientId: sent.client.id, patientId: sent.patient.id, visitId: sent.patient.id })
+      }),
+    [`GET ${practicePath}/visits/*`]: () => problemAnswer(500, 'Internal server error'),
     [`GET ${practicePath}/species`]: () => Response.json(species),
     [`POST ${practicePath}/clients/lookup`]: lookup ?? (() => Response.json(empty)),
     [`PUT ${practicePath}/registrations`]:
@@ -283,6 +293,67 @@ describe('New visit: find or register the client and the pet (#21, seam 3)', () 
     expect(await screen.findByText('Pasiyent yadda saxlanıldı')).toBeInTheDocument()
     const registration = asked.find((request) => request.path === `${practicePath}/registrations`)
     expect(registration?.body).toMatchObject({ client: { type: 'existing', id: aysel.id }, patient: { name: 'Bəbir' } })
+  })
+
+  it("a vet's Start visit sends the registration under a new visit id and opens the visit, Save standing beside it", async () => {
+    const asked = stubPractice()
+    const { router } = renderApp('/visits/new')
+    await screen.findByRole('heading', { level: 1, name: 'Yeni qəbul' })
+
+    await searchPhone('050 123 45 67')
+    await fillClient(await screen.findByRole('region', { name: 'Müştəri' }))
+    await fillPatient(section('Pasiyent'))
+    expect(screen.getByRole('button', { name: 'Yadda saxla' })).toBeInTheDocument()
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Qəbulu başlat' }))
+
+    await waitFor(() => expect(router.state.location.pathname).toMatch(/^\/visits\/[0-9a-f]{8}-[0-9a-f]{4}-7/))
+    const started = asked.find(
+      (request) => request.method === 'PUT' && request.path.startsWith(`${practicePath}/visits/`),
+    )
+    expect(started?.path).toBe(`${practicePath}${router.state.location.pathname}`)
+    expect(started?.body).toMatchObject({
+      client: { type: 'new', firstName: 'Rəşad', phone: '050 123 45 67' },
+      patient: { type: 'new', name: 'Bəbir', speciesId: dog },
+    })
+    expect(asked.some((request) => request.path === `${practicePath}/registrations`)).toBe(false)
+  })
+
+  it("a vet starts a visit for a known phone's patient from beside its name", async () => {
+    const asked = stubPractice({
+      lookup: () => Response.json({ phone: '+994501234567', clients: [aysel] } satisfies PhoneLookupResult),
+    })
+    const { router } = renderApp('/visits/new')
+    await screen.findByRole('heading', { level: 1, name: 'Yeni qəbul' })
+    await searchPhone('+994 50 123 45 67')
+
+    const found = await screen.findByRole('region', { name: 'Müştərilər' })
+    await userEvent.setup().click(within(found).getByRole('button', { name: 'Qəbulu başlat' }))
+
+    await waitFor(() => expect(router.state.location.pathname).toMatch(/^\/visits\/[0-9a-f]{8}-[0-9a-f]{4}-7/))
+    const started = asked.find(
+      (request) => request.method === 'PUT' && request.path.startsWith(`${practicePath}/visits/`),
+    )
+    expect(started?.path).toBe(`${practicePath}${router.state.location.pathname}`)
+    expect(started?.body).toEqual({
+      client: { type: 'existing', id: aysel.id },
+      patient: { type: 'existing', id: aysel.patients[0]?.id },
+    })
+  })
+
+  it('offers a receptionist no Start visit, beside a found patient or on the form', async () => {
+    stubPractice(
+      { lookup: () => Response.json({ phone: '+994501234567', clients: [aysel] } satisfies PhoneLookupResult) },
+      meOf({ practice: { ...me.practice, roles: ['receptionist'] } }),
+    )
+    await openNewVisit()
+    await searchPhone('+994 50 123 45 67')
+
+    const found = await screen.findByRole('region', { name: 'Müştərilər' })
+    expect(within(found).queryByRole('button', { name: 'Qəbulu başlat' })).toBeNull()
+    await userEvent.setup().click(within(found).getByRole('button', { name: 'Yeni pasiyent' }))
+    await screen.findByRole('region', { name: 'Pasiyent' })
+    expect(screen.getByRole('button', { name: 'Yadda saxla' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Qəbulu başlat' })).toBeNull()
   })
 
   it('warns, without blocking, when a new client is entered on a number another client has (story 26)', async () => {

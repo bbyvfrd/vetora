@@ -12,11 +12,12 @@ import {
   Registration,
   SpeciesList,
 } from '@vetora/contracts'
+import type { Context } from 'hono'
 import { clientExists, findClientsByPhone, registerClient } from '../modules/client/index.js'
 import { addBreed, listSpecies, ownsPatient, patientsOwnedBy, registerPatient } from '../modules/patient/index.js'
 import { problem } from '../platform/problem.js'
 import type { Env } from './env.js'
-import { practiceRoute } from './practice-context.js'
+import { practiceRoute, refusals } from './practice-context.js'
 
 /**
  * Registering a client and a pet (#21; spec #18, "Contracts", "Visit and money behaviour": New visit's Save): the
@@ -24,13 +25,6 @@ import { practiceRoute } from './practice-context.js'
  * context with the action it performs. Names and phones travel in bodies (spec 0001, "API conventions"); creates
  * carry the client's UUID v7, so a retry changes nothing.
  */
-
-const refusals = {
-  400: { description: 'Validation failed, or no location header or one not of this practice (problem details)' },
-  401: { description: 'No session (problem details)' },
-  403: { description: 'Not a member, a practice not active, or an action the roles may not perform (problem details)' },
-  503: { description: 'The practice is being updated (problem details)' },
-} as const
 
 export const speciesRoute = createRoute({
   method: 'get',
@@ -138,36 +132,53 @@ const patientFieldProblem = (field: string, code: string, message: string) => ({
   errors: [{ path: ['patient', field], code, message }],
 })
 
-export const putRegistration: RouteHandler<typeof registrationRoute, Env> = async (c) => {
-  const { client, patient } = c.req.valid('json')
+/**
+ * Write what is new of a registration's client and patient (New visit's Save, and Start visit before its visit, #22):
+ * the two ids, the client being the patient's owner today; or the refusal to answer, after which the request context
+ * rolls back whatever was written.
+ */
+export async function register(
+  c: Context<Env>,
+  { client, patient }: Registration,
+): Promise<Registered | { refusal: ReturnType<typeof problem> }> {
+  const registered = { clientId: client.id, patientId: patient.id }
   if (client.type === 'existing') {
-    if (!(await clientExists(client.id))) return problem(c, 404, 'No such client')
+    if (!(await clientExists(client.id))) return { refusal: problem(c, 404, 'No such client') }
   } else {
     await registerClient({ ...client, phoneNormalised: normalisePhone(client.phone) as string })
   }
   if (patient.type === 'existing') {
-    if (!(await ownsPatient(client.id, patient.id))) return problem(c, 409, "Not this client's patient")
-    return c.json({ clientId: client.id, patientId: patient.id }, 200)
+    if (!(await ownsPatient(client.id, patient.id))) return { refusal: problem(c, 409, "Not this client's patient") }
+    return registered
   }
   const outcome = await registerPatient({ ...patient, ownerId: client.id })
   switch (outcome.status) {
     case 'created':
     case 'existing':
-      return c.json({ clientId: client.id, patientId: patient.id }, 200)
+      return registered
     case 'not-owned':
-      return problem(c, 409, "Not this client's patient")
+      return { refusal: problem(c, 409, "Not this client's patient") }
     case 'microchip-taken':
-      return problem(
-        c,
-        409,
-        "The microchip is another patient's",
-        patientFieldProblem('microchipNumber', 'taken', 'Recorded for another patient'),
-      )
+      return {
+        refusal: problem(
+          c,
+          409,
+          "The microchip is another patient's",
+          patientFieldProblem('microchipNumber', 'taken', 'Recorded for another patient'),
+        ),
+      }
     case 'birth-date-in-future':
-      return problem(c, 400, 'Validation failed', patientFieldProblem('birthDate', 'future', 'Not after today'))
+      return {
+        refusal: problem(c, 400, 'Validation failed', patientFieldProblem('birthDate', 'future', 'Not after today')),
+      }
     case 'no-species':
-      return problem(c, 404, 'No such species')
+      return { refusal: problem(c, 404, 'No such species') }
     case 'no-breed':
-      return problem(c, 404, 'No such breed of this species')
+      return { refusal: problem(c, 404, 'No such breed of this species') }
   }
+}
+
+export const putRegistration: RouteHandler<typeof registrationRoute, Env> = async (c) => {
+  const registered = await register(c, c.req.valid('json'))
+  return 'refusal' in registered ? registered.refusal : c.json(registered, 200)
 }

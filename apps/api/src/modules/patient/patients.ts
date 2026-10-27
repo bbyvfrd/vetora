@@ -172,6 +172,39 @@ export type OwnedPatient = {
   sex: (typeof SEXES)[number]
 }
 
+/** What a patient header shows of a patient (#22): its name, species and breed names, sex, neuter state and birth date. */
+export async function patientCard(id: string) {
+  const { db } = practiceContext()
+  const [row] = await db
+    .select({ patient, species, breed })
+    .from(patient)
+    .innerJoin(species, eq(species.id, patient.speciesId))
+    .leftJoin(breed, eq(breed.id, patient.breedId))
+    .where(eq(patient.id, id))
+  if (!row) return undefined
+  return {
+    id: row.patient.id,
+    name: row.patient.name,
+    species: { az: row.species.nameAz, ru: row.species.nameRu, en: row.species.nameEn },
+    breed: row.breed ? breedNamesOf(row.breed) : null,
+    sex: row.patient.sex,
+    isNeutered: row.patient.isNeutered,
+    birthDate: row.patient.birthDate,
+    birthDateIsEstimate: row.patient.birthDateIsEstimate,
+  }
+}
+
+/** The patients' names by id (#22: the rows of Visits today). */
+export async function patientNames(ids: readonly string[]): Promise<Map<string, string>> {
+  if (ids.length === 0) return new Map()
+  const { db } = practiceContext()
+  const rows = await db
+    .select({ id: patient.id, name: patient.name })
+    .from(patient)
+    .where(inArray(patient.id, [...ids]))
+  return new Map(rows.map((row) => [row.id, row.name]))
+}
+
 /** The active, living patients each client owns today, by client id, in the order they were registered. */
 export async function patientsOwnedBy(clientIds: readonly string[]): Promise<Map<string, OwnedPatient[]>> {
   const owned = new Map<string, OwnedPatient[]>()

@@ -27,6 +27,14 @@ import type { Env } from './env.js'
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
+/** What every practice route may answer before its handler runs, for its OpenAPI declaration's `responses`. */
+export const refusals = {
+  400: { description: 'Validation failed, or no location header or one not of this practice (problem details)' },
+  401: { description: 'No session (problem details)' },
+  403: { description: 'Not a member, a practice not active, or an action the roles may not perform (problem details)' },
+  503: { description: 'The practice is being updated (problem details)' },
+} as const
+
 /** Thrown inside the transaction to roll it back once the handler has answered with a refusal or an error. */
 class RollBack extends Error {}
 

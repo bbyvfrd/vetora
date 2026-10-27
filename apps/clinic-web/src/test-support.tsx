@@ -63,7 +63,13 @@ export function meOf(overrides: Partial<Me> = {}): Me {
     id: '019a3f00-0000-7000-8000-00000000a1fa',
     displayName: 'Leyla Həsənova',
     language: 'az',
-    practice: { id: '019a3f00-0000-7000-8000-0000000000a1', name: 'Alfa Vet', code: 'alfa', roles: ['veterinarian'] },
+    practice: {
+      id: '019a3f00-0000-7000-8000-0000000000a1',
+      name: 'Alfa Vet',
+      code: 'alfa',
+      roles: ['veterinarian'],
+      timeZone: 'Asia/Baku',
+    },
     locations: [{ id: '019a3f00-0000-7000-8000-0000000000b1', name: 'Nərimanov', isDefault: true }],
     ...overrides,
   }

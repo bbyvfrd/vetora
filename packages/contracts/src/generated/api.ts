@@ -275,6 +275,7 @@ export interface paths {
                                 name: string;
                                 code: string;
                                 roles: ("manager" | "veterinarian" | "assistant" | "receptionist" | "groomer")[];
+                                timeZone: string;
                             };
                             locations: {
                                 /** Format: uuid */
@@ -814,6 +815,660 @@ export interface paths {
                 };
             };
         };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/p/{practiceId}/visits/{visitId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * A visit
+         * @description The visit with its note, its veterinarian, and what its patient header shows of the patient and the owner.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    "vetora-location": string;
+                };
+                path: {
+                    practiceId: string;
+                    visitId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The visit */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "draft" | "finalised";
+                            version: number;
+                            /** Format: date-time */
+                            startedAt: string;
+                            /** Format: date-time */
+                            finalisedAt: string | null;
+                            veterinarian: {
+                                /** Format: uuid */
+                                id: string;
+                                displayName: string;
+                            };
+                            patient: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                species: {
+                                    az: string;
+                                    ru: string;
+                                    en: string;
+                                };
+                                breed: {
+                                    az: string | null;
+                                    ru: string | null;
+                                    en: string | null;
+                                } | null;
+                                /** @enum {string} */
+                                sex: "male" | "female" | "unknown";
+                                isNeutered: boolean;
+                                /** Format: date */
+                                birthDate: string | null;
+                                birthDateIsEstimate: boolean;
+                            };
+                            owner: {
+                                /** Format: uuid */
+                                id: string;
+                                firstName: string | null;
+                                lastName: string | null;
+                                patronymic: string | null;
+                                phone: string | null;
+                            };
+                            note: {
+                                reasonForVisit: string;
+                                anamnesis: string;
+                                examination: string;
+                                diagnosis: string;
+                                treatment: string;
+                                recommendations: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Validation failed, or no location header or one not of this practice (problem details) */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No session (problem details) */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not a member, a practice not active, or an action the roles may not perform (problem details) */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No such visit, or a cancelled one (problem details) */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description The practice is being updated (problem details) */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        /**
+         * Start a visit
+         * @description Writes what is new of the client and the patient, then the draft visit, in one transaction: the actor is its veterinarian, the patient's owner its client and reporter, the request's location its place, now its start. The visit id is a UUID v7 the client generates: the same request again changes nothing.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    "vetora-location": string;
+                };
+                path: {
+                    practiceId: string;
+                    visitId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        client: {
+                            /** @enum {string} */
+                            type: "existing";
+                            /** Format: uuid */
+                            id: string;
+                        } | {
+                            /** @enum {string} */
+                            type: "new";
+                            /** Format: uuid */
+                            id: string;
+                            firstName: string;
+                            lastName: string;
+                            patronymic?: string | null;
+                            phone: string;
+                            /** @enum {string} */
+                            preferredLanguage: "az" | "ru" | "en";
+                        };
+                        patient: {
+                            /** @enum {string} */
+                            type: "existing";
+                            /** Format: uuid */
+                            id: string;
+                        } | {
+                            /** @enum {string} */
+                            type: "new";
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            /** Format: uuid */
+                            speciesId: string;
+                            /** Format: uuid */
+                            breedId?: string | null;
+                            /** @enum {string} */
+                            sex: "male" | "female" | "unknown";
+                            /** Format: date */
+                            birthDate?: string | null;
+                            /** @default false */
+                            birthDateIsEstimate?: boolean;
+                            /** @default false */
+                            isNeutered?: boolean;
+                            colour?: string | null;
+                            microchipNumber?: string | null;
+                        };
+                    };
+                };
+            };
+            responses: {
+                /** @description Started */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            clientId: string;
+                            /** Format: uuid */
+                            patientId: string;
+                            /** Format: uuid */
+                            visitId: string;
+                        };
+                    };
+                };
+                /** @description Validation failed, or no location header or one not of this practice (problem details) */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No session (problem details) */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not a member, a practice not active, or an action the roles may not perform (problem details) */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No such client, species or breed (problem details) */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description The microchip is another patient's, the patient is not this client's, or the visit id is another patient's visit (problem details) */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description The practice is being updated (problem details) */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/p/{practiceId}/visits/{visitId}/note": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Save a draft visit's note
+         * @description Replaces the six sections of the note, against the version in If-Match; answers the new version.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    "vetora-location": string;
+                    "if-match": string;
+                };
+                path: {
+                    practiceId: string;
+                    visitId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        reasonForVisit: string;
+                        anamnesis: string;
+                        examination: string;
+                        diagnosis: string;
+                        treatment: string;
+                        recommendations: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Saved */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            version: number;
+                        };
+                    };
+                };
+                /** @description Validation failed, or no location header or one not of this practice (problem details) */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No session (problem details) */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not a member, a practice not active, or an action the roles may not perform (problem details) */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No such visit, or a cancelled one (problem details) */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Refused by a rule of the record: completed, or not complete (problem details naming the rule) */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Another change came first: the version is stale (problem details) */
+                412: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description The practice is being updated (problem details) */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/p/{practiceId}/visits/{visitId}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Complete a visit
+         * @description Completes the visit against the version in If-Match, in one transaction: the actor's care relationship with the patient found and extended, or created, lapsing the practice's lapse months from now; then the visit finalised by the actor, which freezes it. A blank reason for visit is refused.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    "vetora-location": string;
+                    "if-match": string;
+                };
+                path: {
+                    practiceId: string;
+                    visitId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Completed */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            version: number;
+                        };
+                    };
+                };
+                /** @description Validation failed, or no location header or one not of this practice (problem details) */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No session (problem details) */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not a member, a practice not active, or an action the roles may not perform (problem details) */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No such visit, or a cancelled one (problem details) */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Refused by a rule of the record: completed, or not complete (problem details naming the rule) */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Another change came first: the version is stale (problem details) */
+                412: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description The practice is being updated (problem details) */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/p/{practiceId}/visits/{visitId}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancel a draft visit
+         * @description Discards a draft visit opened by mistake, against the version in If-Match; a completed one is refused.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    "vetora-location": string;
+                    "if-match": string;
+                };
+                path: {
+                    practiceId: string;
+                    visitId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Cancelled */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            version: number;
+                        };
+                    };
+                };
+                /** @description Validation failed, or no location header or one not of this practice (problem details) */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No session (problem details) */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not a member, a practice not active, or an action the roles may not perform (problem details) */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No such visit, or a cancelled one (problem details) */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Refused by a rule of the record: completed, or not complete (problem details naming the rule) */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Another change came first: the version is stale (problem details) */
+                412: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description The practice is being updated (problem details) */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/p/{practiceId}/visits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Visits today
+         * @description The visits started today at the request's location, the day in the practice's time zone, newest first; cancelled ones are left out.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    "vetora-location": string;
+                };
+                path: {
+                    practiceId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The day's visits */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: date */
+                            day: string;
+                            visits: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "draft" | "finalised";
+                                /** Format: date-time */
+                                startedAt: string;
+                                patient: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    name: string;
+                                };
+                                client: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    firstName: string | null;
+                                    lastName: string | null;
+                                    patronymic: string | null;
+                                };
+                                veterinarian: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    displayName: string;
+                                };
+                            }[];
+                        };
+                    };
+                };
+                /** @description Validation failed, or no location header or one not of this practice (problem details) */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No session (problem details) */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not a member, a practice not active, or an action the roles may not perform (problem details) */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description The practice is being updated (problem details) */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;

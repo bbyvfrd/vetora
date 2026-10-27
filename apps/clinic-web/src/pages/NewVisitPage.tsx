@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { queryOptions, useMutation, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import {
-  type BreedNames,
+  can,
   type Me,
   NewClient,
   NewPatient,
@@ -30,7 +30,7 @@ import {
   TextField,
   toast,
 } from '@vetora/ui'
-import { type MouseEvent, useState } from 'react'
+import { type MouseEvent, useRef, useState } from 'react'
 import {
   type Control,
   Controller,
@@ -45,6 +45,7 @@ import { z } from 'zod'
 import { api } from '../api/client'
 import { practiceParams } from '../api/practice'
 import { uuidv7 } from '../ids'
+import { fullName, nameIn } from '../names'
 import { meQuery } from '../session'
 
 /**
@@ -53,14 +54,11 @@ import { meQuery } from '../session'
  * known number with their patients and New patient, or the client and patient fields for an unknown one; a new client
  * on a number another client has is warned about and never blocked. Save sends one registration with ids made when
  * the form opened, so a retry changes nothing, shows the toast and returns to Visits today. React Hook Form validates
- * with the contracts' schemas. Start visit joins Save with the visit (#22).
+ * with the contracts' schemas. For a vet, Start visit (#22) sends the same registration with the visit's id, made
+ * with the others, and opens the visit page; beside a found client's patient it starts the visit with the two ids.
  */
 
 type Species = SpeciesList['species'][number]
-
-/** A name in the screen's language, else in another: a breed added inline has only the one it was typed in. */
-const nameIn = (names: BreedNames, language: string) =>
-  names[language as Language] ?? names.az ?? names.ru ?? names.en ?? ''
 
 const speciesQuery = (me: Me) =>
   queryOptions({
@@ -110,9 +108,16 @@ type Step = { kind: 'phone' } | { kind: 'found' } | { kind: 'new-client' } | { k
 
 type Found = { phone: string; result: PhoneLookupResult }
 
-/** A person's full name as the clinic writes it: last name, first name, patronymic. */
-const fullName = (client: { firstName: string | null; lastName: string | null; patronymic: string | null }) =>
-  [client.lastName, client.firstName, client.patronymic].filter(Boolean).join(' ')
+/** What the registration form's submit does: Save registers; Start visit registers and starts the visit (#22). */
+type Intent = 'save' | 'start'
+
+/** Start a visit with what the registration carries, under the visit's id the page made. */
+function startVisit(me: Me, visitId: string, body: Registration) {
+  return api.PUT('/api/p/{practiceId}/visits/{visitId}', {
+    params: { ...practiceParams(me), path: { practiceId: me.practice.id, visitId } },
+    body,
+  })
+}
 
 export function NewVisitPage() {
   const { t } = useTranslation()
@@ -123,11 +128,16 @@ export function NewVisitPage() {
   const [found, setFound] = useState<Found>()
   const [step, setStep] = useState<Step>({ kind: 'phone' })
 
+  // Which of the form's two buttons sent it: Save, or Start visit (a vet's, #22).
+  const intent = useRef<Intent>('save')
+
   const toVisitsToday = (event?: MouseEvent) => {
     event?.preventDefault()
     void navigate({ to: '/' })
   }
+  const toVisit = (visitId: string) => void navigate({ to: '/visits/$visitId', params: { visitId } })
   const registering = step.kind === 'new-client' || step.kind === 'new-patient'
+  const starts = can(me.practice.roles, 'conductEncounter')
 
   return (
     <>
@@ -154,10 +164,12 @@ export function NewVisitPage() {
         />
         {found && found.result.clients.length > 0 ? (
           <FoundClients
+            me={me}
             species={catalog.data?.species ?? []}
             found={found.result}
             onNewPatient={(clientId) => setStep({ kind: 'new-patient', clientId })}
             onNewClient={() => setStep({ kind: 'new-client' })}
+            onStarted={starts ? toVisit : undefined}
           />
         ) : null}
         {found && registering ? (
@@ -169,19 +181,40 @@ export function NewVisitPage() {
             phone={found.phone}
             client={step.kind === 'new-patient' ? { type: 'existing', id: step.clientId } : { type: 'new' }}
             shared={step.kind === 'new-client' && found.result.clients.length > 0}
+            intent={() => intent.current}
             onSaved={() => {
               toast({ title: t('toast.patient.saved'), status: 'success' })
               toVisitsToday()
             }}
+            onStarted={toVisit}
           />
         ) : null}
       </PageBody>
       {registering ? (
         <FormActions>
           <Button onClick={() => toVisitsToday()}>{t('newVisit.cancel')}</Button>
-          <Button variant="primary" type="submit" form="registration">
+          <Button
+            variant={starts ? 'secondary' : 'primary'}
+            type="submit"
+            form="registration"
+            onClick={() => {
+              intent.current = 'save'
+            }}
+          >
             {t('newVisit.save')}
           </Button>
+          {starts ? (
+            <Button
+              variant="primary"
+              type="submit"
+              form="registration"
+              onClick={() => {
+                intent.current = 'start'
+              }}
+            >
+              {t('visit.start')}
+            </Button>
+          ) : null}
         </FormActions>
       ) : null}
     </>
@@ -242,19 +275,46 @@ function PhoneSearch({ me, onFound }: { me: Me; onFound: (phone: string, result:
   )
 }
 
-/** The clients a known number found, each with the patients they own today, and the way to a new patient or client. */
+/**
+ * The clients a known number found, each with the patients they own today, and the way to a new patient or client;
+ * for a vet, Start visit beside each patient (#22), under a visit id made once per patient while the list shows.
+ */
 function FoundClients({
+  me,
   species,
   found,
   onNewPatient,
   onNewClient,
+  onStarted,
 }: {
+  me: Me
   species: Species[]
   found: PhoneLookupResult
   onNewPatient: (clientId: string) => void
   onNewClient: () => void
+  /** Given to a vet: the visit page to open once a visit is started. */
+  onStarted?: (visitId: string) => void
 }) {
   const { t, i18n } = useTranslation()
+  const [visitIds] = useState(() => new Map<string, string>())
+  const visitIdFor = (patientId: string) => {
+    const known = visitIds.get(patientId) ?? uuidv7()
+    visitIds.set(patientId, known)
+    return known
+  }
+  const start = useMutation({
+    mutationFn: async ({ clientId, patientId }: { clientId: string; patientId: string }) => {
+      const body: Registration = {
+        client: { type: 'existing', id: clientId },
+        patient: { type: 'existing', id: patientId },
+      }
+      const visitId = visitIdFor(patientId)
+      const { response } = await startVisit(me, visitId, body)
+      if (!response.ok) throw new Error(`start visit answered ${response.status}`)
+      return visitId
+    },
+    onSuccess: (visitId) => onStarted?.(visitId),
+  })
   const speciesName = (id: string) => {
     const item = species.find((entry) => entry.id === id)
     return item ? nameIn(item.name, i18n.language) : ''
@@ -268,6 +328,11 @@ function FoundClients({
         </Button>
       }
     >
+      {start.isError ? (
+        <Banner status="danger" title={t('error.save.title')}>
+          {t('error.save.body')}
+        </Banner>
+      ) : null}
       {found.clients.map((client) => (
         <section key={client.id} aria-label={fullName(client)}>
           <h3>{fullName(client)}</h3>
@@ -275,6 +340,19 @@ function FoundClients({
             {client.patients.map((patient) => (
               <li key={patient.id}>
                 <span>{patient.name}</span> · <span>{speciesName(patient.speciesId)}</span>
+                {onStarted ? (
+                  <>
+                    {' '}
+                    <Button
+                      size="sm"
+                      icon="stethoscope"
+                      loading={start.isPending && start.variables?.patientId === patient.id}
+                      onClick={() => start.mutate({ clientId: client.id, patientId: patient.id })}
+                    >
+                      {t('visit.start')}
+                    </Button>
+                  </>
+                ) : null}
               </li>
             ))}
           </ul>
@@ -306,8 +384,8 @@ function useFieldError() {
 }
 type FieldErrorOf = ReturnType<typeof useFieldError>
 
-/** How a save ended: saved, or the one refusal a person can fix here. Anything else is the save's error. */
-type SaveOutcome = 'saved' | 'microchip-taken'
+/** How a save ended: saved, a visit started, or the one refusal a person can fix here. Anything else is the save's error. */
+type SaveOutcome = 'saved' | 'started' | 'microchip-taken'
 
 type RegistrationFormProps = {
   me: Me
@@ -317,15 +395,21 @@ type RegistrationFormProps = {
   client: { type: 'existing'; id: string } | { type: 'new' }
   /** Another client already has the number: the warning shows, and saving goes on. */
   shared: boolean
+  /** Which button sent the form. */
+  intent: () => Intent
   onSaved: () => void
+  onStarted: (visitId: string) => void
 }
 
-/** The client fields of a new client (when there is one) and the patient fields, saved in one registration. */
-function RegistrationForm({ me, species, phone, client, shared, onSaved }: RegistrationFormProps) {
+/**
+ * The client fields of a new client (when there is one) and the patient fields, saved in one registration, or with
+ * the visit started from it (Start visit).
+ */
+function RegistrationForm({ me, species, phone, client, shared, intent, onSaved, onStarted }: RegistrationFormProps) {
   const { t, i18n } = useTranslation()
   const errorOf = useFieldError()
   // Made once, when the form opens: every try sends the same ids (spec 0001, "API conventions": safe retries).
-  const [ids] = useState(() => ({ client: uuidv7(), patient: uuidv7() }))
+  const [ids] = useState(() => ({ client: uuidv7(), patient: uuidv7(), visit: uuidv7() }))
   const { control, handleSubmit, formState, setError, setValue } = useForm<
     RegistrationInput,
     unknown,
@@ -349,11 +433,11 @@ function RegistrationForm({ me, species, phone, client, shared, onSaved }: Regis
         client: client.type === 'existing' ? client : { type: 'new', id: ids.client, ...fields, phone },
         patient: { type: 'new', id: ids.patient, ...values.patient },
       }
-      const { error, response } = await api.PUT('/api/p/{practiceId}/registrations', {
-        params: practiceParams(me),
-        body,
-      })
-      if (response.ok) return 'saved'
+      const starting = intent() === 'start'
+      const { error, response } = starting
+        ? await startVisit(me, ids.visit, body)
+        : await api.PUT('/api/p/{practiceId}/registrations', { params: practiceParams(me), body })
+      if (response.ok) return starting ? 'started' : 'saved'
       const issues = (error as { errors?: { path?: unknown[]; code?: string }[] } | undefined)?.errors ?? []
       if (issues.some((issue) => issue.path?.join('.') === 'patient.microchipNumber' && issue.code === 'taken')) {
         return 'microchip-taken'
@@ -362,6 +446,7 @@ function RegistrationForm({ me, species, phone, client, shared, onSaved }: Regis
     },
     onSuccess: (outcome) => {
       if (outcome === 'saved') onSaved()
+      else if (outcome === 'started') onStarted(ids.visit)
       else setError('patient.microchipNumber', { type: 'taken' }, { shouldFocus: true })
     },
   })

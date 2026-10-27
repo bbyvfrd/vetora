@@ -1,2 +1,16 @@
-/** The public interface of the Clinical Record module (spec 0001, "Repository layout"): nothing yet, its slice adds it. */
-export {}
+/**
+ * The public interface of the Clinical Record module (spec 0001, "Repository layout"): a visit started, read, its note
+ * saved, completed or cancelled, and the day's visits at a location (#22). Every function runs in the request's
+ * transaction.
+ */
+export {
+  type ChangeOutcome,
+  cancelEncounter,
+  completeEncounter,
+  type NoteText,
+  readEncounter,
+  type StartOutcome,
+  saveNote,
+  startEncounter,
+  visitsToday,
+} from './encounters.js'

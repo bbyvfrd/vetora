@@ -256,13 +256,17 @@
                             ]
                           },
                           "minItems": 1
+                        },
+                        "timeZone": {
+                          "type": "string"
                         }
                       },
                       "required": [
                         "id",
                         "name",
                         "code",
-                        "roles"
+                        "roles",
+                        "timeZone"
                       ]
                     },
                     "locations": {
@@ -1104,6 +1108,1022 @@
           },
           "409": {
             "description": "The microchip is another patient's, or the patient is not this client's (problem details)"
+          },
+          "503": {
+            "description": "The practice is being updated (problem details)"
+          }
+        }
+      }
+    },
+    "/api/p/{practiceId}/visits/{visitId}": {
+      "put": {
+        "summary": "Start a visit",
+        "description": "Writes what is new of the client and the patient, then the draft visit, in one transaction: the actor is its veterinarian, the patient's owner its client and reporter, the request's location its place, now its start. The visit id is a UUID v7 the client generates: the same request again changes nothing.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "practiceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "visitId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "vetora-location",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "client": {
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "existing"
+                            ]
+                          },
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          }
+                        },
+                        "required": [
+                          "type",
+                          "id"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "new"
+                            ]
+                          },
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "firstName": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 100
+                          },
+                          "lastName": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 100
+                          },
+                          "patronymic": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "maxLength": 100
+                          },
+                          "phone": {
+                            "type": "string",
+                            "maxLength": 40
+                          },
+                          "preferredLanguage": {
+                            "type": "string",
+                            "enum": [
+                              "az",
+                              "ru",
+                              "en"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "type",
+                          "id",
+                          "firstName",
+                          "lastName",
+                          "phone",
+                          "preferredLanguage"
+                        ]
+                      }
+                    ]
+                  },
+                  "patient": {
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "existing"
+                            ]
+                          },
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          }
+                        },
+                        "required": [
+                          "type",
+                          "id"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "new"
+                            ]
+                          },
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "name": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 100
+                          },
+                          "speciesId": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "breedId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "uuid"
+                          },
+                          "sex": {
+                            "type": "string",
+                            "enum": [
+                              "male",
+                              "female",
+                              "unknown"
+                            ]
+                          },
+                          "birthDate": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "date"
+                          },
+                          "birthDateIsEstimate": {
+                            "type": "boolean",
+                            "default": false
+                          },
+                          "isNeutered": {
+                            "type": "boolean",
+                            "default": false
+                          },
+                          "colour": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "maxLength": 100
+                          },
+                          "microchipNumber": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "pattern": "^\\d{15}$"
+                          }
+                        },
+                        "required": [
+                          "type",
+                          "id",
+                          "name",
+                          "speciesId",
+                          "sex"
+                        ]
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "client",
+                  "patient"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "clientId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "patientId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "visitId": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  },
+                  "required": [
+                    "clientId",
+                    "patientId",
+                    "visitId"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed, or no location header or one not of this practice (problem details)"
+          },
+          "401": {
+            "description": "No session (problem details)"
+          },
+          "403": {
+            "description": "Not a member, a practice not active, or an action the roles may not perform (problem details)"
+          },
+          "404": {
+            "description": "No such client, species or breed (problem details)"
+          },
+          "409": {
+            "description": "The microchip is another patient's, the patient is not this client's, or the visit id is another patient's visit (problem details)"
+          },
+          "503": {
+            "description": "The practice is being updated (problem details)"
+          }
+        }
+      },
+      "get": {
+        "summary": "A visit",
+        "description": "The visit with its note, its veterinarian, and what its patient header shows of the patient and the owner.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "practiceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "visitId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "vetora-location",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The visit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "draft",
+                        "finalised"
+                      ]
+                    },
+                    "version": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0
+                    },
+                    "startedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "finalisedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "veterinarian": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "displayName": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "displayName"
+                      ]
+                    },
+                    "patient": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "species": {
+                          "type": "object",
+                          "properties": {
+                            "az": {
+                              "type": "string"
+                            },
+                            "ru": {
+                              "type": "string"
+                            },
+                            "en": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "az",
+                            "ru",
+                            "en"
+                          ]
+                        },
+                        "breed": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "az": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "ru": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "en": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "az",
+                            "ru",
+                            "en"
+                          ]
+                        },
+                        "sex": {
+                          "type": "string",
+                          "enum": [
+                            "male",
+                            "female",
+                            "unknown"
+                          ]
+                        },
+                        "isNeutered": {
+                          "type": "boolean"
+                        },
+                        "birthDate": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "date"
+                        },
+                        "birthDateIsEstimate": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "species",
+                        "breed",
+                        "sex",
+                        "isNeutered",
+                        "birthDate",
+                        "birthDateIsEstimate"
+                      ]
+                    },
+                    "owner": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "firstName": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "lastName": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "patronymic": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "phone": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "firstName",
+                        "lastName",
+                        "patronymic",
+                        "phone"
+                      ]
+                    },
+                    "note": {
+                      "type": "object",
+                      "properties": {
+                        "reasonForVisit": {
+                          "type": "string",
+                          "maxLength": 20000
+                        },
+                        "anamnesis": {
+                          "type": "string",
+                          "maxLength": 20000
+                        },
+                        "examination": {
+                          "type": "string",
+                          "maxLength": 20000
+                        },
+                        "diagnosis": {
+                          "type": "string",
+                          "maxLength": 20000
+                        },
+                        "treatment": {
+                          "type": "string",
+                          "maxLength": 20000
+                        },
+                        "recommendations": {
+                          "type": "string",
+                          "maxLength": 20000
+                        }
+                      },
+                      "required": [
+                        "reasonForVisit",
+                        "anamnesis",
+                        "examination",
+                        "diagnosis",
+                        "treatment",
+                        "recommendations"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "status",
+                    "version",
+                    "startedAt",
+                    "finalisedAt",
+                    "veterinarian",
+                    "patient",
+                    "owner",
+                    "note"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed, or no location header or one not of this practice (problem details)"
+          },
+          "401": {
+            "description": "No session (problem details)"
+          },
+          "403": {
+            "description": "Not a member, a practice not active, or an action the roles may not perform (problem details)"
+          },
+          "404": {
+            "description": "No such visit, or a cancelled one (problem details)"
+          },
+          "503": {
+            "description": "The practice is being updated (problem details)"
+          }
+        }
+      }
+    },
+    "/api/p/{practiceId}/visits/{visitId}/note": {
+      "put": {
+        "summary": "Save a draft visit's note",
+        "description": "Replaces the six sections of the note, against the version in If-Match; answers the new version.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "practiceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "visitId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "vetora-location",
+            "in": "header"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\"[1-9]\\d*\"$"
+            },
+            "required": true,
+            "name": "if-match",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reasonForVisit": {
+                    "type": "string",
+                    "maxLength": 20000
+                  },
+                  "anamnesis": {
+                    "type": "string",
+                    "maxLength": 20000
+                  },
+                  "examination": {
+                    "type": "string",
+                    "maxLength": 20000
+                  },
+                  "diagnosis": {
+                    "type": "string",
+                    "maxLength": 20000
+                  },
+                  "treatment": {
+                    "type": "string",
+                    "maxLength": 20000
+                  },
+                  "recommendations": {
+                    "type": "string",
+                    "maxLength": 20000
+                  }
+                },
+                "required": [
+                  "reasonForVisit",
+                  "anamnesis",
+                  "examination",
+                  "diagnosis",
+                  "treatment",
+                  "recommendations"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Saved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "version": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0
+                    }
+                  },
+                  "required": [
+                    "version"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed, or no location header or one not of this practice (problem details)"
+          },
+          "401": {
+            "description": "No session (problem details)"
+          },
+          "403": {
+            "description": "Not a member, a practice not active, or an action the roles may not perform (problem details)"
+          },
+          "404": {
+            "description": "No such visit, or a cancelled one (problem details)"
+          },
+          "409": {
+            "description": "Refused by a rule of the record: completed, or not complete (problem details naming the rule)"
+          },
+          "412": {
+            "description": "Another change came first: the version is stale (problem details)"
+          },
+          "503": {
+            "description": "The practice is being updated (problem details)"
+          }
+        }
+      }
+    },
+    "/api/p/{practiceId}/visits/{visitId}/complete": {
+      "post": {
+        "summary": "Complete a visit",
+        "description": "Completes the visit against the version in If-Match, in one transaction: the actor's care relationship with the patient found and extended, or created, lapsing the practice's lapse months from now; then the visit finalised by the actor, which freezes it. A blank reason for visit is refused.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "practiceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "visitId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "vetora-location",
+            "in": "header"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\"[1-9]\\d*\"$"
+            },
+            "required": true,
+            "name": "if-match",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "version": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0
+                    }
+                  },
+                  "required": [
+                    "version"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed, or no location header or one not of this practice (problem details)"
+          },
+          "401": {
+            "description": "No session (problem details)"
+          },
+          "403": {
+            "description": "Not a member, a practice not active, or an action the roles may not perform (problem details)"
+          },
+          "404": {
+            "description": "No such visit, or a cancelled one (problem details)"
+          },
+          "409": {
+            "description": "Refused by a rule of the record: completed, or not complete (problem details naming the rule)"
+          },
+          "412": {
+            "description": "Another change came first: the version is stale (problem details)"
+          },
+          "503": {
+            "description": "The practice is being updated (problem details)"
+          }
+        }
+      }
+    },
+    "/api/p/{practiceId}/visits/{visitId}/cancel": {
+      "post": {
+        "summary": "Cancel a draft visit",
+        "description": "Discards a draft visit opened by mistake, against the version in If-Match; a completed one is refused.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "practiceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "visitId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "vetora-location",
+            "in": "header"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\"[1-9]\\d*\"$"
+            },
+            "required": true,
+            "name": "if-match",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cancelled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "version": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0
+                    }
+                  },
+                  "required": [
+                    "version"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed, or no location header or one not of this practice (problem details)"
+          },
+          "401": {
+            "description": "No session (problem details)"
+          },
+          "403": {
+            "description": "Not a member, a practice not active, or an action the roles may not perform (problem details)"
+          },
+          "404": {
+            "description": "No such visit, or a cancelled one (problem details)"
+          },
+          "409": {
+            "description": "Refused by a rule of the record: completed, or not complete (problem details naming the rule)"
+          },
+          "412": {
+            "description": "Another change came first: the version is stale (problem details)"
+          },
+          "503": {
+            "description": "The practice is being updated (problem details)"
+          }
+        }
+      }
+    },
+    "/api/p/{practiceId}/visits": {
+      "get": {
+        "summary": "Visits today",
+        "description": "The visits started today at the request's location, the day in the practice's time zone, newest first; cancelled ones are left out.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "practiceId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "vetora-location",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The day's visits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "day": {
+                      "type": "string",
+                      "format": "date"
+                    },
+                    "visits": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "draft",
+                              "finalised"
+                            ]
+                          },
+                          "startedAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "patient": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "name": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name"
+                            ]
+                          },
+                          "client": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "firstName": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "lastName": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "patronymic": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "firstName",
+                              "lastName",
+                              "patronymic"
+                            ]
+                          },
+                          "veterinarian": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "displayName": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "displayName"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "status",
+                          "startedAt",
+                          "patient",
+                          "client",
+                          "veterinarian"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "day",
+                    "visits"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed, or no location header or one not of this practice (problem details)"
+          },
+          "401": {
+            "description": "No session (problem details)"
+          },
+          "403": {
+            "description": "Not a member, a practice not active, or an action the roles may not perform (problem details)"
           },
           "503": {
             "description": "The practice is being updated (problem details)"

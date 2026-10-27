@@ -24,6 +24,8 @@ export const Me = z.object({
     code: z.string(),
     /** The person's roles in it, from their membership. */
     roles: z.array(StaffRole).min(1),
+    /** The IANA time zone the practice's clock and days are in (`Asia/Baku`): every instant is shown in it. */
+    timeZone: z.string(),
   }),
   /** The practice's active locations, the default one first and marked. */
   locations: z.array(z.object({ id: z.uuid(), name: z.string(), isDefault: z.boolean() })),

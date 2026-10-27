@@ -63,22 +63,25 @@ export const getMe: RouteHandler<typeof meRoute, Env> = async (c) => {
     return problem(c, 403, 'No active practice')
   }
   const actor = { actorId: session.user.id, requestId: c.get('requestId') }
-  const { name, locations } = await inPractice(membership, actor, async (tx) => {
-    const [settings] = await tx.select({ name: practiceSettings.displayName }).from(practiceSettings)
+  const { settings, locations } = await inPractice(membership, actor, async (tx) => {
+    const [row] = await tx
+      .select({ name: practiceSettings.displayName, timeZone: practiceSettings.timeZone })
+      .from(practiceSettings)
     const rows = await tx
       .select({ id: location.id, name: location.name, isDefault: location.isDefault })
       .from(location)
       .where(eq(location.active, true))
       .orderBy(desc(location.isDefault), asc(location.name))
-    return { name: settings?.name, locations: rows }
+    return { settings: row, locations: rows }
   })
-  if (name === undefined) return problem(c, 403, 'No active practice')
+  if (!settings) return problem(c, 403, 'No active practice')
+  const { name, timeZone } = settings
   return c.json(
     {
       id: session.user.id,
       displayName: session.user.name,
       language: session.user.language as Me['language'],
-      practice: { id: membership.practiceId, name, code: membership.code, roles },
+      practice: { id: membership.practiceId, name, code: membership.code, roles, timeZone },
       locations,
     },
     200,

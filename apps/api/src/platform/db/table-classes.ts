@@ -2,8 +2,10 @@ import { getTableName } from 'drizzle-orm'
 import {
   auditEvent,
   breed,
+  careRelationship,
   client,
   clientContact,
+  encounter,
   location,
   ownership,
   patient,
@@ -25,8 +27,12 @@ import {
 export type TableEntry =
   /** INSERT and SELECT: a record is never changed, a correction is a new row (CR-1, RX-4, BL-6). */
   | { class: 'append_only' }
-  /** INSERT and SELECT, and UPDATE on the named columns alone (`consent_record.withdrawn_at`); the set_once() trigger lets each go from null to a value once. */
-  | { class: 'set_once'; setOnce: readonly [string, ...string[]] }
+  /**
+   * INSERT and SELECT, and UPDATE on the named columns alone (`consent_record.withdrawn_at`); the set_once() trigger
+   * lets each go from null to a value once. `movesLater` names the class's one kind of exception, an instant that may
+   * only move later (`care_relationship.lapses_at`), which the trigger takes as a `later:<column>` argument.
+   */
+  | { class: 'set_once'; setOnce: readonly [string, ...string[]]; movesLater?: readonly string[] }
   /** INSERT, SELECT, UPDATE, never DELETE: a record retires by status (IN-6). `noUpdate` names columns the role never updates (`lot.quantity_on_hand`, the movement trigger's alone). */
   | { class: 'mutable'; noUpdate?: readonly string[] }
   /** As mutable until the status column reaches its final value; the freeze_record() trigger then refuses every change but the columns it names (and lock_parent() its child rows). */
@@ -64,6 +70,13 @@ export const tableClassRegistry: TableClassRegistry = {
     [getTableName(breed), { class: 'mutable' }],
     [getTableName(patient), { class: 'mutable' }],
     [getTableName(ownership), { class: 'set_once', setOnce: ['valid_to'] }],
+    // The Clinical Record module (#22): a care relationship ends once and lapses later with each finalised visit
+    // (CR-4); a visit freezes when it is finalised or discarded (CR-1, AC-2).
+    [
+      getTableName(careRelationship),
+      { class: 'set_once', setOnce: ['ended_at', 'ended_by'], movesLater: ['lapses_at'] },
+    ],
+    [getTableName(encounter), { class: 'frozen_by_status' }],
   ]),
   views: new Set(),
   functions: new Set(),
@@ -86,8 +99,10 @@ export function grantOf(entry: TableEntry, columns: readonly string[]): TableGra
   switch (entry.class) {
     case 'append_only':
       return { privileges: ['INSERT', 'SELECT'], namedColumns: [] }
-    case 'set_once':
-      return { privileges: ['INSERT', 'SELECT'], updateColumns: entry.setOnce, namedColumns: entry.setOnce }
+    case 'set_once': {
+      const updatable = [...entry.setOnce, ...(entry.movesLater ?? [])]
+      return { privileges: ['INSERT', 'SELECT'], updateColumns: updatable, namedColumns: updatable }
+    }
     case 'mutable':
     case 'frozen_by_status': {
       const noUpdate = entry.noUpdate ?? []

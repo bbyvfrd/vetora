@@ -41,7 +41,51 @@
   },
   "visitsToday": {
     "title": "Bugünkü qəbullar",
-    "newVisit": "Yeni qəbul"
+    "newVisit": "Yeni qəbul",
+    "time": "Vaxt",
+    "patient": "Pasiyent",
+    "client": "Müştəri",
+    "vet": "Həkim",
+    "status": "Status"
+  },
+  "visit": {
+    "start": "Qəbulu başlat",
+    "complete": "Qəbulu tamamla",
+    "cancel": "Qəbulu ləğv et",
+    "note": "Qəbul qeydi",
+    "status": {
+      "draft": "Qaralama",
+      "finalised": "Tamamlanıb"
+    },
+    "section": {
+      "reasonForVisit": "Müraciət səbəbi",
+      "anamnesis": "Anamnez",
+      "examination": "Müayinə",
+      "diagnosis": "Diaqnoz",
+      "treatment": "Müalicə",
+      "recommendations": "Tövsiyələr"
+    },
+    "notRecorded": "Qeyd edilməyib",
+    "saving": "Yadda saxlanılır",
+    "saved": "Yadda saxlanıldı",
+    "notSaved": "Yadda saxlanılmayıb",
+    "high": "Yüksək",
+    "low": "Aşağı",
+    "age": "Yaş",
+    "owner": "Sahib",
+    "neutered": {
+      "female": "qısırlaşdırılıb",
+      "male": "qısırlaşdırılıb",
+      "unknown": "qısırlaşdırılıb"
+    }
+  },
+  "confirm": {
+    "visitCancel": {
+      "title": "Qəbul ləğv edilsin?",
+      "body": "Qəbul bugünkü qəbullar siyahısından çıxarılacaq.",
+      "button": "Qəbulu ləğv et",
+      "back": "Qəbulu saxla"
+    }
   },
   "empty": {
     "visitsToday": {
@@ -88,6 +132,7 @@
     "birthDate": "Doğum tarixi gələcəkdə ola bilməz",
     "microchip": "Mikroçipin 15 rəqəmini daxil edin",
     "microchipTaken": "Bu mikroçip başqa pasiyentdə qeyd olunub",
+    "reasonForVisit": "Müraciət səbəbini daxil edin",
     "dateExample": "12.10.2026"
   },
   "newVisit": {
@@ -138,6 +183,10 @@
   "toast": {
     "patient": {
       "saved": "Pasiyent yadda saxlanıldı"
+    },
+    "visit": {
+      "completed": "Qəbul tamamlandı",
+      "cancelled": "Qəbul ləğv edildi"
     }
   },
   "warning": {

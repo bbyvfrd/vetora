@@ -211,6 +211,10 @@ describe.skipIf(!databaseTestsEnabled())('the rules the database refuses to bend
           ['vetora.frozen_record', 'VT003'],
           ['vetora.backdated_too_far', 'VT004'],
           ['vetora.incomplete_fixture_companion', 'VT005'],
+          ['vetora.not_veterinarian', 'VT006'],
+          ['vetora.no_care_relationship', 'VT007'],
+          ['vetora.reason_for_visit_required', 'VT008'],
+          ['vetora.reporter_required', 'VT009'],
         ]),
       )
       // The guard: the SQL and errors.ts agree pair by pair, in both directions.

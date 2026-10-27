@@ -84,6 +84,38 @@ export async function registerClient(input: ClientInput): Promise<'created' | 'e
   return 'created'
 }
 
+/** A client's name, as the clinic writes it from its three parts. */
+export type ClientName = { id: string; firstName: string | null; lastName: string | null; patronymic: string | null }
+
+const NAME_COLUMNS = {
+  id: client.id,
+  firstName: client.firstName,
+  lastName: client.lastName,
+  patronymic: client.patronymic,
+}
+
+/** What a patient header shows of its owner (#22): the name, and the primary phone as it was typed. */
+export async function clientCard(id: string): Promise<(ClientName & { phone: string | null }) | undefined> {
+  const { db } = practiceContext()
+  const [row] = await db
+    .select({ ...NAME_COLUMNS, phone: clientContact.value })
+    .from(client)
+    .leftJoin(clientContact, and(eq(clientContact.clientId, client.id), eq(clientContact.isPrimary, true)))
+    .where(eq(client.id, id))
+  return row
+}
+
+/** The clients' names by id (#22: the rows of Visits today). */
+export async function clientNames(ids: readonly string[]): Promise<Map<string, ClientName>> {
+  if (ids.length === 0) return new Map()
+  const { db } = practiceContext()
+  const rows = await db
+    .select(NAME_COLUMNS)
+    .from(client)
+    .where(inArray(client.id, [...ids]))
+  return new Map(rows.map((row) => [row.id, row]))
+}
+
 /** Whether an active client has this id. */
 export async function clientExists(id: string): Promise<boolean> {
   const { db } = practiceContext()
