@@ -19,8 +19,19 @@ export type Asked = { method: string; path: string; body: unknown }
 /** An answer: a response, or no connection at all. */
 export type Answer = Response | 'offline'
 
-/** The stubbed routes, keyed `METHOD /path`; a route not listed answers 404. */
+/**
+ * The stubbed routes, keyed `METHOD /path`, or `METHOD /path/*` for every path under it (a create whose path carries
+ * the new id); a route not listed answers 404.
+ */
 export type Routes = Record<string, (body: unknown) => Answer>
+
+/** The route that answers `key` (`METHOD /path`): the exact one, else the first `/*` one it falls under. */
+function routeOf(routes: Routes, key: string): Routes[string] | undefined {
+  return (
+    routes[key] ??
+    Object.entries(routes).find(([pattern]) => pattern.endsWith('/*') && key.startsWith(pattern.slice(0, -1)))?.[1]
+  )
+}
 
 /** Answer every request through `routes` and record what was asked. */
 export function stubApi(fetchMock: Mock<typeof fetch>, routes: Routes): Asked[] {
@@ -28,10 +39,10 @@ export function stubApi(fetchMock: Mock<typeof fetch>, routes: Routes): Asked[] 
   fetchMock.mockImplementation(async (input, init) => {
     const request = input instanceof Request ? input : new Request(String(input), init)
     const path = new URL(request.url).pathname
-    const text = await request.text()
+    const text = await request.clone().text()
     const body = text ? (JSON.parse(text) as unknown) : undefined
     asked.push({ method: request.method, path, body })
-    const route = routes[`${request.method} ${path}`]
+    const route = routeOf(routes, `${request.method} ${path}`)
     const answer = route ? route(body) : Response.json({ title: 'Not found', status: 404 }, { status: 404 })
     if (answer === 'offline') throw new TypeError('Failed to fetch')
     return answer

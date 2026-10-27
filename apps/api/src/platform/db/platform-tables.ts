@@ -89,6 +89,15 @@ export const practiceSettings = pgTable(
 )
 
 /**
+ * Today's date where the practice is, `YYYY-MM-DD`: the database clock in the practice's time zone (docs/domain.md
+ * §10), for the calendar facts a request writes, such as the day an owner's period starts. Read inside a practice
+ * transaction.
+ * @public
+ */
+export const practiceToday = () =>
+  sql<string>`(now() at time zone (select ${practiceSettings.timeZone} from ${practiceSettings}))::date`
+
+/**
  * IN-5: a practice has a location from day one; provisioning seeds the default one.
  * @public
  */

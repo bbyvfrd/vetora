@@ -367,6 +367,460 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/p/{practiceId}/species": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The species and their breeds
+         * @description Every species in its order with its three names, each with its active breeds.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    "vetora-location": string;
+                };
+                path: {
+                    practiceId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The species */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            species: {
+                                /** Format: uuid */
+                                id: string;
+                                code: string;
+                                name: {
+                                    az: string;
+                                    ru: string;
+                                    en: string;
+                                };
+                                clinicallySupported: boolean;
+                                breeds: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    name: {
+                                        az: string | null;
+                                        ru: string | null;
+                                        en: string | null;
+                                    };
+                                }[];
+                            }[];
+                        };
+                    };
+                };
+                /** @description Validation failed, or no location header or one not of this practice (problem details) */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No session (problem details) */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not a member, a practice not active, or an action the roles may not perform (problem details) */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description The practice is being updated (problem details) */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/p/{practiceId}/breeds/{breedId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Add a breed
+         * @description Adds a breed to a species with one name in the language given. The id is a UUID v7 the client generates: the same request again answers the breed and changes nothing.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    "vetora-location": string;
+                };
+                path: {
+                    practiceId: string;
+                    breedId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        speciesId: string;
+                        /** @enum {string} */
+                        language: "az" | "ru" | "en";
+                        name: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description The breed was already there */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            speciesId: string;
+                            name: {
+                                az: string | null;
+                                ru: string | null;
+                                en: string | null;
+                            };
+                        };
+                    };
+                };
+                /** @description The breed was added */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            speciesId: string;
+                            name: {
+                                az: string | null;
+                                ru: string | null;
+                                en: string | null;
+                            };
+                        };
+                    };
+                };
+                /** @description Validation failed, or no location header or one not of this practice (problem details) */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No session (problem details) */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not a member, a practice not active, or an action the roles may not perform (problem details) */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No such species (problem details) */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description The species has a breed of this name (problem details) */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description The practice is being updated (problem details) */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/p/{practiceId}/clients/lookup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Find clients by phone
+         * @description Every client holding the phone number, written in any common way, each with the patients they own today. A POST, so the number never reaches a URL.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    "vetora-location": string;
+                };
+                path: {
+                    practiceId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        phone: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description The clients on the number */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            phone: string;
+                            clients: {
+                                /** Format: uuid */
+                                id: string;
+                                firstName: string | null;
+                                lastName: string | null;
+                                patronymic: string | null;
+                                /** @enum {string} */
+                                preferredLanguage: "az" | "ru" | "en";
+                                patients: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    name: string;
+                                    /** Format: uuid */
+                                    speciesId: string;
+                                    /** Format: uuid */
+                                    breedId: string | null;
+                                    /** @enum {string} */
+                                    sex: "male" | "female" | "unknown";
+                                }[];
+                            }[];
+                        };
+                    };
+                };
+                /** @description Validation failed, or no location header or one not of this practice (problem details) */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No session (problem details) */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not a member, a practice not active, or an action the roles may not perform (problem details) */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description The practice is being updated (problem details) */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/p/{practiceId}/registrations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Register a client and a patient
+         * @description Writes what is new of the client and the patient in one transaction, a new patient's owner row from the practice's today with it. The new ones carry UUID v7 ids the client generates: the same request again changes nothing.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    "vetora-location": string;
+                };
+                path: {
+                    practiceId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        client: {
+                            /** @enum {string} */
+                            type: "existing";
+                            /** Format: uuid */
+                            id: string;
+                        } | {
+                            /** @enum {string} */
+                            type: "new";
+                            /** Format: uuid */
+                            id: string;
+                            firstName: string;
+                            lastName: string;
+                            patronymic?: string | null;
+                            phone: string;
+                            /** @enum {string} */
+                            preferredLanguage: "az" | "ru" | "en";
+                        };
+                        patient: {
+                            /** @enum {string} */
+                            type: "existing";
+                            /** Format: uuid */
+                            id: string;
+                        } | {
+                            /** @enum {string} */
+                            type: "new";
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            /** Format: uuid */
+                            speciesId: string;
+                            /** Format: uuid */
+                            breedId?: string | null;
+                            /** @enum {string} */
+                            sex: "male" | "female" | "unknown";
+                            /** Format: date */
+                            birthDate?: string | null;
+                            /** @default false */
+                            birthDateIsEstimate?: boolean;
+                            /** @default false */
+                            isNeutered?: boolean;
+                            colour?: string | null;
+                            microchipNumber?: string | null;
+                        };
+                    };
+                };
+            };
+            responses: {
+                /** @description Registered */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            clientId: string;
+                            /** Format: uuid */
+                            patientId: string;
+                        };
+                    };
+                };
+                /** @description Validation failed, or no location header or one not of this practice (problem details) */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No session (problem details) */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not a member, a practice not active, or an action the roles may not perform (problem details) */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No such client, species or breed (problem details) */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description The microchip is another patient's, or the patient is not this client's (problem details) */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description The practice is being updated (problem details) */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {

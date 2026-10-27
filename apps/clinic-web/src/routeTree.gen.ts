@@ -14,6 +14,7 @@ import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppProfileRouteImport } from './routes/_app/profile'
 import { Route as AppStatusRouteImport } from './routes/_app/status'
+import { Route as AppVisitsNewRouteImport } from './routes/_app/visits.new'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
@@ -39,18 +40,25 @@ const AppStatusRoute = AppStatusRouteImport.update({
   path: '/status',
   getParentRoute: () => AppRoute,
 } as any)
+const AppVisitsNewRoute = AppVisitsNewRouteImport.update({
+  id: '/visits/new',
+  path: '/visits/new',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/sign-in': typeof SignInRoute
   '/profile': typeof AppProfileRoute
   '/status': typeof AppStatusRoute
+  '/visits/new': typeof AppVisitsNewRoute
 }
 export interface FileRoutesByTo {
   '/sign-in': typeof SignInRoute
   '/profile': typeof AppProfileRoute
   '/status': typeof AppStatusRoute
   '/': typeof AppIndexRoute
+  '/visits/new': typeof AppVisitsNewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -59,12 +67,13 @@ export interface FileRoutesById {
   '/_app/profile': typeof AppProfileRoute
   '/_app/status': typeof AppStatusRoute
   '/_app/': typeof AppIndexRoute
+  '/_app/visits/new': typeof AppVisitsNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/sign-in' | '/profile' | '/status'
+  fullPaths: '/' | '/sign-in' | '/profile' | '/status' | '/visits/new'
   fileRoutesByTo: FileRoutesByTo
-  to: '/sign-in' | '/profile' | '/status' | '/'
+  to: '/sign-in' | '/profile' | '/status' | '/' | '/visits/new'
   id:
     | '__root__'
     | '/_app'
@@ -72,6 +81,7 @@ export interface FileRouteTypes {
     | '/_app/profile'
     | '/_app/status'
     | '/_app/'
+    | '/_app/visits/new'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -116,6 +126,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppStatusRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/visits/new': {
+      id: '/_app/visits/new'
+      path: '/visits/new'
+      fullPath: '/visits/new'
+      preLoaderRoute: typeof AppVisitsNewRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
@@ -123,12 +140,14 @@ interface AppRouteChildren {
   AppProfileRoute: typeof AppProfileRoute
   AppStatusRoute: typeof AppStatusRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppVisitsNewRoute: typeof AppVisitsNewRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppProfileRoute: AppProfileRoute,
   AppStatusRoute: AppStatusRoute,
   AppIndexRoute: AppIndexRoute,
+  AppVisitsNewRoute: AppVisitsNewRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

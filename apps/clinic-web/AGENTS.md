@@ -9,6 +9,7 @@ The web app for clinic staff: React 19 on Vite 8, rendered in the browser and se
 - React 19, Vite 8 with `@vitejs/plugin-react`, TypeScript project references (`tsc -b`, `erasableSyntaxOnly`)
 - TanStack Router 1 (file routes; `@tanstack/router-plugin` writes `src/routeTree.gen.ts`) and TanStack Query 5
 - `openapi-fetch` over the generated `paths` type; i18next 26 with react-i18next 17; `@sentry/react` 11 and `@sentry/vite-plugin`
+- React Hook Form 7 with `@hookform/resolvers`' `zodResolver` over the contracts' schemas (zod from the pnpm catalog)
 - Static files behind nginx 1.29 in the image (`Dockerfile`, `docker/`), rolled out with Kamal (`config/deploy.yml` and a destination file per environment)
 
 ## Key files
@@ -26,6 +27,7 @@ Each file's own comments say what it owns and why; this index finds the file.
 | `src/app.test.tsx` | The shell's DOM test: the real route tree on a memory history, the three languages, axe |
 | `src/test-support.tsx`, `src/test-setup.ts` | The DOM tests' helpers (`stubApi()`, `renderApp()`, `violationsOf()`); jest-dom, the `scrollTo` stub, cleanup |
 | `src/api/client.ts` | `api`, the typed client on the page's own origin |
+| `src/api/practice.ts`, `src/ids.ts` | `practiceParams(me)`, the practice id and location header every practice request sends; `uuidv7()`, a create's ids |
 | `src/i18n.ts`, `src/i18next.d.ts` | i18next and the per browser language; the typed translation keys |
 | `src/sentry.ts` | Sentry from `/config.json`, every collection option off |
 | `src/assets/`, `index.html`, `public/` | The logos, the favicon set and the manifest from the artifact; `public/config.json`, the local runtime config |
@@ -47,6 +49,7 @@ pnpm --filter @vetora/clinic-web preview    # serves the built dist/
 - The API is reached only through `api` from `src/api/client.ts`, so every call is typed against the OpenAPI document; server state lives in TanStack Query (`useQuery` with array keys), not in component state.
 - No screen text in components: every string is a key in `packages/i18n` (`t('health.title')`) that exists in `az`, `ru`, and `en`; `document.documentElement.lang` follows the chosen language, which once signed in is the one saved to the login (`_app.tsx`). A word the design system glossary lacks is added there first, then to the three locale files (`docs/design.md`, "Words").
 - Values are shown through the design system's formatters from `@vetora/ui`, never raw `Intl` for `az` (`CODING_STANDARDS.md`, "Screen text"). A stored amount in minor units goes through `formatMinorUnits` with its currency (IN-4); `formatMoney` is never called with a stored amount, and `InvoiceTable` and `Receipt`, which take manat numbers today, are changed in `packages/ui` before the first invoice screen (`docs/design.md`, "Not yet"). `formatDate` and `formatTime` take a day as `YYYY-MM-DD` or a `Date` already in the practice's wall clock: a UTC instant from the API is converted first with `date-fns` and `@date-fns/tz`, installed with the first screen that shows an instant, and business dates are computed in the API and travel as dates (`docs/design.md`, "Formatters"). A count goes through `formatCount` with the noun's forms read from the translation files (`t(key, { returnObjects: true })`); lists of names sort with `compareText`.
+- A form is React Hook Form validated by the contracts' schemas (`zodResolver`), each field a `Controller` around the design system's field and its error a message from the translation files chosen by the field, never zod's English (`src/pages/NewVisitPage.tsx`). A create's ids are made once when the form opens, so a retry changes nothing. A practice request sends `practiceParams(me)`, kept out of `session.ts` so the contracts' schemas load with the pages that call practice routes, not with the shell; a page shows what the matrix allows its roles (`can()`).
 - Runtime values (Sentry DSN, environment, release) come from `/config.json`, never from `import.meta.env` at build time, so one image serves every environment.
 - No personal data in URLs: search parameters hold only filters that are not personal (status, dates, location); names and phones travel in request bodies (spec 0001, "API conventions").
 - Imports carry no extension (bundler resolution); `verbatimModuleSyntax` and `erasableSyntaxOnly` are on, so types are imported with `import type`, and enums, namespaces, and parameter properties are out.

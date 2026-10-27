@@ -19,6 +19,12 @@ import {
   withExtraMigration,
 } from './test-support.js'
 
+/**
+ * The audit rows provisioning and this file write, leaving out those of the practice set's data migrations (the
+ * species seed), which name their own folder as the source (docs/database.md, "Actor and audit").
+ */
+const NOT_A_DATA_MIGRATION = "source !~ '^migration:[0-9]{14}_'"
+
 describe.skipIf(!databaseTestsEnabled())(
   'provision-practice creates a practice behind its own role (AC-10, AC-11)',
   () => {
@@ -94,7 +100,8 @@ describe.skipIf(!databaseTestsEnabled())(
       const locations = await migrator.query(`select * from ${schema}.location order by name`)
       const staff = await migrator.query(`select * from ${schema}.staff_member order by id`)
       const audit = await migrator.query(
-        `select table_name, row_id, action, actor_id, source, changed from ${schema}.audit_event order by id`,
+        `select table_name, row_id, action, actor_id, source, changed from ${schema}.audit_event
+         where ${NOT_A_DATA_MIGRATION} order by id`,
       )
       const migrations = await migrator.query(`select id, name, hash from ${schema}.__drizzle_migrations order by id`)
       return {
@@ -175,8 +182,14 @@ describe.skipIf(!databaseTestsEnabled())(
       expect(tables.rows.map((row) => row.table_name)).toEqual([
         '__drizzle_migrations',
         'audit_event',
+        'breed',
+        'client',
+        'client_contact',
         'location',
+        'ownership',
+        'patient',
         'practice_settings',
+        'species',
         'staff_member',
       ])
       // The first manager mirrors their login and its membership, with the one role; the row is its own creator (IN-1).
@@ -240,7 +253,8 @@ describe.skipIf(!databaseTestsEnabled())(
       ])
       // Three inserts in the audit log, the manager as actor, the command as source (AC-8).
       const audit = await migrator.query(
-        `select table_name, action, actor_id, source from ${pg.escapeIdentifier(alfa.schema)}.audit_event order by id`,
+        `select table_name, action, actor_id, source from ${pg.escapeIdentifier(alfa.schema)}.audit_event
+         where ${NOT_A_DATA_MIGRATION} order by id`,
       )
       expect(audit.rows).toEqual([
         { table_name: 'staff_member', action: 'insert', actor_id: manager, source: 'migration:provision-practice' },

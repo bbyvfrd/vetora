@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm'
 import { customType } from 'drizzle-orm/pg-core'
 
 /**
@@ -8,6 +9,13 @@ import { customType } from 'drizzle-orm/pg-core'
  * noPrivateImports lets a module import nothing from src/platform/ without the tag (biome.jsonc, package visibility
  * inside src/modules/).
  */
+
+/**
+ * A fixed value set as a quoted, comma separated SQL list, for the check a text column's value set takes (spec 0002,
+ * "Conventions": Value sets): `check('patient_sex_check', sql\`${table.sex} in (${sqlList(SEXES)})\`)`.
+ * @public
+ */
+export const sqlList = (values: readonly string[]) => sql.raw(values.map((value) => `'${value}'`).join(', '))
 
 /**
  * The currencies the money domain accepts; AZN only for now (spec 0002, "Money").

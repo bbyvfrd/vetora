@@ -11,7 +11,7 @@ import {
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core'
-import { LANG_CODES } from './domains.js'
+import { LANG_CODES, sqlList } from './domains.js'
 import { STAFF_ROLES } from './platform-tables.js'
 
 /**
@@ -25,9 +25,6 @@ export const control = pgSchema('control')
 
 /** The registry's state machine: a text column with a check, as every fixed value set (spec 0002, "Value sets"). */
 const practiceStatuses = ['provisioning', 'active', 'suspended', 'archived'] as const
-
-/** A quoted, comma separated SQL list of fixed values, for a check. */
-const sqlList = (values: readonly string[]) => sql.raw(values.map((value) => `'${value}'`).join(', '))
 
 export const practice = control.table(
   'practice',

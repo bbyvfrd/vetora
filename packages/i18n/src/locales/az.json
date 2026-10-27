@@ -40,11 +40,15 @@
     "groomer": "Qrumer"
   },
   "visitsToday": {
-    "title": "Bugünkü qəbullar"
+    "title": "Bugünkü qəbullar",
+    "newVisit": "Yeni qəbul"
   },
   "empty": {
     "visitsToday": {
       "title": "Bu gün qəbul yoxdur"
+    },
+    "search": {
+      "title": "Nəticə tapılmadı"
     }
   },
   "error": {
@@ -68,9 +72,90 @@
     "offline": {
       "title": "Bağlantı yoxdur",
       "body": "İnternet bağlantısını yoxlayın. Yazdıqlarınız yerindədir."
+    },
+    "save": {
+      "title": "Dəyişiklikləri yadda saxlamaq mümkün olmadı",
+      "body": "Yazdıqlarınız yerindədir. Yenidən cəhd edin."
     }
   },
   "field": {
-    "required": "Bu sahəni doldurun"
+    "required": "Bu sahəni doldurun",
+    "phone": "Nömrəni +994 50 123 45 67 kimi daxil edin",
+    "patient": {
+      "name": "Pasiyentin adını daxil edin"
+    },
+    "date": "Tarixi {{example}} kimi daxil edin",
+    "birthDate": "Doğum tarixi gələcəkdə ola bilməz",
+    "microchip": "Mikroçipin 15 rəqəmini daxil edin",
+    "microchipTaken": "Bu mikroçip başqa pasiyentdə qeyd olunub",
+    "dateExample": "12.10.2026"
+  },
+  "newVisit": {
+    "title": "Yeni qəbul",
+    "search": "Axtar",
+    "clients": "Müştərilər",
+    "newClient": "Yeni müştəri",
+    "newPatient": "Yeni pasiyent",
+    "save": "Yadda saxla",
+    "cancel": "İmtina"
+  },
+  "client": {
+    "title": "Müştəri",
+    "firstName": "Ad",
+    "lastName": "Soyad",
+    "patronymic": "Ata adı",
+    "phone": "Telefon",
+    "preferredLanguage": "Ünsiyyət dili"
+  },
+  "patient": {
+    "title": "Pasiyent",
+    "name": "Ad",
+    "species": "Növ",
+    "breed": "Cins",
+    "addBreed": "Cins əlavə et",
+    "sex": "Cinsiyyət",
+    "birthDate": "Doğum tarixi",
+    "birthDateEstimated": "Təxmini tarix",
+    "neutered": "Qısırlaşdırılıb",
+    "colour": "Rəng",
+    "microchipNumber": "Mikroçip nömrəsi"
+  },
+  "sex": {
+    "female": "Dişi",
+    "male": "Erkək",
+    "unknown": "Naməlum"
+  },
+  "answer": {
+    "yes": "Bəli",
+    "no": "Xeyr"
+  },
+  "action": {
+    "add": "Əlavə et",
+    "clear": "Təmizlə",
+    "close": "Bağla",
+    "select": "Seç"
+  },
+  "toast": {
+    "patient": {
+      "saved": "Pasiyent yadda saxlanıldı"
+    }
+  },
+  "warning": {
+    "phoneShared": {
+      "title": "Bu telefon nömrəsi başqa müştəridə qeyd olunub",
+      "body": "Bunun başqa şəxs olduğunu yoxlayın. Nömrə hər iki müştəridə qalacaq."
+    }
+  },
+  "form": {
+    "check": "İşarələnmiş sahələri yoxlayın"
+  },
+  "calendar": {
+    "open": "Tarixi seç",
+    "previousMonth": "Əvvəlki ay",
+    "nextMonth": "Növbəti ay",
+    "today": "Bu gün"
+  },
+  "notifications": {
+    "label": "Bildirişlər"
   }
 }

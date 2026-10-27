@@ -1,0 +1,2945 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "ca3c10cf-552a-46e9-8889-dcf70196c742",
+  "prevIds": [
+    "45c280a1-637d-40bc-aa59-f8309a6494f5"
+  ],
+  "footprints": [
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "client"
+      ],
+      "writes": [
+        "s|tbl|public.client",
+        "n|tbl|public.client",
+        "e|tbl|public.client",
+        "n|rel|public.client",
+        "n|type|public.client",
+        "n|rel|public.client_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "client_contact"
+      ],
+      "writes": [
+        "s|tbl|public.client_contact",
+        "n|tbl|public.client_contact",
+        "e|tbl|public.client_contact",
+        "n|rel|public.client_contact",
+        "n|type|public.client_contact",
+        "n|rel|public.client_contact_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "breed"
+      ],
+      "writes": [
+        "s|tbl|public.breed",
+        "n|tbl|public.breed",
+        "e|tbl|public.breed",
+        "n|rel|public.breed",
+        "n|type|public.breed",
+        "n|rel|public.breed_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "ownership"
+      ],
+      "writes": [
+        "s|tbl|public.ownership",
+        "n|tbl|public.ownership",
+        "e|tbl|public.ownership",
+        "n|rel|public.ownership",
+        "n|type|public.ownership",
+        "n|rel|public.ownership_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "patient"
+      ],
+      "writes": [
+        "s|tbl|public.patient",
+        "n|tbl|public.patient",
+        "e|tbl|public.patient",
+        "n|rel|public.patient",
+        "n|type|public.patient",
+        "n|rel|public.patient_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "species"
+      ],
+      "writes": [
+        "s|tbl|public.species",
+        "n|tbl|public.species",
+        "e|tbl|public.species",
+        "n|rel|public.species",
+        "n|type|public.species",
+        "n|rel|public.species_pkey",
+        "n|rel|public.species_code_key"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "client_contact",
+        "client_contact_client_idx"
+      ],
+      "writes": [
+        "s|idx|public.client_contact_client_idx",
+        "n|idx|public.client_contact_client_idx",
+        "e|idx|public.client_contact_client_idx",
+        "n|rel|public.client_contact_client_idx"
+      ],
+      "reads": [
+        "n|tbl|public.client_contact",
+        "n|sch|public",
+        "n|col|public.client_contact.client_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "client_contact",
+        "client_contact_value_normalised_idx"
+      ],
+      "writes": [
+        "s|idx|public.client_contact_value_normalised_idx",
+        "n|idx|public.client_contact_value_normalised_idx",
+        "e|idx|public.client_contact_value_normalised_idx",
+        "n|rel|public.client_contact_value_normalised_idx"
+      ],
+      "reads": [
+        "n|tbl|public.client_contact",
+        "n|sch|public",
+        "n|col|public.client_contact.value_normalised"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "client_contact",
+        "client_contact_primary_idx"
+      ],
+      "writes": [
+        "s|idx|public.client_contact_primary_idx",
+        "n|idx|public.client_contact_primary_idx",
+        "e|idx|public.client_contact_primary_idx",
+        "n|rel|public.client_contact_primary_idx"
+      ],
+      "reads": [
+        "n|tbl|public.client_contact",
+        "n|sch|public",
+        "n|col|public.client_contact.client_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "breed",
+        "breed_species_idx"
+      ],
+      "writes": [
+        "s|idx|public.breed_species_idx",
+        "n|idx|public.breed_species_idx",
+        "e|idx|public.breed_species_idx",
+        "n|rel|public.breed_species_idx"
+      ],
+      "reads": [
+        "n|tbl|public.breed",
+        "n|sch|public",
+        "n|col|public.breed.species_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "breed",
+        "breed_species_name_ru_idx"
+      ],
+      "writes": [
+        "s|idx|public.breed_species_name_ru_idx",
+        "n|idx|public.breed_species_name_ru_idx",
+        "e|idx|public.breed_species_name_ru_idx",
+        "n|rel|public.breed_species_name_ru_idx"
+      ],
+      "reads": [
+        "n|tbl|public.breed",
+        "n|sch|public",
+        "n|col|public.breed.species_id",
+        "n|col|public.breed.name_ru"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "ownership",
+        "ownership_patient_idx"
+      ],
+      "writes": [
+        "s|idx|public.ownership_patient_idx",
+        "n|idx|public.ownership_patient_idx",
+        "e|idx|public.ownership_patient_idx",
+        "n|rel|public.ownership_patient_idx"
+      ],
+      "reads": [
+        "n|tbl|public.ownership",
+        "n|sch|public",
+        "n|col|public.ownership.patient_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "ownership",
+        "ownership_client_idx"
+      ],
+      "writes": [
+        "s|idx|public.ownership_client_idx",
+        "n|idx|public.ownership_client_idx",
+        "e|idx|public.ownership_client_idx",
+        "n|rel|public.ownership_client_idx"
+      ],
+      "reads": [
+        "n|tbl|public.ownership",
+        "n|sch|public",
+        "n|col|public.ownership.client_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "patient",
+        "patient_species_idx"
+      ],
+      "writes": [
+        "s|idx|public.patient_species_idx",
+        "n|idx|public.patient_species_idx",
+        "e|idx|public.patient_species_idx",
+        "n|rel|public.patient_species_idx"
+      ],
+      "reads": [
+        "n|tbl|public.patient",
+        "n|sch|public",
+        "n|col|public.patient.species_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "patient",
+        "patient_breed_idx"
+      ],
+      "writes": [
+        "s|idx|public.patient_breed_idx",
+        "n|idx|public.patient_breed_idx",
+        "e|idx|public.patient_breed_idx",
+        "n|rel|public.patient_breed_idx"
+      ],
+      "reads": [
+        "n|tbl|public.patient",
+        "n|sch|public",
+        "n|col|public.patient.breed_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "patient",
+        "patient_microchip_number_idx"
+      ],
+      "writes": [
+        "s|idx|public.patient_microchip_number_idx",
+        "n|idx|public.patient_microchip_number_idx",
+        "e|idx|public.patient_microchip_number_idx",
+        "n|rel|public.patient_microchip_number_idx"
+      ],
+      "reads": [
+        "n|tbl|public.patient",
+        "n|sch|public",
+        "n|col|public.patient.microchip_number"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "client"
+      ],
+      "writes": [
+        "s|fk|public.client.client_created_by_staff_member_id_fkey",
+        "n|fk|public.client.client_created_by_staff_member_id_fkey",
+        "e|fk|public.client.client_created_by_staff_member_id_fkey",
+        "n|con|public.client.client_created_by_staff_member_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.client",
+        "n|sch|public",
+        "n|tbl|public.staff_member",
+        "n|sch|public",
+        "n|col|public.client.created_by",
+        "n|col|public.staff_member.id",
+        "e|uniqueness|public.staff_member.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "client"
+      ],
+      "writes": [
+        "s|fk|public.client.client_updated_by_staff_member_id_fkey",
+        "n|fk|public.client.client_updated_by_staff_member_id_fkey",
+        "e|fk|public.client.client_updated_by_staff_member_id_fkey",
+        "n|con|public.client.client_updated_by_staff_member_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.client",
+        "n|sch|public",
+        "n|tbl|public.staff_member",
+        "n|sch|public",
+        "n|col|public.client.updated_by",
+        "n|col|public.staff_member.id",
+        "e|uniqueness|public.staff_member.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "client_contact"
+      ],
+      "writes": [
+        "s|fk|public.client_contact.client_contact_client_id_client_id_fkey",
+        "n|fk|public.client_contact.client_contact_client_id_client_id_fkey",
+        "e|fk|public.client_contact.client_contact_client_id_client_id_fkey",
+        "n|con|public.client_contact.client_contact_client_id_client_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.client_contact",
+        "n|sch|public",
+        "n|tbl|public.client",
+        "n|sch|public",
+        "n|col|public.client_contact.client_id",
+        "n|col|public.client.id",
+        "e|uniqueness|public.client.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "client_contact"
+      ],
+      "writes": [
+        "s|fk|public.client_contact.client_contact_created_by_staff_member_id_fkey",
+        "n|fk|public.client_contact.client_contact_created_by_staff_member_id_fkey",
+        "e|fk|public.client_contact.client_contact_created_by_staff_member_id_fkey",
+        "n|con|public.client_contact.client_contact_created_by_staff_member_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.client_contact",
+        "n|sch|public",
+        "n|tbl|public.staff_member",
+        "n|sch|public",
+        "n|col|public.client_contact.created_by",
+        "n|col|public.staff_member.id",
+        "e|uniqueness|public.staff_member.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "client_contact"
+      ],
+      "writes": [
+        "s|fk|public.client_contact.client_contact_updated_by_staff_member_id_fkey",
+        "n|fk|public.client_contact.client_contact_updated_by_staff_member_id_fkey",
+        "e|fk|public.client_contact.client_contact_updated_by_staff_member_id_fkey",
+        "n|con|public.client_contact.client_contact_updated_by_staff_member_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.client_contact",
+        "n|sch|public",
+        "n|tbl|public.staff_member",
+        "n|sch|public",
+        "n|col|public.client_contact.updated_by",
+        "n|col|public.staff_member.id",
+        "e|uniqueness|public.staff_member.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "breed"
+      ],
+      "writes": [
+        "s|fk|public.breed.breed_species_id_species_id_fkey",
+        "n|fk|public.breed.breed_species_id_species_id_fkey",
+        "e|fk|public.breed.breed_species_id_species_id_fkey",
+        "n|con|public.breed.breed_species_id_species_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.breed",
+        "n|sch|public",
+        "n|tbl|public.species",
+        "n|sch|public",
+        "n|col|public.breed.species_id",
+        "n|col|public.species.id",
+        "e|uniqueness|public.species.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "breed"
+      ],
+      "writes": [
+        "s|fk|public.breed.breed_created_by_staff_member_id_fkey",
+        "n|fk|public.breed.breed_created_by_staff_member_id_fkey",
+        "e|fk|public.breed.breed_created_by_staff_member_id_fkey",
+        "n|con|public.breed.breed_created_by_staff_member_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.breed",
+        "n|sch|public",
+        "n|tbl|public.staff_member",
+        "n|sch|public",
+        "n|col|public.breed.created_by",
+        "n|col|public.staff_member.id",
+        "e|uniqueness|public.staff_member.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "breed"
+      ],
+      "writes": [
+        "s|fk|public.breed.breed_updated_by_staff_member_id_fkey",
+        "n|fk|public.breed.breed_updated_by_staff_member_id_fkey",
+        "e|fk|public.breed.breed_updated_by_staff_member_id_fkey",
+        "n|con|public.breed.breed_updated_by_staff_member_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.breed",
+        "n|sch|public",
+        "n|tbl|public.staff_member",
+        "n|sch|public",
+        "n|col|public.breed.updated_by",
+        "n|col|public.staff_member.id",
+        "e|uniqueness|public.staff_member.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "ownership"
+      ],
+      "writes": [
+        "s|fk|public.ownership.ownership_patient_id_patient_id_fkey",
+        "n|fk|public.ownership.ownership_patient_id_patient_id_fkey",
+        "e|fk|public.ownership.ownership_patient_id_patient_id_fkey",
+        "n|con|public.ownership.ownership_patient_id_patient_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.ownership",
+        "n|sch|public",
+        "n|tbl|public.patient",
+        "n|sch|public",
+        "n|col|public.ownership.patient_id",
+        "n|col|public.patient.id",
+        "e|uniqueness|public.patient.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "ownership"
+      ],
+      "writes": [
+        "s|fk|public.ownership.ownership_created_by_staff_member_id_fkey",
+        "n|fk|public.ownership.ownership_created_by_staff_member_id_fkey",
+        "e|fk|public.ownership.ownership_created_by_staff_member_id_fkey",
+        "n|con|public.ownership.ownership_created_by_staff_member_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.ownership",
+        "n|sch|public",
+        "n|tbl|public.staff_member",
+        "n|sch|public",
+        "n|col|public.ownership.created_by",
+        "n|col|public.staff_member.id",
+        "e|uniqueness|public.staff_member.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "ownership"
+      ],
+      "writes": [
+        "s|fk|public.ownership.ownership_updated_by_staff_member_id_fkey",
+        "n|fk|public.ownership.ownership_updated_by_staff_member_id_fkey",
+        "e|fk|public.ownership.ownership_updated_by_staff_member_id_fkey",
+        "n|con|public.ownership.ownership_updated_by_staff_member_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.ownership",
+        "n|sch|public",
+        "n|tbl|public.staff_member",
+        "n|sch|public",
+        "n|col|public.ownership.updated_by",
+        "n|col|public.staff_member.id",
+        "e|uniqueness|public.staff_member.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "patient"
+      ],
+      "writes": [
+        "s|fk|public.patient.patient_species_id_species_id_fkey",
+        "n|fk|public.patient.patient_species_id_species_id_fkey",
+        "e|fk|public.patient.patient_species_id_species_id_fkey",
+        "n|con|public.patient.patient_species_id_species_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.patient",
+        "n|sch|public",
+        "n|tbl|public.species",
+        "n|sch|public",
+        "n|col|public.patient.species_id",
+        "n|col|public.species.id",
+        "e|uniqueness|public.species.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "patient"
+      ],
+      "writes": [
+        "s|fk|public.patient.patient_breed_id_breed_id_fkey",
+        "n|fk|public.patient.patient_breed_id_breed_id_fkey",
+        "e|fk|public.patient.patient_breed_id_breed_id_fkey",
+        "n|con|public.patient.patient_breed_id_breed_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.patient",
+        "n|sch|public",
+        "n|tbl|public.breed",
+        "n|sch|public",
+        "n|col|public.patient.breed_id",
+        "n|col|public.breed.id",
+        "e|uniqueness|public.breed.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "patient"
+      ],
+      "writes": [
+        "s|fk|public.patient.patient_created_by_staff_member_id_fkey",
+        "n|fk|public.patient.patient_created_by_staff_member_id_fkey",
+        "e|fk|public.patient.patient_created_by_staff_member_id_fkey",
+        "n|con|public.patient.patient_created_by_staff_member_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.patient",
+        "n|sch|public",
+        "n|tbl|public.staff_member",
+        "n|sch|public",
+        "n|col|public.patient.created_by",
+        "n|col|public.staff_member.id",
+        "e|uniqueness|public.staff_member.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "patient"
+      ],
+      "writes": [
+        "s|fk|public.patient.patient_updated_by_staff_member_id_fkey",
+        "n|fk|public.patient.patient_updated_by_staff_member_id_fkey",
+        "e|fk|public.patient.patient_updated_by_staff_member_id_fkey",
+        "n|con|public.patient.patient_updated_by_staff_member_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.patient",
+        "n|sch|public",
+        "n|tbl|public.staff_member",
+        "n|sch|public",
+        "n|col|public.patient.updated_by",
+        "n|col|public.staff_member.id",
+        "e|uniqueness|public.staff_member.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "species"
+      ],
+      "writes": [
+        "s|fk|public.species.species_created_by_staff_member_id_fkey",
+        "n|fk|public.species.species_created_by_staff_member_id_fkey",
+        "e|fk|public.species.species_created_by_staff_member_id_fkey",
+        "n|con|public.species.species_created_by_staff_member_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.species",
+        "n|sch|public",
+        "n|tbl|public.staff_member",
+        "n|sch|public",
+        "n|col|public.species.created_by",
+        "n|col|public.staff_member.id",
+        "e|uniqueness|public.staff_member.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "species"
+      ],
+      "writes": [
+        "s|fk|public.species.species_updated_by_staff_member_id_fkey",
+        "n|fk|public.species.species_updated_by_staff_member_id_fkey",
+        "e|fk|public.species.species_updated_by_staff_member_id_fkey",
+        "n|con|public.species.species_updated_by_staff_member_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.species",
+        "n|sch|public",
+        "n|tbl|public.staff_member",
+        "n|sch|public",
+        "n|col|public.species.updated_by",
+        "n|col|public.staff_member.id",
+        "e|uniqueness|public.staff_member.id"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "client",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "client_contact",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "breed",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "ownership",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "patient",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "species",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "uuidv7()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client",
+        "name": "kind",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "'person'",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client",
+        "name": "first_name",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client",
+        "name": "last_name",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client",
+        "name": "patronymic",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client",
+        "name": "organisation_name",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client",
+        "name": "tax_id",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client",
+        "name": "contact_person",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client",
+        "name": "address",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client",
+        "name": "preferred_language",
+        "type": "lang_code",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client",
+        "name": "notes",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client",
+        "name": "status",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "'active'",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client",
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client",
+        "name": "created_by",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client",
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client",
+        "name": "updated_by",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client",
+        "name": "version",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "1",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client_contact",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "uuidv7()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client_contact",
+        "name": "client_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client_contact",
+        "name": "kind",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client_contact",
+        "name": "value",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client_contact",
+        "name": "value_normalised",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client_contact",
+        "name": "label",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client_contact",
+        "name": "is_primary",
+        "type": "boolean",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "false",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client_contact",
+        "name": "messaging_allowed",
+        "type": "boolean",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "false",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client_contact",
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client_contact",
+        "name": "created_by",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client_contact",
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client_contact",
+        "name": "updated_by",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client_contact",
+        "name": "version",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "1",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "breed",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "uuidv7()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "breed",
+        "name": "species_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "breed",
+        "name": "name_az",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "breed",
+        "name": "name_ru",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "breed",
+        "name": "name_en",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "breed",
+        "name": "active",
+        "type": "boolean",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "true",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "breed",
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "breed",
+        "name": "created_by",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "breed",
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "breed",
+        "name": "updated_by",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "breed",
+        "name": "version",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "1",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ownership",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "uuidv7()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ownership",
+        "name": "patient_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ownership",
+        "name": "client_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ownership",
+        "name": "role",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ownership",
+        "name": "valid_from",
+        "type": "date",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ownership",
+        "name": "valid_to",
+        "type": "date",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ownership",
+        "name": "note",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ownership",
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ownership",
+        "name": "created_by",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ownership",
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ownership",
+        "name": "updated_by",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ownership",
+        "name": "version",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "1",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "patient",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "uuidv7()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "patient",
+        "name": "name",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "patient",
+        "name": "species_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "patient",
+        "name": "breed_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "patient",
+        "name": "sex",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "patient",
+        "name": "is_neutered",
+        "type": "boolean",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "false",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "patient",
+        "name": "neutered_on",
+        "type": "date",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "patient",
+        "name": "birth_date",
+        "type": "date",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "patient",
+        "name": "birth_date_is_estimate",
+        "type": "boolean",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "false",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "patient",
+        "name": "colour",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "patient",
+        "name": "markings",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "patient",
+        "name": "microchip_number",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "patient",
+        "name": "passport_number",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "patient",
+        "name": "life_status",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "'alive'",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "patient",
+        "name": "deceased_on",
+        "type": "date",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "patient",
+        "name": "status",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "'active'",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "patient",
+        "name": "notes",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "patient",
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "patient",
+        "name": "created_by",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "patient",
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "patient",
+        "name": "updated_by",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "patient",
+        "name": "version",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "1",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "species",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "uuidv7()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "species",
+        "name": "code",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "species",
+        "name": "name_az",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "species",
+        "name": "name_ru",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "species",
+        "name": "name_en",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "species",
+        "name": "clinically_supported",
+        "type": "boolean",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "false",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "species",
+        "name": "sort",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "0",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "species",
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "species",
+        "name": "created_by",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "species",
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "species",
+        "name": "updated_by",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "species",
+        "name": "version",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "1",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client_contact",
+        "name": "client_contact_client_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "client_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client_contact",
+        "name": "client_contact_value_normalised_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "value_normalised",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client_contact",
+        "name": "client_contact_primary_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "client_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": true,
+        "where": "\"is_primary\"",
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "breed",
+        "name": "breed_species_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "species_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "breed",
+        "name": "breed_species_name_ru_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "species_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          },
+          {
+            "value": "name_ru",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": true,
+        "where": "\"name_ru\" is not null",
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ownership",
+        "name": "ownership_patient_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "patient_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ownership",
+        "name": "ownership_client_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "client_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "patient",
+        "name": "patient_species_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "species_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "patient",
+        "name": "patient_breed_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "breed_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "patient",
+        "name": "patient_microchip_number_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "microchip_number",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": true,
+        "where": "\"microchip_number\" is not null",
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client",
+        "name": "client_created_by_staff_member_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "created_by"
+        ],
+        "schemaTo": "public",
+        "tableTo": "staff_member",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client",
+        "name": "client_updated_by_staff_member_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "updated_by"
+        ],
+        "schemaTo": "public",
+        "tableTo": "staff_member",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client_contact",
+        "name": "client_contact_client_id_client_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "client_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "client",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client_contact",
+        "name": "client_contact_created_by_staff_member_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "created_by"
+        ],
+        "schemaTo": "public",
+        "tableTo": "staff_member",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client_contact",
+        "name": "client_contact_updated_by_staff_member_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "updated_by"
+        ],
+        "schemaTo": "public",
+        "tableTo": "staff_member",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "breed",
+        "name": "breed_species_id_species_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "species_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "species",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "breed",
+        "name": "breed_created_by_staff_member_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "created_by"
+        ],
+        "schemaTo": "public",
+        "tableTo": "staff_member",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "breed",
+        "name": "breed_updated_by_staff_member_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "updated_by"
+        ],
+        "schemaTo": "public",
+        "tableTo": "staff_member",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ownership",
+        "name": "ownership_patient_id_patient_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "patient_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "patient",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ownership",
+        "name": "ownership_created_by_staff_member_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "created_by"
+        ],
+        "schemaTo": "public",
+        "tableTo": "staff_member",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ownership",
+        "name": "ownership_updated_by_staff_member_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "updated_by"
+        ],
+        "schemaTo": "public",
+        "tableTo": "staff_member",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "patient",
+        "name": "patient_species_id_species_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "species_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "species",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "patient",
+        "name": "patient_breed_id_breed_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "breed_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "breed",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "patient",
+        "name": "patient_created_by_staff_member_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "created_by"
+        ],
+        "schemaTo": "public",
+        "tableTo": "staff_member",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "patient",
+        "name": "patient_updated_by_staff_member_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "updated_by"
+        ],
+        "schemaTo": "public",
+        "tableTo": "staff_member",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "species",
+        "name": "species_created_by_staff_member_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "created_by"
+        ],
+        "schemaTo": "public",
+        "tableTo": "staff_member",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "species",
+        "name": "species_updated_by_staff_member_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "updated_by"
+        ],
+        "schemaTo": "public",
+        "tableTo": "staff_member",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client",
+        "name": "client_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client_contact",
+        "name": "client_contact_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "breed",
+        "name": "breed_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ownership",
+        "name": "ownership_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "patient",
+        "name": "patient_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "species",
+        "name": "species_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "species",
+        "name": "species_code_key",
+        "nameExplicit": false,
+        "columns": [
+          "code"
+        ],
+        "nullsNotDistinct": false,
+        "entityType": "uniques"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client",
+        "name": "client_kind_check",
+        "value": "\"kind\" in ('person', 'organisation')",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client",
+        "name": "client_status_check",
+        "value": "\"status\" in ('active', 'archived')",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client",
+        "name": "client_name_check",
+        "value": "(\"kind\" = 'person' and \"last_name\" is not null) or (\"kind\" = 'organisation' and \"organisation_name\" is not null)",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "client_contact",
+        "name": "client_contact_kind_check",
+        "value": "\"kind\" in ('phone', 'whatsapp', 'telegram', 'email')",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "breed",
+        "name": "breed_name_check",
+        "value": "coalesce(\"name_az\", \"name_ru\", \"name_en\") is not null",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ownership",
+        "name": "ownership_role_check",
+        "value": "\"role\" in ('owner', 'authorised_person')",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "ownership",
+        "name": "ownership_period_check",
+        "value": "\"valid_to\" is null or \"valid_to\" > \"valid_from\"",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "patient",
+        "name": "patient_sex_check",
+        "value": "\"sex\" in ('male', 'female', 'unknown')",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "patient",
+        "name": "patient_life_status_check",
+        "value": "\"life_status\" in ('alive', 'deceased')",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "patient",
+        "name": "patient_status_check",
+        "value": "\"status\" in ('active', 'archived')",
+        "entityType": "checks"
+      }
+    }
+  ]
+}

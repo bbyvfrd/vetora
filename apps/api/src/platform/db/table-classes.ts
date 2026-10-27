@@ -1,5 +1,16 @@
 import { getTableName } from 'drizzle-orm'
-import { auditEvent, location, practiceSettings, staffMember } from './platform-tables.js'
+import {
+  auditEvent,
+  breed,
+  client,
+  clientContact,
+  location,
+  ownership,
+  patient,
+  practiceSettings,
+  species,
+  staffMember,
+} from './practice-schema.js'
 
 /**
  * The table class registry (spec 0002, "Conventions": Table classes; "Security model": Grants pass): what the practice
@@ -44,6 +55,15 @@ export const tableClassRegistry: TableClassRegistry = {
     [getTableName(staffMember), { class: 'mutable' }],
     /** Written only by audit_row(); the practice role reads it (AC-8, AC-9). */
     [getTableName(auditEvent), { class: 'function_written' }],
+    // The Client module (#21).
+    [getTableName(client), { class: 'mutable' }],
+    [getTableName(clientContact), { class: 'mutable' }],
+    // The Patient module (#21): species seeded by the species_seed migration, the clinic adding breeds; an ownership
+    // period is closed by filling valid_to once (AC-5).
+    [getTableName(species), { class: 'mutable' }],
+    [getTableName(breed), { class: 'mutable' }],
+    [getTableName(patient), { class: 'mutable' }],
+    [getTableName(ownership), { class: 'set_once', setOnce: ['valid_to'] }],
   ]),
   views: new Set(),
   functions: new Set(),

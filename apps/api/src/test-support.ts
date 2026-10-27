@@ -1,6 +1,6 @@
 import { spawn } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
-import type { StaffRole } from '@vetora/contracts'
+import { LOCATION_HEADER, type StaffRole } from '@vetora/contracts'
 import { app } from './app.js'
 import { addStaff } from './modules/identity-access/index.js'
 import {
@@ -30,11 +30,13 @@ export type CallOptions = {
   cookie?: string
   /** The client's address, as kamal-proxy writes it into `x-forwarded-for`; without, Better Auth counts 127.0.0.1. */
   ip?: string
+  /** Further request headers, such as a practice route's location header. */
+  headers?: Record<string, string>
 }
 
 /** A request to the app as the web app sends it: same origin, JSON, the session cookie when given. */
-export async function call(path: string, { method = 'GET', body, cookie, ip }: CallOptions = {}): Promise<Response> {
-  const headers: Record<string, string> = { origin: testOrigin() }
+export async function call(path: string, { method = 'GET', body, cookie, ip, headers: extra }: CallOptions = {}) {
+  const headers: Record<string, string> = { origin: testOrigin(), ...extra }
   if (body !== undefined) headers['content-type'] = 'application/json'
   if (cookie) headers.cookie = cookie
   if (ip) headers['x-forwarded-for'] = ip
@@ -55,6 +57,13 @@ export async function refusal(response: Response) {
     contentType: response.headers.get('content-type'),
     cookies: response.headers.getSetCookie(),
   }
+}
+
+export type PracticeCallOptions = Omit<CallOptions, 'cookie'> & {
+  /** The location header: the practice's default location unless given; null sends none. */
+  location?: string | null
+  /** The practice id in the path: this practice's unless given. */
+  practiceId?: string
 }
 
 /** The session cookie a response sets, as the `name=value` pair a browser sends back; throws when there is none. */
@@ -92,8 +101,15 @@ export async function signedIn(practiceCode: string, handle: string, password: s
 export type ApiPractice = TestPractice & {
   /** The manager provisioning created, signed in. */
   manager: Login
+  /** The default location provisioning seeded, as `/api/me` names it. */
+  locationId: string
   /** Add a staff member through the staff service, as `add-staff` does, and sign them in. */
   addStaff: (handle: string, roles: StaffRole[], options?: { name?: string }) => Promise<Login>
+  /**
+   * A request to one of the practice's routes, `/api/p/<practice id><path>`, as the web app sends it: as `login` (none
+   * sends no cookie), with the location header (spec 0001, "Tenancy": Request context).
+   */
+  request: (login: Login | undefined, path: string, options?: PracticeCallOptions) => Promise<Response>
 }
 
 /** A practice for the API seam: provisioned with its manager signed in, and the staff service at hand. */
@@ -103,9 +119,19 @@ export async function provisionApiPractice(
 ): Promise<ApiPractice> {
   const practice = await provisionTestPractice(urls, options)
   const manager = await signedIn(practice.slug, practice.managerHandle, TEST_PASSWORD, practice.managerId)
+  const me = (await (await call('/api/me', { cookie: manager.cookie })).json()) as { locations: { id: string }[] }
+  const locationId = me.locations[0]?.id
+  if (!locationId) throw new Error(`${practice.slug} has no location`)
   return {
     ...practice,
     manager,
+    locationId,
+    request: (login, path, { location = locationId, practiceId = practice.practiceId, headers, ...rest } = {}) =>
+      call(`/api/p/${practiceId}${path}`, {
+        ...rest,
+        cookie: login?.cookie,
+        headers: { ...headers, ...(location === null ? {} : { [LOCATION_HEADER]: location }) },
+      }),
     addStaff: async (handle, roles, { name = `Staff ${handle}` } = {}) => {
       const outcome = await addStaff({
         migratorUrl: urls.migrator,

@@ -4,7 +4,11 @@
  */
 
 export * from './auth.js'
+export * from './clients.js'
 export type { components, operations, paths } from './generated/api.js'
 export * from './health.js'
 export * from './me.js'
+export * from './patients.js'
+export * from './phone.js'
+export * from './practice.js'
 export * from './staff.js'

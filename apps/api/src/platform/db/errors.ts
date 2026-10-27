@@ -64,6 +64,22 @@ function incompleteOf(message: string): { rule: IncompleteRule; missing: string 
   return { rule: rule as IncompleteRule, missing }
 }
 
+/** The SQLSTATEs of the key constraints a handler expects to meet: a unique index, an exclusion constraint. */
+const KEY_VIOLATIONS = new Set(['23505', '23P01'])
+
+/**
+ * The unique index or exclusion constraint a failed statement ran into, by name, so a handler answers a known clash
+ * (a microchip already recorded) as a refusal rather than an error; undefined for any other error. Only the name is
+ * read: the error's detail carries the clashing value, which never leaves (scrubError()).
+ * @public
+ */
+export function violatedKeyOf(error: unknown): string | undefined {
+  const root = rootCause(error)
+  if (!root || typeof root !== 'object' || !('code' in root) || typeof root.code !== 'string') return undefined
+  if (!KEY_VIOLATIONS.has(root.code)) return undefined
+  return 'constraint' in root && typeof root.constraint === 'string' ? root.constraint : undefined
+}
+
 /** The Postgres error at the root of the cause chain, when there is one: its SQLSTATE and message. */
 function postgresError(error: unknown): { code: string; message: string } | undefined {
   const root = rootCause(error)

@@ -20,11 +20,12 @@ Each file's own comments say what it owns and why; this index finds the file.
 |---|---|
 | `src/index.ts` | Startup: Sentry first (`instrument.ts`), the config, the server, a clean stop |
 | `src/app.ts` | The `OpenAPIHono` app: middleware, every route, the 404 and 500 handlers |
-| `src/http/` | Route declarations and middleware: `auth.ts` the three Better Auth routes (the allowlist), `me.ts` `/api/me` |
+| `src/http/` | Routes and middleware: `auth.ts` the three Better Auth routes (the allowlist), `me.ts` `/api/me`, `practice-context.ts` every practice route's request context, `registration.ts` #21's routes |
 | `src/openapi.ts` | Writes `packages/contracts/openapi.json` (`pnpm openapi` at the root) |
 | `src/migrate.ts`, `provision-practice.ts`, `add-staff.ts`, `reset-password.ts`, `unlock-login.ts` | The operator commands: arguments and exit codes over their engines |
-| `src/check-migrations.ts` | The order half of `db:check`, a developer and CI tool |
-| `src/modules/` | One folder per bounded context (`README.md`); `identity-access/` holds the staff service |
+| `src/check-migrations.ts`, `src/platform/db/migration-order.ts` | The order half of `db:check` and its check (ADR 0002) |
+| `src/modules/` | One folder per bounded context (`README.md`); `identity-access/` holds the staff service, `client/` and `patient/` registration |
+| `src/platform/request-context.ts`, `practice-registry.ts` | `practiceContext()`, what a practice route's code reads; the registry cache (`docs/practice-routes.md`) |
 | `src/platform/config.ts` | The validated environment: `loadConfig()`, `loadMigratorConfig()`, `configVariables` |
 | `src/platform/auth/` | Better Auth: the instance (`auth.ts`), logins and passwords, the naming rules, the sign in lock, what `auth:check` loads |
 | `src/platform/db/index.ts` | `db()` and the pools, the only place the API creates a database client |
@@ -32,9 +33,8 @@ Each file's own comments say what it owns and why; this index finds the file.
 | `src/platform/db/table-classes.ts` | The table class registry every practice table enters |
 | `src/platform/db/control-schema.ts`, `practice-schema.ts`, `platform-tables.ts`, `domains.ts` | The Drizzle declarations: the two sets, the platform tables, the SQL domains |
 | `src/platform/db/errors.ts` | The rule errors (`vetora.<rule>`, `VT00n`) and `ruleOf()` |
-| `src/platform/db/migration-order.ts` | The order check behind `db:check` (ADR 0002) |
 | `src/platform/db/command-session.ts`, `practice-transaction.ts` | A command's migrator session; `inPractice()`, one transaction in a practice's role |
-| `src/platform/db/test-database.ts`, `test-support.ts`, `test-setup.ts`, `src/test-support.ts` | The test database and its reset; the database tests' helpers; the API seam's helpers (`call()`, `signIn()`, `runCommand()`) |
+| `src/platform/db/test-database.ts`, `test-support.ts`, `test-setup.ts`, `src/test-support.ts` | The test database and its reset; the database tests' helpers; the API seam's (`provisionApiPractice()`, `call()`, `runCommand()`) |
 | `src/rehearsal.test.ts` | The two practice rehearsal through the shipped commands, one walk in order |
 | `src/platform/log.ts`, `problem.ts`, `prompt.ts`, `ids.ts` | The logger (redacted, synchronous, `scrubError()`), problem details, the password prompt, `uuidv7()` |
 | `drizzle/control/`, `drizzle/practice/` | The migration sets, their SQL finished by hand (`docs/database.md`) |
@@ -62,9 +62,10 @@ kamal deploy -c apps/api/config/deploy.yml -d staging   # at the root; a destina
 ## Conventions
 
 - A route is a `createRoute` declaration whose schemas come from `@vetora/contracts`, never an inline shape; the API serves its routes under `/api` itself (kamal-proxy keeps the prefix, Vite proxies it in development).
-- Every error is problem details JSON through `problem()`: 400 for validation (the `defaultHook`), 404 from `notFound`, 500 from `onError`, which scrubs the error, logs it with the request id, and reports it to Sentry.
-- Modules reach each other only through their public interface or domain events, never through each other's tables; only `src/platform/` may import a database client (spec 0001, "Repository layout"). Biome enforces both: `pg` and `drizzle-orm/node-postgres` import only under `src/platform/` (`noRestrictedImports`), and inside `src/modules/` a module's `index.ts` is its public interface while every other export, its `schema.ts` included, is visible only within that module's folder (`noPrivateImports`, package visibility). The same rule reads a platform export as package private unless it is tagged `@public`: the platform tables and the domains carry the tag, so a module's `schema.ts` imports them; a new platform export a module needs gets the tag, not an override. A foreign key to another module's table is a plain `uuid` column in TypeScript (`.references()` only inside the module and to the platform tables); the migration carries the `REFERENCES`, so the database enforces the key and the lint rule keeps the boundary. `db().query` names every table of both schemas, so the import rule, not the type, is the boundary: a module's code reaches its own tables and the platform's.
+- Every error is problem details JSON through `problem()`: 400 for validation (the `defaultHook`), 404 from `notFound`, 500 from `onError`, which scrubs the error, logs it with the request id, and reports it to Sentry; a rule the database refuses answers 409 naming it (`ruleProblem()`).
+- Modules reach each other only through their public interface or domain events, never through each other's tables; only `src/platform/` may import a database client (spec 0001, "Repository layout"). Biome enforces both (`noRestrictedImports`; `noPrivateImports` inside `src/modules/`, where a module's `index.ts` is its interface and a platform export it imports is tagged `@public`); [src/modules/README.md](src/modules/README.md), "The boundary", has the rest, foreign keys across modules included.
 - Database work follows [docs/database.md](docs/database.md): a migration, a table and its registry entry, a trigger or a deferred check, a hand write in psql, or a database test; read it before the first such change in a ticket, and `CODING_STANDARDS.md` holds the change to it at review.
+- A route under `/api/p/:practiceId` follows [docs/practice-routes.md](docs/practice-routes.md): its action, the request context it reads, what it answers before the handler, its tests.
 - Sign in and staff work follows [docs/auth.md](docs/auth.md): Better Auth's three routes, its server side API, the staff service and commands, passwords; read it before the first such change in a ticket. Its last section is signing in locally.
 - Request code runs through the pooler in transaction mode: no session state beyond `SET LOCAL`, no named prepared statements, no advisory locks. `direct()` is for LISTEN and the worker; the commands open their own `pg.Client` on `DATABASE_URL_MIGRATOR`.
 - The commands log ids, slugs, schema and role names, counts, and durations: never a practice's name, address, phone, or tax id, which spec 0002 lists as personal data, and never a staff member's name, handle or password.

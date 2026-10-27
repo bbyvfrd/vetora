@@ -40,11 +40,15 @@
     "groomer": "Groomer"
   },
   "visitsToday": {
-    "title": "Visits today"
+    "title": "Visits today",
+    "newVisit": "New visit"
   },
   "empty": {
     "visitsToday": {
       "title": "No visits today"
+    },
+    "search": {
+      "title": "No results"
     }
   },
   "error": {
@@ -68,9 +72,90 @@
     "offline": {
       "title": "No connection",
       "body": "Check the internet connection. Everything you typed is still here."
+    },
+    "save": {
+      "title": "The changes could not be saved",
+      "body": "Everything you typed is still here. Try again."
     }
   },
   "field": {
-    "required": "Fill in this field"
+    "required": "Fill in this field",
+    "phone": "Enter a phone number as +994 50 123 45 67",
+    "patient": {
+      "name": "Enter the patient's name"
+    },
+    "date": "Enter a date as {{example}}",
+    "birthDate": "The date of birth cannot be in the future",
+    "microchip": "Enter the 15 digits of the microchip",
+    "microchipTaken": "This microchip is recorded for another patient",
+    "dateExample": "12/10/2026"
+  },
+  "newVisit": {
+    "title": "New visit",
+    "search": "Search",
+    "clients": "Clients",
+    "newClient": "New client",
+    "newPatient": "New patient",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "client": {
+    "title": "Client",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "patronymic": "Patronymic",
+    "phone": "Phone",
+    "preferredLanguage": "Preferred language"
+  },
+  "patient": {
+    "title": "Patient",
+    "name": "Name",
+    "species": "Species",
+    "breed": "Breed",
+    "addBreed": "Add breed",
+    "sex": "Sex",
+    "birthDate": "Date of birth",
+    "birthDateEstimated": "Estimated date",
+    "neutered": "Neutered",
+    "colour": "Colour",
+    "microchipNumber": "Microchip number"
+  },
+  "sex": {
+    "female": "Female",
+    "male": "Male",
+    "unknown": "Unknown"
+  },
+  "answer": {
+    "yes": "Yes",
+    "no": "No"
+  },
+  "action": {
+    "add": "Add",
+    "clear": "Clear",
+    "close": "Close",
+    "select": "Select"
+  },
+  "toast": {
+    "patient": {
+      "saved": "Patient saved"
+    }
+  },
+  "warning": {
+    "phoneShared": {
+      "title": "Another client has this phone number",
+      "body": "Check that this is a different person. Both clients keep the number."
+    }
+  },
+  "form": {
+    "check": "Check the marked fields"
+  },
+  "calendar": {
+    "open": "Choose date",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "today": "Today"
+  },
+  "notifications": {
+    "label": "Notifications"
   }
 }
