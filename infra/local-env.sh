@@ -19,8 +19,11 @@
 #   destroy         stop this checkout's containers and delete their volumes (its databases go with them)
 #   gc              the sweep: a worktree whose branch landed on main (commits of its own, merged or its tip a merged
 #                   pull request's head), with nothing uncommitted and no live session holding it, goes with its branch
-#                   and Compose project (prototype/* branches stay); locks whose session is gone are released; Compose
-#                   projects whose worktree is gone are removed; stale worktree records are pruned
+#                   and Compose project (prototype/* branches stay); a worktree the app detached after its session closed
+#                   is judged by its HEAD the same way (commits of its own under it, merged or the head of a merged pull
+#                   request) and takes the branches at that commit with it; one in the middle of a rebase, merge,
+#                   cherry-pick, revert or bisect, or at a prototype/* branch, stays; locks whose session is gone are
+#                   released; Compose projects whose worktree is gone are removed; stale worktree records are pruned
 #   session-start   Claude Code's SessionStart hook (.claude/settings.json): setup, --up inside a worktree when
 #                   Docker runs, the sweep, then a few lines of context on stdout for the agent (the Bash guard's
 #                   rule among them in a worktree)
@@ -40,7 +43,7 @@ GUARD_RULE="In this worktree, create and change source files with the Write and 
 
 die() { echo "local-env: $*" >&2; exit 1; }
 note() { [ "$QUIET" = 1 ] || echo "$*"; }
-usage() { sed -n '2,24p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; }
+usage() { sed -n '2,30p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; }
 
 git_root() { git -C "$ROOT" "$@"; }
 
@@ -245,38 +248,87 @@ project_of() { env_value "$1/.env" COMPOSE_PROJECT_NAME; }
 compose_down_project() { docker compose -p "$1" down -v --remove-orphans >/dev/null 2>&1 || true; }
 lock_pid() { printf '%s' "$1" | sed -n 's/.*pid \([0-9][0-9]*\).*/\1/p'; }
 
-# has_own_commits <branch>: its reflog records a commit made on it (a commit, an amend, a merge commit, a cherry-pick
-# or a revert). Being created, fast-forwarded to main or reset makes none: such a branch holds no work of its own.
-# grep reads to the end (no -q), so pipefail never sees git stopped by a closed pipe.
+# has_own_commits <git dir> <ref>: its reflog records a commit made on it (a commit, an amend, a merge commit, a
+# cherry-pick or a revert). Being created, fast-forwarded to main or reset makes none: such a ref holds no work of its
+# own. grep reads to the end (no -q), so pipefail never sees git stopped by a closed pipe.
 has_own_commits() {
-  git_root reflog show --format=%gs "refs/heads/$1" -- 2>/dev/null |
+  git -C "$1" reflog show --format=%gs "$2" -- 2>/dev/null |
     grep -E '^(commit|cherry-pick|revert)( \([a-z]+\))?: |: Merge made by ' >/dev/null
 }
 
-# branch_landed <branch>: it has commits of its own, and is merged into main or its tip is the head of a merged pull
-# request (a squash merge leaves no ancestor). A branch with none has nothing to land, though it is an ancestor of
-# main from the moment it is cut: the worktree of a session that has not committed yet. A merged pull request under
-# the branch's name with another head landed something else: the name reused, or commits made after the merge.
-branch_landed() {
-  local tip n
-  has_own_commits "$1" || return 1
-  if git_root merge-base --is-ancestor "refs/heads/$1" main 2>/dev/null; then return 0; fi
+# commit_landed <sha>: it is merged into main or is the head of a merged pull request (a squash merge leaves no
+# ancestor). GitHub finds the pull requests of a commit; one whose head is another commit landed something else: a
+# branch name reused, or commits made after the merge.
+commit_landed() {
+  local n
+  if git_root merge-base --is-ancestor "$1" main 2>/dev/null; then return 0; fi
   if command -v gh >/dev/null 2>&1; then
-    tip=$(git_root rev-parse "refs/heads/$1")
-    n=$(cd "$ROOT" && gh pr list --head "$1" --state merged --json headRefOid \
-      --jq "map(select(.headRefOid == \"$tip\")) | length" 2>/dev/null) || n=0
+    n=$(cd "$ROOT" && gh api "repos/{owner}/{repo}/commits/$1/pulls" \
+      --jq "map(select(.merged_at != null and .head.sha == \"$1\")) | length" 2>/dev/null) || n=0
     if [ "${n:-0}" -gt 0 ]; then return 0; fi
   fi
   return 1
 }
 
-# sweep_one <path> <branch> <is_locked> <lock_reason>: one worktree of the list; prints only what it did or left.
+# branch_landed <branch>: it has commits of its own, and its tip has landed. A branch with none has nothing to land,
+# though it is an ancestor of main from the moment it is cut: the worktree of a session that has not committed yet.
+branch_landed() {
+  has_own_commits "$ROOT" "refs/heads/$1" || return 1
+  commit_landed "$(git_root rev-parse "refs/heads/$1")"
+}
+
+# mid_operation <path>: a rebase, merge, cherry-pick, revert or bisect is under way there. Git lists such a worktree as
+# detached too, though its HEAD only passes through commits on the way to a branch.
+mid_operation() {
+  local gitdir f
+  gitdir=$(git -C "$1" rev-parse --absolute-git-dir 2>/dev/null) || return 0
+  for f in rebase-merge rebase-apply MERGE_HEAD CHERRY_PICK_HEAD REVERT_HEAD BISECT_LOG; do
+    if [ -e "$gitdir/$f" ]; then return 0; fi
+  done
+  return 1
+}
+
+# head_has_own_commits <path> <sha>: the worktree's HEAD reflog records a commit made there (a commit, an amend, a merge
+# commit, a cherry-pick, a revert, or one a rebase replayed) that is <sha> or lies under it. That reflog follows every
+# branch the worktree has had, so the commits of a branch left behind when HEAD moved on to look at main do not count.
+head_has_own_commits() {
+  local sha
+  for sha in $(git -C "$1" reflog show --format='%H %gs' HEAD -- 2>/dev/null |
+    sed -nE -e 's/^([0-9a-f]+) ((commit|cherry-pick|revert)( \([a-z]+\))?|rebase( -i)? \((pick|fixup|squash|reword|continue)\)): .*/\1/p' \
+      -e 's/^([0-9a-f]+) .*: Merge made by .*/\1/p'); do
+    if git_root merge-base --is-ancestor "$sha" "$2" 2>/dev/null; then return 0; fi
+  done
+  return 1
+}
+
+# head_landed <path> <sha>: the same as branch_landed, for a worktree on a detached HEAD, which has no branch to ask
+# about (the app detaches the worktree of a session that was closed and leaves its branch behind).
+head_landed() {
+  head_has_own_commits "$1" "$2" || return 1
+  commit_landed "$2"
+}
+
+# drop_branches_at <sha>: delete the local branches that have commits of their own and sit on that landed commit, and
+# print their names (a branch cut there and not yet committed to stays). Git refuses a branch another worktree has
+# checked out.
+drop_branches_at() {
+  local b dropped=""
+  for b in $(git_root for-each-ref --points-at "$1" --format='%(refname:short)' refs/heads/); do
+    case $b in main | prototype/*) continue ;; esac
+    has_own_commits "$ROOT" "refs/heads/$b" || continue
+    if git_root branch -D "$b" >/dev/null 2>&1; then dropped="${dropped:+$dropped, }$b"; fi
+  done
+  printf '%s' "$dropped"
+}
+
+# sweep_one <path> <branch> <is_locked> <lock_reason> <head>: one worktree of the list; prints only what it did or
+# left. A detached worktree has no branch, only its head.
 sweep_one() {
-  local path=$1 branch=$2 is_locked=$3 reason=$4 real pid project
+  local path=$1 branch=$2 is_locked=$3 reason=$4 head=$5 real pid project subject removed gone
   [ -d "$path" ] || return 0
   real=$(cd "$path" && pwd -P)
   [ "$real" = "$MAIN_PATH" ] && return 0
-  [ -z "$branch" ] && return 0
+  [ -z "$branch" ] && [ -z "$head" ] && return 0
   case $branch in prototype/*) return 0 ;; esac
   if [ "$is_locked" = 1 ]; then
     pid=$(lock_pid "$reason")
@@ -286,39 +338,54 @@ sweep_one() {
       return 0
     fi
   fi
-  branch_landed "$branch" || return 0
+  if [ -n "$branch" ]; then
+    branch_landed "$branch" || return 0
+    subject=$branch
+  else
+    mid_operation "$path" && return 0
+    [ -n "$(git_root for-each-ref --points-at "$head" --format=x refs/heads/prototype/)" ] && return 0
+    head_landed "$path" "$head" || return 0
+    subject="the detached HEAD ${head:0:7}"
+  fi
   if [ -n "$(git -C "$path" status --porcelain 2>/dev/null)" ]; then
-    echo "$branch has landed on main, but $path has uncommitted changes: left in place"
+    echo "$subject has landed on main, but $path has uncommitted changes: left in place"
     return 0
   fi
   if [ "$real" = "$ROOT" ]; then
-    echo "$branch has landed on main, but this checkout runs the sweep: pnpm local:gc from the main folder removes it"
+    echo "$subject has landed on main, but this checkout runs the sweep: pnpm local:gc from the main folder removes it"
     return 0
   fi
   project=$(project_of "$path")
   if [ -n "$project" ] && docker_ok; then compose_down_project "$project"; fi
   if git_root worktree remove "$path" 2>/dev/null; then
-    git_root branch -D "$branch" >/dev/null 2>&1 || true
-    echo "removed $path with its branch $branch${project:+ and Compose project $project}: its work has landed on main"
+    if [ -n "$branch" ]; then
+      git_root branch -D "$branch" >/dev/null 2>&1 || true
+      removed="$path with its branch $branch"
+    else
+      gone=$(drop_branches_at "$head")
+      removed="$path (detached at ${head:0:7})${gone:+ with its branch $gone}"
+    fi
+    echo "removed $removed${project:+ and Compose project $project}: its work has landed on main"
   else
-    echo "$branch has landed on main, but git refused to remove $path: git worktree remove --force '$path'"
+    echo "$subject has landed on main, but git refused to remove $path: git worktree remove --force '$path'"
   fi
 }
 
 # Every worktree git lists, one block of porcelain each (the first block is the main checkout).
 sweep_landed_worktrees() {
-  local line path="" branch="" is_locked=0 reason=""
+  local line path="" branch="" head="" is_locked=0 reason=""
   MAIN_PATH=$(cd "$(git_root worktree list --porcelain | sed -n '1s/^worktree //p')" && pwd -P)
   git_root worktree list --porcelain | {
     while IFS= read -r line || [ -n "$line" ]; do
       case $line in
         "worktree "*) path=${line#worktree } ;;
+        "HEAD "*) head=${line#HEAD } ;;
         "branch refs/heads/"*) branch=${line#branch refs/heads/} ;;
         locked*) is_locked=1; reason=${line#locked}; reason=${reason# } ;;
-        "") sweep_one "$path" "$branch" "$is_locked" "$reason"; path=""; branch=""; is_locked=0; reason="" ;;
+        "") sweep_one "$path" "$branch" "$is_locked" "$reason" "$head"; path=""; branch=""; head=""; is_locked=0; reason="" ;;
       esac
     done
-    if [ -n "$path" ]; then sweep_one "$path" "$branch" "$is_locked" "$reason"; fi
+    if [ -n "$path" ]; then sweep_one "$path" "$branch" "$is_locked" "$reason" "$head"; fi
     true
   }
 }
